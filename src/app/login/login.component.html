@@ -1,0 +1,22 @@
+<div class="flex flex-col items-center justify-center min-h-screen bg-gray-100">
+  <div class="bg-white p-6 rounded-xl shadow-md w-96">
+    <h2 class="text-2xl font-bold mb-4 text-center">🔐 Iniciar Sesión</h2>
+
+    <label>👤 Usuario:</label>
+    <input type="text" [(ngModel)]="usuario" class="border rounded p-2 w-full mb-3" />
+
+    <label>🔑 Contraseña:</label>
+    <input type="password" [(ngModel)]="password" class="border rounded p-2 w-full mb-3" />
+
+    <label>🏢 Empresa:</label>
+    <select [(ngModel)]="empresa" class="border rounded p-2 w-full mb-4">
+      <option *ngFor="let e of empresas" [value]="e.nombre">
+        {{ e.nombre }} ({{ e.cedula }})
+      </option>
+    </select>
+
+    <button (click)="ingresar()" class="bg-blue-600 text-white rounded p-2 w-full hover:bg-blue-700">
+      Ingresar
+    </button>
+  </div>
+</div>

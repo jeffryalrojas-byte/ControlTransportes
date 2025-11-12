@@ -1,0 +1,98 @@
+<h2>Gestión de Recursos Humanos</h2>
+
+<div class="form">
+  <input placeholder="Cédula" [(ngModel)]="cedula">
+  <input placeholder="Nombre" [(ngModel)]="nombre">
+  <input placeholder="Puesto" [(ngModel)]="puesto">
+  <label>Fecha de ingreso:</label>
+  <input type="date" [(ngModel)]="fechaIngreso">
+
+  <label>Tipo de pago:</label>
+  <select [(ngModel)]="tipoPago">
+    <option value="mensual">Mensual</option>
+    <option value="diario">Por día</option>
+  </select>
+
+  <div *ngIf="tipoPago === 'mensual'">
+    <label>Salario Mensual:</label>
+    <input type="number" placeholder="Salario mensual" [(ngModel)]="salarioMensual">
+  </div>
+
+  <div *ngIf="tipoPago === 'diario'">
+    <label>Salario por día:</label>
+    <input type="number" placeholder="Salario por día" [(ngModel)]="salarioDiario">
+  </div>
+
+  <label>Tipo de contrato:</label>
+  <select [(ngModel)]="tipoContrato">
+    <option value="indefinido">Indefinido</option>
+    <option value="definido">Definido</option>
+  </select>
+
+  <div *ngIf="tipoContrato === 'definido'">
+    <label>Fecha fin de contrato:</label>
+    <input type="date" [(ngModel)]="fechaFinContrato">
+  </div>
+
+  <button (click)="agregar()">{{ editando ? 'Guardar cambios' : 'Agregar empleado' }}</button>
+  <button *ngIf="editando" (click)="limpiarFormulario()">Cancelar</button>
+</div>
+
+<hr>
+
+<h3>Lista de empleados</h3>
+
+<table border="1" cellpadding="6" *ngIf="empleados.length > 0">
+  <thead>
+    <tr>
+      <th>Cédula</th>
+      <th>Nombre</th>
+      <th>Puesto</th>
+      <th>Fecha Ingreso</th>
+      <th>Tipo Pago</th>
+      <th>Salario</th>
+      <th>Tipo Contrato</th>
+      <th>Fecha Fin</th>
+      <th>Vacaciones Pendientes</th>
+      <th>Incapacidades</th>
+      <th>Aguinaldo aprox.</th>
+      <th>Acciones</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let e of empleados">
+      <td>{{ e.cedula }}</td>
+      <td>{{ e.nombre }}</td>
+      <td>{{ e.puesto }}</td>
+      <td>{{ e.fechaIngreso }}</td>
+      <td>{{ e.tipoPago }}</td>
+      <td>
+        {{ e.tipoPago === 'mensual' ? (e.salarioMensual | currency:'CRC') : (e.salarioDiario | currency:'CRC') }}
+      </td>
+      <td>{{ e.tipoContrato }}</td>
+      <td>{{ e.tipoContrato === 'definido' ? e.fechaFinContrato : '-' }}</td>
+      <td>
+        <div *ngIf="diasVacaciones[e.id]">
+          <ng-container *ngFor="let periodo of (diasVacaciones[e.id] | keyvalue : vacacionKeyValueFn)">
+            <div *ngIf="periodo.value > 0">
+              {{ periodo.key }}: {{ periodo.value }} días
+            </div>
+          </ng-container>
+          <!-- Si no hay ningún periodo con días > 0 -->
+          <div *ngIf="!tieneVacacionesPendientes(e.id)">
+            Sin vacaciones pendientes
+          </div>
+        </div>
+      </td>
+
+      <td>"Aqui va la incapacidad..."</td>
+      <td>{{ aguinaldos[e.id] | currency:'CRC' }}</td>
+      <td>
+        <button (click)="editar(e)">✏️</button>
+        <button *ngIf="puedeEliminar()" (click)="eliminar(e.id)">🗑 Eliminar</button>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<p *ngIf="empleados.length === 0">No hay empleados registrados.</p>

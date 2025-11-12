@@ -1,0 +1,73 @@
+<h2>💼 Planilla Mensual</h2>
+
+<label>📅 Mes:</label>
+<input type="month" [(ngModel)]="mesActual" (change)="onMesChange()">
+<button (click)="guardarPlanilla()">Guardar planilla</button>
+
+<hr>
+
+<table border="1" cellpadding="6">
+  <thead>
+    <tr>
+      <th>Nombre</th>
+      <th>Puesto</th>
+      <th>Tipo Pago</th>
+      <th>Salario Base</th>
+      <th>Días Trabajados</th>
+      <th>Salario Bruto</th>
+      <th>Rebajos Trabajador</th>
+      <th>Salario Neto</th>
+      <th>Cargas Patronales</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let e of empleados">
+      <td>{{ e.nombre }}</td>
+      <td>{{ e.puesto }}</td>
+      <td>{{ e.tipoPago }}</td>
+      <td>
+        {{ e.salarioBase | currency:'CRC' }}
+      </td>
+      <td>
+        <input *ngIf="e.tipoPago === 'diario'" type="number" min="0" [(ngModel)]="diasTrabajados[e.id]"
+          (change)="actualizarDias(+e.id, $event)" style="width: 70px">
+        <span *ngIf="e.tipoPago === 'mensual'">N/A</span>
+      </td>
+      <td>{{ salarioBruto(e) | currency:'CRC' }}</td>
+      <td>{{ rebajosTrabajador(e) | currency:'CRC' }}</td>
+      <td>{{ salarioNeto(e) | currency:'CRC' }}</td>
+      <td>{{ cargaPatronal(e) | currency:'CRC' }}</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr>
+
+<p><strong>💰 Total Planilla (Neto):</strong> {{ totalNeto | currency:'CRC' }}</p>
+<p><strong>🏦 Total Cargas Patronales:</strong> {{ totalCargas | currency:'CRC' }}</p>
+
+<hr>
+
+<h3>📚 Histórico de planillas guardadas</h3>
+<table border="1" cellpadding="6">
+  <thead>
+    <tr>
+      <th>Mes</th>
+      <th>Fecha de Creación</th>
+      <th>Total Neto</th>
+      <th>Total Cargas</th>
+      <th>Acciones</th> <!-- nueva columna -->
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let p of planillas; let i = index">
+      <td>{{ p.mes }}</td>
+      <td>{{ p.fechaCreacion }}</td>
+      <td>{{ p.totalNeto | currency:'CRC' }}</td>
+      <td>{{ p.totalCargas | currency:'CRC' }}</td>
+      <td>
+        <button (click)="eliminarPlanilla(i)">❌ Eliminar</button>
+      </td>
+    </tr>
+  </tbody>
+</table>

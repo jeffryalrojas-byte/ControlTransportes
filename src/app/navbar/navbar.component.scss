@@ -1,0 +1,48 @@
+.navbar {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background: #2c3e50;
+    padding: 10px 15px;
+    border-radius: 8px;
+    color: #ecf0f1;
+    flex-wrap: wrap;
+    /* permite que el contenido se acomode si se reduce el ancho */
+}
+
+.navbar a {
+    color: #ecf0f1;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.2s ease-in-out;
+}
+
+.navbar a:hover {
+    color: #1abc9c;
+    /* efecto hover sutil */
+}
+
+.navbar a.active {
+    color: #2ecc71;
+}
+
+/* 🔹 Nueva sección para mostrar la empresa */
+.empresa-info {
+    margin-right: auto;
+    /* empuja el resto de los enlaces hacia la derecha */
+    line-height: 1.2;
+    font-size: 14px;
+    color: #ecf0f1;
+}
+
+.empresa-info strong {
+    display: block;
+    font-size: 15px;
+    color: #f1c40f;
+    /* dorado suave para destacar el nombre */
+}
+
+.empresa-info small {
+    font-size: 13px;
+    opacity: 0.8;
+}

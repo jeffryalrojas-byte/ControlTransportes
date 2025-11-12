@@ -1,0 +1,16 @@
+<nav class="navbar">
+  <div class="empresa-info">
+    <strong>{{ nombreEmpresa }}</strong>
+    <small>Cédula: {{ cedulaEmpresa }}</small>
+  </div>
+
+  <a routerLink="/rrhh" routerLinkActive="active">👷‍♂️ RRHH</a>
+  <a routerLink="/planilla" routerLinkActive="active">💰 Planilla</a>
+  <a routerLink="/finanzas" routerLinkActive="active">📊 Finanzas</a>
+  <a routerLink="/vacaciones" routerLinkActive="active">🌴 Vacaciones</a>
+  <a routerLink="/incapacidades" routerLinkActive="active">🤒 Incapacidades/Permiso sin Goce</a>
+  <a *ngIf="puedeEditar()" routerLink="/configuracion" routerLinkActive="active">⚙️ Configuración</a>
+
+  <button (click)="logout()">🚪 Cerrar sesión</button>
+</nav>
+<hr>

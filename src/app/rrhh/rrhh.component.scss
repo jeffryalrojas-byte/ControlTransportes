@@ -1,0 +1,46 @@
+.form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.form input,
+.form select,
+.form button {
+    padding: 6px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    flex: 1 1 180px;
+    /* 🔹 da espacio suficiente para ver el placeholder */
+    min-width: 160px;
+}
+
+button {
+    background-color: #1976d2;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 6px;
+    padding: 6px 12px;
+}
+
+button:hover {
+    background-color: #125a9c;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+th {
+    background-color: #e3f2fd;
+}
+
+td,
+th {
+    padding: 6px;
+    text-align: center;
+}

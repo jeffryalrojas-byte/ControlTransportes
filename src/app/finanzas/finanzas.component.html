@@ -1,0 +1,49 @@
+<h2>📊 Control Financiero</h2>
+
+<div class="form">
+  <input placeholder="Descripción" [(ngModel)]="descripcion">
+  <input type="number" placeholder="Monto" [ngModel]="monto" (ngModelChange)="monto = +$event">
+  <select [(ngModel)]="tipo">
+    <option value="ingreso">Ingreso</option>
+    <option value="gasto">Gasto</option>
+  </select>
+  <button (click)="agregar()">Agregar</button>
+</div>
+
+<hr>
+
+<table border="1" cellpadding="4" width="100%">
+  <thead>
+    <tr>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Monto</th>
+      <th>Acciones</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <tr *ngFor="let m of movimientos">
+      <td>{{ m.descripcion }}</td>
+      <td [ngStyle]="{'color': m.tipo === 'ingreso' ? 'green' : 'red'}">
+        {{ m.tipo | uppercase }}
+      </td>
+      <td [ngStyle]="{'color': m.tipo === 'ingreso' ? 'green' : 'red'}">
+        {{ m.monto | currency:'CRC' }}
+      </td>
+      <td><button (click)="eliminar(m.id)">❌</button></td>
+    </tr>
+  </tbody>
+</table>
+
+<hr>
+
+<div class="resumen">
+  <p>💵 Total Ingresos: <strong>{{ totalIngresos() | currency:'CRC' }}</strong></p>
+  <p>💸 Total Gastos: <strong>{{ totalGastos() | currency:'CRC' }}</strong></p>
+  <p>🧾 Balance Final: 
+    <strong [ngStyle]="{'color': balance() >= 0 ? 'green' : 'red'}">
+      {{ balance() | currency:'CRC' }}
+    </strong>
+  </p>
+</div>

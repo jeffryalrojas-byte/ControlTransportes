@@ -1,0 +1,35 @@
+<h2>⚙️ Configuración de Cargas Sociales</h2>
+
+<div class="config-form">
+  <label>🧾 CCSS Trabajador:</label>
+  <input type="number" step="0.01" [(ngModel)]="cargas.ccssTrabajador" /> %
+
+  <label>🏢 CCSS Patrono:</label>
+  <input type="number" step="0.01" [(ngModel)]="cargas.ccssPatrono" /> %
+
+  <br />
+  <button (click)="guardarCambios()">💾 Guardar Cambios</button>
+</div>
+
+<hr>
+
+<h3>📜 Historial de Configuraciones Guardadas</h3>
+<table border="1" cellpadding="6" *ngIf="historico.length > 0">
+  <thead>
+    <tr>
+      <th>Fecha</th>
+      <th>CCSS Trabajador</th>
+      <th>CCSS Patrono</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let h of historico">
+      <td>{{ h.fecha }}</td>
+      <td>{{ (h.ccssTrabajador * 100) | number:'1.2-2' }} %</td>
+      <td>{{ (h.ccssPatrono * 100) | number:'1.2-2' }} %</td>
+    </tr>
+  </tbody>
+</table>
+
+<p *ngIf="historico.length === 0">No hay configuraciones guardadas aún.</p>
+

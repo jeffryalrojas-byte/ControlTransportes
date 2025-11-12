@@ -1,0 +1,55 @@
+<h2>🌴 Control de Vacaciones</h2>
+
+<div class="form">
+  <label>Empleado:</label>
+  <select [(ngModel)]="empleadoId" (change)="cargarSolicitudes()">
+    <option value="" disabled selected>Seleccione un empleado</option>
+    <option *ngFor="let e of empleados" [value]="e.id">
+      {{ e.nombre }} ({{ e.cedula }})
+    </option>
+  </select>
+
+  <label>Desde:</label>
+  <input type="date" [(ngModel)]="fechaInicio">
+
+  <label>Hasta:</label>
+  <input type="date" [(ngModel)]="fechaFin">
+
+  <label>Cantidad de días:</label>
+  <input type="number" [(ngModel)]="diasSolicitados" min="1">
+
+  <label>Observación:</label>
+  <textarea [(ngModel)]="observacion"></textarea>
+
+  <button (click)="registrar()">Registrar solicitud</button>
+</div>
+
+<hr>
+
+<h3>Solicitudes del empleado</h3>
+<table border="1" *ngIf="solicitudes.length > 0">
+  <thead>
+    <tr>
+      <th>Periodo</th>
+      <th>Desde</th>
+      <th>Hasta</th>
+      <th>Días</th>
+      <th>Observación</th>
+      <th>Acciones</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let s of solicitudes">
+      <td>{{ s.periodo }}</td>
+      <td>{{ s.fechaInicio }}</td>
+      <td>{{ s.fechaFin }}</td>
+      <td>{{ s.diasSolicitados }}</td>
+      <td>{{ s.observacion }}</td>
+      <td>
+        <button (click)="eliminarSolicitud(s.id)">🗑️ Eliminar</button>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<p *ngIf="solicitudes.length === 0">No hay solicitudes registradas.</p>

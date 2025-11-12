@@ -1,0 +1,136 @@
+<h2>🏥 Registrar Incapacidad o permiso sin goce</h2>
+
+<div class="form">
+    <label>Empleado:</label>
+    <select [(ngModel)]="empleadoId">
+        <option value="" disabled selected>Seleccione un empleado</option>
+        <option *ngFor="let e of empleados" [value]="e.id">
+            {{ e.nombre }} ({{ e.cedula }})
+        </option>
+    </select>
+    <label>Tipo de incapacidad o permiso:</label>
+    <select [(ngModel)]="tipo">
+        <option value="" disabled selected>Seleccione el tipo</option>
+        <option value="enfermedad">Enfermedad</option>
+        <option value="accidente">Accidente laboral</option>
+        <option value="maternidad">Maternidad</option>
+        <option value="permisosg">Permiso sin goce salarial</option>
+    </select>
+
+    <label>Fecha inicio:</label>
+    <input type="date" [(ngModel)]="fechaInicio" (change)="calcularDias()">
+
+    <label>Fecha fin:</label>
+    <input type="date" [(ngModel)]="fechaFin" (change)="calcularDias()">
+
+    <button (click)="guardarIncapacidad()">💾 Registrar incapacidad</button>
+    <button (click)="limpiarCampos()">🧹 Limpiar</button>
+    <button class="info-btn" (click)="mostrarInfo = !mostrarInfo">
+        📘 Información de reglamento
+    </button>
+
+    <p *ngIf="fechaInicio && fechaFin">🗓 Total días: {{ calcularDias() }}</p>
+</div>
+
+<!-- Panel informativo -->
+<div class="info-panel" *ngIf="mostrarInfo">
+    <h3>📋 Reglamento sobre incapacidades</h3>
+    <p>
+        🔹 <strong>Días 1 al 3:</strong> El patrono paga el <strong>50%</strong> del salario diario.
+        La CCSS no cubre incapacidades menores a 3 días.
+    </p>
+    <p>
+        🔹 <strong>Del día 4 en adelante:</strong> La <strong>CCSS paga el 60%</strong> del salario promedio reportado.
+        El patrono ya no tiene obligación de pagar.
+    </p>
+    <p>
+        🔹 <strong>Accidente laboral:</strong> El <strong>INS paga el 67%</strong> del salario desde el primer día.
+    </p>
+    <p>
+        🔹 <strong>Maternidad:</strong> La CCSS paga el <strong>100%</strong> del salario (1 mes antes y 3 meses después
+        del parto).
+    </p>
+
+    <h4>⚖️ Base legal</h4>
+    <ul>
+        <li><strong>CCSS:</strong> Reglamento del Seguro de Salud, artículos 79, 80, 92 y 93.</li>
+        <li><strong>Código de Trabajo:</strong> Artículo 231 (Riesgos del Trabajo).</li>
+    </ul>
+</div>
+
+<hr>
+
+<h2>📋 Incapacidades Registradas</h2>
+
+<table border="1" cellpadding="6">
+    <thead>
+        <tr>
+            <th>Empleado</th>
+            <th>Tipo</th>
+            <th>Fecha Inicio</th>
+            <th>Fecha Fin</th>
+            <th>Días</th>
+            <th>🗓 Mes</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr *ngFor="let i of incapacidades">
+            <td>{{ obtenerNombreEmpleado(i.empleadoId) }}</td>
+            <td>
+                {{ i.tipo === 'enfermedad' ? 'Enfermedad' : i.tipo === 'accidente' ? 'Accidente laboral' : i.tipo ===
+                'permisosg' ? 'Permiso sin goce' : 'Maternidad'
+                }}
+            </td>
+            <td>{{ i.fechaInicio }}</td>
+            <td>{{ i.fechaFin }}</td>
+            <td>{{ i.dias }}</td>
+            <td>{{ formatearMes(i.mes) }}</td>
+            <td>
+                <button (click)="eliminar(i.id)">🗑️ Eliminar</button>
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+
+<style>
+    .info-btn {
+        margin-left: 10px;
+        background-color: #1976d2;
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+    .info-btn:hover {
+        background-color: #125ca3;
+    }
+
+    .info-panel {
+        background-color: #f7faff;
+        border-left: 4px solid #1976d2;
+        padding: 15px;
+        margin-top: 12px;
+        border-radius: 8px;
+        font-size: 14px;
+        line-height: 1.5;
+    }
+
+    .info-panel h3 {
+        margin-top: 0;
+        color: #0a4fa0;
+    }
+
+    .info-panel ul {
+        margin: 8px 0;
+        padding-left: 20px;
+    }
+
+    .info-panel li {
+        margin-bottom: 4px;
+    }
+</style>
