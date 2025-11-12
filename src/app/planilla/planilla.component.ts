@@ -18,7 +18,7 @@ interface Planilla {
   totalNeto: number;
   totalCargas: number;
   detalleEmpleados: { id: number; salarioNeto: number }[];
-  cedulaEmpresa: string; // 🔹 NUEVO: identifica a qué empresa pertenece la planilla
+  empresaCedula: string; // 🔹 NUEVO: identifica a qué empresa pertenece la planilla
 }
 
 @Component({
@@ -39,7 +39,7 @@ export class PlanillaComponent implements OnInit {
   totalNeto = 0;
   totalCargas = 0;
 
-  cedulaEmpresaActual: string | null = null; // 🔹 para filtrar y guardar según empresa
+  empresaCedulaActual: string | null = null; // 🔹 para filtrar y guardar según empresa
 
   constructor(
     private configuracionService: ConfiguracionService,
@@ -51,8 +51,8 @@ export class PlanillaComponent implements OnInit {
     this.medirEspacioLocalStorage();
 
     // 🔹 Obtener empresa activa
-    this.cedulaEmpresaActual = this.sesionService.getCedulaEmpresaActual();
-    if (!this.cedulaEmpresaActual) {
+    this.empresaCedulaActual = this.sesionService.getCedulaEmpresaActual();
+    if (!this.empresaCedulaActual) {
       alert('⚠️ No se encontró una empresa activa. Inicia sesión nuevamente.');
       return;
     }
@@ -68,7 +68,7 @@ export class PlanillaComponent implements OnInit {
       const parsed = JSON.parse(empleadosData);
 
       // 🔹 Filtrar empleados de la empresa actual
-      const empleadosEmpresa = parsed.filter((e: any) => e.empresaCedula === this.cedulaEmpresaActual);
+      const empleadosEmpresa = parsed.filter((e: any) => e.empresaCedula === this.empresaCedulaActual);
 
       this.empleados = empleadosEmpresa.map((e: any) => ({
         id: e.id,
@@ -91,7 +91,7 @@ export class PlanillaComponent implements OnInit {
     // 🔹 Filtrar planillas por empresa activa
     if (planillasData) {
       const todas = JSON.parse(planillasData);
-      this.planillas = todas.filter((p: Planilla) => p.cedulaEmpresa === this.cedulaEmpresaActual);
+      this.planillas = todas.filter((p: Planilla) => p.empresaCedula === this.empresaCedulaActual);
     }
 
     this.empleados.forEach(e => {
@@ -174,7 +174,7 @@ export class PlanillaComponent implements OnInit {
       return;
     }
 
-    if (!this.cedulaEmpresaActual) {
+    if (!this.empresaCedulaActual) {
       alert('No se puede guardar planilla sin una empresa activa.');
       return;
     }
@@ -190,7 +190,7 @@ export class PlanillaComponent implements OnInit {
         id: e.id,
         salarioNeto: this.salarioNeto(e)
       })),
-      cedulaEmpresa: this.cedulaEmpresaActual // 🔹 Guardamos la empresa
+      empresaCedula: this.empresaCedulaActual // 🔹 Guardamos la empresa
     };
 
     // 🔹 Cargar todas las planillas y actualizar
@@ -199,9 +199,9 @@ export class PlanillaComponent implements OnInit {
     localStorage.setItem('planillas', JSON.stringify(todasPlanillas));
 
     // 🔹 Actualizamos solo las visibles de la empresa activa
-    this.planillas = todasPlanillas.filter((p: Planilla) => p.cedulaEmpresa === this.cedulaEmpresaActual);
+    this.planillas = todasPlanillas.filter((p: Planilla) => p.empresaCedula === this.empresaCedulaActual);
 
-    alert(`✅ Planilla del mes ${this.mesActual} guardada con éxito para la empresa ${this.cedulaEmpresaActual}.`);
+    alert(`✅ Planilla del mes ${this.mesActual} guardada con éxito para la empresa ${this.empresaCedulaActual}.`);
     this.mesActual = '';
   }
 
@@ -214,13 +214,13 @@ export class PlanillaComponent implements OnInit {
     // 🔹 Filtramos todas las planillas excepto la eliminada
     const restantes = planillasData.filter(
       (p: Planilla, i: number) =>
-        !(p.cedulaEmpresa === this.cedulaEmpresaActual && i === index)
+        !(p.empresaCedula === this.empresaCedulaActual && i === index)
     );
 
     localStorage.setItem('planillas', JSON.stringify(restantes));
 
     // 🔹 Actualizamos lista local
-    this.planillas = restantes.filter((p: Planilla) => p.cedulaEmpresa === this.cedulaEmpresaActual);
+    this.planillas = restantes.filter((p: Planilla) => p.empresaCedula === this.empresaCedulaActual);
     this.calcularTotales();
   }
 
