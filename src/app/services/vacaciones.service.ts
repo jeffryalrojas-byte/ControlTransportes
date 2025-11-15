@@ -1,4 +1,9 @@
 import { Injectable } from '@angular/core';
+import { AngularFirestore } from '@angular/fire/firestore';
+import { v4 as uuid } from 'uuid';
+import { map } from 'rxjs/operators';
+import { Observable } from 'rxjs';
+import { SesionService } from './sesion.service';
 
 export interface SolicitudVacaciones {
   id: string;
@@ -8,137 +13,108 @@ export interface SolicitudVacaciones {
   diasSolicitados: number;
   observacion: string;
   periodo?: string;
-  empresaId?: string; // 🟢 nueva propiedad
+  empresaId?: string;
 }
 
 @Injectable({
   providedIn: 'root'
 })
 export class VacacionesService {
-  private readonly STORAGE_KEY = 'solicitudes_vacaciones';
 
-  constructor() { }
+  constructor(private afs: AngularFirestore,
+    private sesionService: SesionService
+  ) { }
 
-  private guardarEnLocalStorage(solicitudes: SolicitudVacaciones[]) {
-    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(solicitudes));
+  // Obtener la empresa actual
+  private obtenerEmpresaCedula(): string {
+    return this.sesionService.getCedulaEmpresaActual() || 'sin_cedula';
   }
 
-  private cargarDesdeLocalStorage(): SolicitudVacaciones[] {
-    const data = localStorage.getItem(this.STORAGE_KEY);
-    return data ? JSON.parse(data) : [];
-  }
-
+  // Calcular el período de vacaciones, por ejemplo: "2023-2024"
   private calcularPeriodo(fechaIngreso: Date, fechaSolicitud: Date): string {
-    let inicioPeriodo = new Date(fechaIngreso);
-    let finPeriodo = new Date(inicioPeriodo);
-    finPeriodo.setFullYear(finPeriodo.getFullYear() + 1);
-
-    while (fechaSolicitud >= finPeriodo) {
-      inicioPeriodo = new Date(finPeriodo);
-      finPeriodo.setFullYear(finPeriodo.getFullYear() + 1);
-    }
-
-    return `${inicioPeriodo.getFullYear()}-${finPeriodo.getFullYear()}`;
-  }
-
-  /** ➕ Registrar solicitud asociada a la empresa actual */
-  registrarSolicitud(solicitud: SolicitudVacaciones) {
-    const solicitudes = this.cargarDesdeLocalStorage();
-
-    // 🟢 Obtener empresa actual desde usuarioActivo
-    const userData = localStorage.getItem('usuarioActivo');
-    const usuario = userData ? JSON.parse(userData) : null;
-    const empresaId = usuario?.empresa?.id || usuario?.empresa || 'desconocida';
-
-    // Buscar empleado para calcular el período
-    const empleados = JSON.parse(localStorage.getItem('empleados') || '[]');
-    const empleado = empleados.find((e: any) => e.id === solicitud.empleadoId && e.empresaId === empresaId); // 🟢 filtra por empresa
-
-    if (!empleado) {
-      console.warn(`⚠️ No se encontró el empleado con ID ${solicitud.empleadoId} en la empresa ${empresaId}`);
-      return;
-    }
-
-    const fechaIngreso = new Date(empleado.fechaIngreso);
-    const fechaSolicitud = new Date(solicitud.fechaInicio);
-
-    solicitud.periodo = this.calcularPeriodo(fechaIngreso, fechaSolicitud);
-    solicitud.empresaId = empresaId; // 🟢 asignar empresa
-
-    solicitudes.push(solicitud);
-    this.guardarEnLocalStorage(solicitudes);
-  }
-
-  /** 🔍 Obtener solicitudes solo de la empresa actual */
-  obtenerSolicitudesEmpresa(): SolicitudVacaciones[] {
-    const userData = localStorage.getItem('usuarioActivo');
-    const usuario = userData ? JSON.parse(userData) : null;
-    const empresaId = usuario?.empresa?.id || usuario?.empresa || 'desconocida';
-
-    return this.cargarDesdeLocalStorage().filter(s => s.empresaId === empresaId);
-  }
-
-  obtenerSolicitudesEmpleado(empleadoId: string): SolicitudVacaciones[] {
-    const userData = localStorage.getItem('usuarioActivo');
-    const usuario = userData ? JSON.parse(userData) : null;
-    const empresaId = usuario?.empresa?.id || usuario?.empresa || 'desconocida';
-
-    const solicitudes = this.cargarDesdeLocalStorage()
-      .filter(s => s.empleadoId === empleadoId && s.empresaId === empresaId); // 🟢 filtra por empresa
-
-    const empleados = JSON.parse(localStorage.getItem('empleados') || '[]');
-    const empleado = empleados.find((e: any) => e.id === empleadoId && e.empresaId === empresaId);
-    if (!empleado) return [];
-
-    const fechaIngreso = new Date(empleado.fechaIngreso);
-
-    return solicitudes.map(s => {
-      const fechaSolicitud = new Date(s.fechaInicio);
-      const periodo = this.calcularPeriodo(fechaIngreso, fechaSolicitud);
-      return { ...s, periodo };
-    });
-  }
-
-  eliminarSolicitud(id: string) {
-    const solicitudes = this.cargarDesdeLocalStorage().filter(s => s.id !== id);
-    this.guardarEnLocalStorage(solicitudes);
-  }
-
-  calcularDiasPendientes(empleadoId: string, fechaIngreso: string): Record<string, number> {
-    const hoy = new Date();
-    const ingreso = new Date(fechaIngreso);
-
-    if (isNaN(ingreso.getTime())) {
-      return { 'Fecha inválida': 0 };
-    }
-
-    const solicitudes = this.obtenerSolicitudesEmpleado(empleadoId);
-    const periodos: Record<string, number> = {};
-
-    let inicio = new Date(ingreso);
+    let inicio = new Date(fechaIngreso);
     let fin = new Date(inicio);
     fin.setFullYear(fin.getFullYear() + 1);
 
-    while (inicio <= hoy) {
-      const periodo = `${inicio.getFullYear()}-${fin.getFullYear()}`;
-      const mesesTrabajados = Math.min(
-        Math.max(
-          Math.floor(
-            (Math.min(hoy.getTime(), fin.getTime()) - inicio.getTime()) / (1000 * 60 * 60 * 24 * 30)
-          ), 0),
-        12
-      );
-      const diasGanados = mesesTrabajados;
-      const diasTomados = solicitudes
-        .filter(s => s.periodo === periodo)
-        .reduce((total, s) => total + s.diasSolicitados, 0);
-
-      periodos[periodo] = Math.max(diasGanados - diasTomados, 0);
-
+    while (fechaSolicitud >= fin) {
       inicio = new Date(fin);
       fin.setFullYear(fin.getFullYear() + 1);
     }
 
-    return periodos;
+    return `${inicio.getFullYear()}-${fin.getFullYear()}`;
   }
+
+  // Registrar la solicitud
+  registrarSolicitud(solicitud: SolicitudVacaciones, empleado: any) {
+    const empresaId = this.obtenerEmpresaCedula();
+    const ingreso = new Date(empleado.fechaIngreso);
+    const fechaSolicitud = new Date(solicitud.fechaInicio);
+
+    solicitud.periodo = this.calcularPeriodo(ingreso, fechaSolicitud);
+    solicitud.empresaId = empresaId;
+    solicitud.id = solicitud.id || uuid();
+
+    return this.afs
+      .collection(`empresas/${empresaId}/vacaciones`)
+      .doc(solicitud.id)
+      .set(solicitud);
+  }
+
+  // Obtener solicitudes del empleado
+  obtenerSolicitudesEmpleado(empleadoId: string) {
+    const empresaId = this.obtenerEmpresaCedula();
+
+    return this.afs
+      .collection<SolicitudVacaciones>(
+        `empresas/${empresaId}/vacaciones`,
+        ref => ref.where('empleadoId', '==', empleadoId)
+      )
+      .valueChanges({ idField: 'id' });
+  }
+
+  // Eliminar solicitud
+  eliminarSolicitud(id: string) {
+    const empresaId = this.obtenerEmpresaCedula();
+    return this.afs
+      .collection(`empresas/${empresaId}/vacaciones`)
+      .doc(id)
+      .delete();
+  }
+
+  // ✔ CALCULAR DÍAS PENDIENTES (FUNCIONA SIN ERRORES)
+  calcularDiasPendientes(empleadoId: string, fechaIngreso: string): Observable<number> {
+    const ingreso = new Date(fechaIngreso);
+    const hoy = new Date();
+
+    if (isNaN(ingreso.getTime())) {
+      return new Observable(sub => sub.next(0));
+    }
+
+    // ✔ Cálculo de meses real y sin errores por zona horaria
+    // Calcular meses trabajados de forma precisa
+    let mesesTrabajados =
+      (hoy.getFullYear() - ingreso.getFullYear()) * 12 +
+      (hoy.getMonth() - ingreso.getMonth());
+
+    // verificar si aún no llegó al día de ingreso este mes
+    if (hoy.getDate() < ingreso.getDate()) {
+      mesesTrabajados--;
+    }
+
+    mesesTrabajados = Math.max(mesesTrabajados, 0);
+
+    // 1 día por mes trabajado, máximo 12 por periodo
+    const diasGanados = Math.min(mesesTrabajados, 12);
+
+
+    return this.obtenerSolicitudesEmpleado(empleadoId).pipe(
+      map(solicitudes => {
+        const diasTomados = solicitudes.reduce((t, s) => t + s.diasSolicitados, 0);
+        return Math.max(diasGanados - diasTomados, 0);
+      })
+    );
+  }
+
 }
+
+

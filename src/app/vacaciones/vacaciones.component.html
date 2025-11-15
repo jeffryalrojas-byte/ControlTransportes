@@ -1,23 +1,28 @@
 <h2>🌴 Control de Vacaciones</h2>
 
 <div class="form">
+
+  <!-- EMPLEADO -->
   <label>Empleado:</label>
-  <select [(ngModel)]="empleadoId" (change)="cargarSolicitudes()">
+  <select [(ngModel)]="empleadoId" (change)="seleccionarEmpleado(empleadoId)">
     <option value="" disabled selected>Seleccione un empleado</option>
     <option *ngFor="let e of empleados" [value]="e.id">
       {{ e.nombre }} ({{ e.cedula }})
     </option>
   </select>
 
+  <!-- FECHAS -->
   <label>Desde:</label>
   <input type="date" [(ngModel)]="fechaInicio">
 
   <label>Hasta:</label>
   <input type="date" [(ngModel)]="fechaFin">
 
+  <!-- DIAS -->
   <label>Cantidad de días:</label>
   <input type="number" [(ngModel)]="diasSolicitados" min="1">
 
+  <!-- OBSERVACION -->
   <label>Observación:</label>
   <textarea [(ngModel)]="observacion"></textarea>
 
@@ -26,8 +31,14 @@
 
 <hr>
 
+<!-- RESULTADOS -->
 <h3>Solicitudes del empleado</h3>
-<table border="1" *ngIf="solicitudes.length > 0">
+
+<div *ngIf="!empleadoSeleccionado">
+  <p>Seleccione un empleado para ver las solicitudes.</p>
+</div>
+
+<table border="1" *ngIf="empleadoSeleccionado && solicitudes.length > 0">
   <thead>
     <tr>
       <th>Periodo</th>
@@ -52,4 +63,6 @@
   </tbody>
 </table>
 
-<p *ngIf="solicitudes.length === 0">No hay solicitudes registradas.</p>
+<p *ngIf="empleadoSeleccionado && solicitudes.length === 0">
+  No hay solicitudes registradas.
+</p>

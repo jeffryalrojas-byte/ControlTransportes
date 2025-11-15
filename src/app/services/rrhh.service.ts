@@ -1,9 +1,12 @@
 import { Injectable } from '@angular/core';
+import { AngularFirestore } from '@angular/fire/firestore';
 import { SesionService } from './sesion.service';
+import { v4 as uuid } from 'uuid';
+import { map } from 'rxjs/operators';
 
 export interface Empleado {
   id: string;
-  empresaId: string; // 
+  empresaId: string;
   empresaCedula: string;
   cedula: string;
   nombre: string;
@@ -14,59 +17,84 @@ export interface Empleado {
   salarioDiario: number;
   tipoContrato: 'indefinido' | 'definido';
   fechaFinContrato?: string;
-  vacacionesTomadas?: number;
-  incapacidades?: number;
 }
 
 @Injectable({ providedIn: 'root' })
 export class RrhhService {
-  private key = 'empleados';
 
+  constructor(
+    private afs: AngularFirestore,
+    private sesionService: SesionService
+  ) { }
 
-  constructor(private sesionService: SesionService) { }
-
-  private obtenerEmpresaId(): string {
-    const userData = localStorage.getItem('usuarioActivo');
-    const usuario = userData ? JSON.parse(userData) : null;
-    return usuario?.empresa?.id || usuario?.empresa || 'desconocida';
+  private obtenerEmpresaCedula() {
+    return this.sesionService.getCedulaEmpresaActual() || 'sin_cedula';
   }
 
-  obtener(): Empleado[] {
-    const empresaId = this.obtenerEmpresaId();
-    const empresaCedula = this.sesionService.getCedulaEmpresaActual() || 'sin_cedula';
+  // ===========================
+  // 📌 OBTENER EMPLEADOS
+  // ===========================
+  obtener() {
+    const cedulaEmpresa = this.obtenerEmpresaCedula();
 
-    const lista = JSON.parse(localStorage.getItem(this.key) || '[]');
-    return lista.filter(
-      (e: Empleado) => e.empresaId === empresaId && e.empresaCedula === empresaCedula
-    );
+    return this.afs
+      .collection(`empresas/${cedulaEmpresa}/empleados`)
+      .valueChanges({ idField: 'id' })
+      .pipe(
+        map((items: any[]) =>
+          items.map(item => ({
+            id: item.id,
+            empresaId: item.empresaId ?? '',
+            empresaCedula: item.empresaCedula ?? '',
+            cedula: item.cedula ?? '',
+            nombre: item.nombre ?? '',
+            puesto: item.puesto ?? '',
+            fechaIngreso: item.fechaIngreso ?? '',
+            tipoPago: item.tipoPago ?? 'mensual',
+            salarioMensual: item.salarioMensual ?? 0,
+            salarioDiario: item.salarioDiario ?? 0,
+            tipoContrato: item.tipoContrato ?? 'indefinido',
+            fechaFinContrato: item.fechaFinContrato ?? ''
+          }))
+        )
+      );
   }
 
+
+  // ===========================
+  // 📌 AGREGAR EMPLEADO
+  // ===========================
   agregar(e: Empleado) {
-    const lista = JSON.parse(localStorage.getItem(this.key) || '[]');
-    lista.push(e);
-    localStorage.setItem(this.key, JSON.stringify(lista));
+    const cedulaEmpresa = this.obtenerEmpresaCedula();
+    const id = e.id || uuid();
+
+    return this.afs
+      .collection(`empresas/${cedulaEmpresa}/empleados`)
+      .doc(id)
+      .set(e);
   }
 
+  // ===========================
+  // 📌 ACTUALIZAR EMPLEADO
+  // ===========================
   actualizar(e: Empleado) {
-    const lista = JSON.parse(localStorage.getItem(this.key) || '[]');
-    const i = lista.findIndex((x: Empleado) => x.id === e.id);
-    if (i >= 0) lista[i] = e;
-    localStorage.setItem(this.key, JSON.stringify(lista));
+    const cedulaEmpresa = this.obtenerEmpresaCedula();
+
+    return this.afs
+      .collection(`empresas/${cedulaEmpresa}/empleados`)
+      .doc(e.id)
+      .update(e);
   }
 
+  // ===========================
+  // 📌 ELIMINAR EMPLEADO
+  // ===========================
   eliminar(id: string) {
-    const lista = JSON.parse(localStorage.getItem(this.key) || '[]');
-    const nuevaLista = lista.filter((e: Empleado) => e.id !== id);
-    localStorage.setItem(this.key, JSON.stringify(nuevaLista));
-  }
+    const cedulaEmpresa = this.obtenerEmpresaCedula();
 
-  calcularAntiguedad(fechaIngreso: string): number {
-    const ingreso = new Date(fechaIngreso);
-    const hoy = new Date();
-    return hoy.getFullYear() - ingreso.getFullYear();
-  }
-
-  calcularAguinaldo(e: Empleado, salarioMensual: number): number {
-    return salarioMensual * (1 / 12);
+    return this.afs
+      .collection(`empresas/${cedulaEmpresa}/empleados`)
+      .doc(id)
+      .delete();
   }
 }

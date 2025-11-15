@@ -1,12 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { v4 as uuid } from 'uuid';
-import { SolicitudVacaciones, VacacionesService } from '../services/vacaciones.service';
-
-interface Empleado {
-  id: string;
-  cedula: string;
-  nombre: string;
-}
+import { VacacionesService, SolicitudVacaciones } from '../services/vacaciones.service';
+import { RrhhService, Empleado } from '../services/rrhh.service';
 
 @Component({
   selector: 'app-vacaciones',
@@ -14,7 +9,9 @@ interface Empleado {
   styleUrls: ['./vacaciones.component.scss']
 })
 export class VacacionesComponent implements OnInit {
+
   empleados: Empleado[] = [];
+  solicitudes: SolicitudVacaciones[] = [];
 
   empleadoId = '';
   fechaInicio = '';
@@ -22,25 +19,38 @@ export class VacacionesComponent implements OnInit {
   diasSolicitados = 0;
   observacion = '';
 
-  solicitudes: SolicitudVacaciones[] = [];
+  empleadoSeleccionado: Empleado | null = null;
 
-  constructor(private vacacionesService: VacacionesService) { }
+  constructor(
+    private vacacionesService: VacacionesService,
+    private rrhhService: RrhhService
+  ) { }
 
   ngOnInit() {
-    const userData = localStorage.getItem('usuarioActivo');
-    const usuario = userData ? JSON.parse(userData) : null;
-    const empresaId = usuario?.empresa?.id || usuario?.empresa || 'desconocida';
+    // 🔥 Cargar empleados desde Firebase
+    this.rrhhService.obtener().subscribe(data => {
+      this.empleados = data;
+    });
+  }
 
-    const data = localStorage.getItem('empleados');
-    if (data) {
-      const empleados = JSON.parse(data);
-      this.empleados = empleados.filter((e: any) => e.empresaId === empresaId); // 🟢 solo empleados de la empresa
-    }
+  cargarSolicitudes() {
+    if (!this.empleadoId) return;
+
+    this.vacacionesService
+      .obtenerSolicitudesEmpleado(this.empleadoId)
+      .subscribe(list => {
+        this.solicitudes = list;
+      });
+  }
+
+  seleccionarEmpleado(id: string) {
+    this.empleadoSeleccionado = this.empleados.find(e => e.id === id) || null;
+    this.cargarSolicitudes();
   }
 
   registrar() {
-    if (!this.empleadoId || !this.fechaInicio || !this.fechaFin || this.diasSolicitados <= 0) {
-      alert('Complete todos los campos, incluyendo los días solicitados.');
+    if (!this.empleadoSeleccionado) {
+      alert('Seleccione un empleado');
       return;
     }
 
@@ -53,10 +63,13 @@ export class VacacionesComponent implements OnInit {
       observacion: this.observacion
     };
 
-    this.vacacionesService.registrarSolicitud(nueva);
-    this.cargarSolicitudes();
-    alert('✅ Solicitud registrada correctamente');
-    this.limpiar();
+    this.vacacionesService
+      .registrarSolicitud(nueva, this.empleadoSeleccionado)
+      .then(() => {
+        alert('Solicitud registrada');
+        this.cargarSolicitudes();
+        this.limpiar();
+      });
   }
 
   limpiar() {
@@ -66,14 +79,12 @@ export class VacacionesComponent implements OnInit {
     this.observacion = '';
   }
 
-  cargarSolicitudes() {
-    this.solicitudes = this.vacacionesService.obtenerSolicitudesEmpleado(this.empleadoId);
-  }
-
   eliminarSolicitud(id: string) {
-    if (confirm('¿Deseas eliminar esta solicitud?')) {
-      this.vacacionesService.eliminarSolicitud(id);
-      this.cargarSolicitudes();
+    if (confirm('¿Eliminar solicitud?')) {
+      this.vacacionesService.eliminarSolicitud(id).then(() => {
+        this.cargarSolicitudes();
+      });
     }
   }
 }
+

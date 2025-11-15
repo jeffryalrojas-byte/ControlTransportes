@@ -12,31 +12,38 @@ export class ConfiguracionComponent implements OnInit {
     ccssPatrono: 0
   };
 
-  historico: { ccssTrabajador: number; ccssPatrono: number; fecha: string }[] = [];
+  historico: {
+    id: string;
+    ccssTrabajador: number;
+    ccssPatrono: number;
+    fecha: string;
+  }[] = [];
 
   constructor(private configuracionService: ConfiguracionService) { }
 
   ngOnInit(): void {
-    const cargasGuardadas = this.configuracionService.obtenerCargas();
-    this.cargas = {
-      ccssTrabajador: cargasGuardadas.ccssTrabajador * 100,
-      ccssPatrono: cargasGuardadas.ccssPatrono * 100
-    };
+    this.configuracionService.obtenerCargas().subscribe(cargas => {
+      if (cargas) {
+        this.cargas = {
+          ccssTrabajador: cargas.ccssTrabajador * 100,
+          ccssPatrono: cargas.ccssPatrono * 100
+        };
+      }
+    });
 
-    this.historico = this.configuracionService.obtenerHistorico();
+    this.configuracionService.obtenerHistorico().subscribe(data => {
+      this.historico = data;
+    });
   }
 
   guardarCambios() {
-    // Convertir de porcentaje a decimal antes de guardar
     const cargasConvertidas: CargasSociales = {
       ccssTrabajador: this.cargas.ccssTrabajador / 100,
       ccssPatrono: this.cargas.ccssPatrono / 100
     };
 
     this.configuracionService.guardarCargas(cargasConvertidas);
-
-    // Actualizar histórico en pantalla
-    this.historico = this.configuracionService.obtenerHistorico();
+    this.configuracionService.guardarHistorico(cargasConvertidas);
 
     alert('✅ Cargas sociales actualizadas correctamente');
   }

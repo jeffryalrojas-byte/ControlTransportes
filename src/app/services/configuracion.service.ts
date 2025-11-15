@@ -1,5 +1,7 @@
 import { Injectable } from '@angular/core';
-import { SesionService } from '../services/sesion.service'; // 👈 importa tu nuevo servicio
+import { AngularFirestore } from '@angular/fire/firestore';
+import { SesionService } from '../services/sesion.service';
+import { v4 as uuid } from 'uuid';
 
 export interface CargasSociales {
   ccssTrabajador: number;
@@ -10,51 +12,68 @@ export interface CargasSociales {
   providedIn: 'root'
 })
 export class ConfiguracionService {
-  private readonly STORAGE_KEY = 'cargasSociales';
-  private readonly HISTORICO_KEY = 'historicoCargas';
 
-  constructor(private sesionService: SesionService) { } // 👈 inyectamos el servicio de sesión
+  constructor(
+    private afs: AngularFirestore,
+    private sesionService: SesionService
+  ) { }
 
-  /** 🔹 Devuelve un sufijo único por empresa (ej: cargasSociales_3-102-908063) */
-  private getStorageKey(base: string): string {
-    const cedula = this.sesionService.getCedulaEmpresaActual();
-    return cedula ? `${base}_${cedula}` : base;
+  /** 🔹 Obtiene cédula de empresa */
+  private getEmpresaCedula(): string {
+    return this.sesionService.getCedulaEmpresaActual() || 'sin_cedula';
   }
 
-  guardarCargas(cargas: CargasSociales): void {
-    const storageKey = this.getStorageKey(this.STORAGE_KEY);
-    const historicoKey = this.getStorageKey(this.HISTORICO_KEY);
+  /** 🔹 Guarda cargar sociales en Firebase */
+  guardarCargas(cargas: CargasSociales) {
+    const cedula = this.getEmpresaCedula();
 
-    // 🔹 Guardar configuración actual
-    localStorage.setItem(storageKey, JSON.stringify(cargas));
+    return this.afs
+      .collection(`empresas/${cedula}/configuracion`)
+      .doc('cargasSociales')
+      .set(cargas, { merge: true });
 
-    // 🔹 Guardar histórico (sin perder los anteriores)
-    const historico = this.obtenerHistorico();
-    historico.push({
+  }
+
+  /** 🔹 Obtiene cargas desde Firebase */
+  obtenerCargas() {
+    const cedula = this.getEmpresaCedula();
+
+    return this.afs
+      .collection(`empresas/${cedula}/configuracion`)
+      .doc<CargasSociales>('cargasSociales')
+      .valueChanges();
+  }
+
+  /** 🔹 Guarda histórico en Firebase */
+  guardarHistorico(cargas: CargasSociales) {
+    const cedula = this.getEmpresaCedula();
+    const registro = {
       ...cargas,
       fecha: new Date().toLocaleString()
-    });
-    localStorage.setItem(historicoKey, JSON.stringify(historico));
-  }
-
-  obtenerCargas(): CargasSociales {
-    const storageKey = this.getStorageKey(this.STORAGE_KEY);
-    const data = localStorage.getItem(storageKey);
-
-    if (data) return JSON.parse(data);
-
-    // Valores por defecto si no hay guardado nada
-    return {
-      ccssTrabajador: 0.0967,
-      ccssPatrono: 0.1467
     };
+
+    return this.afs
+      .collection(`empresas/${cedula}/configuracion/cargasSociales/historicoCargas`)
+      .add(registro);
   }
 
-  obtenerHistorico(): { ccssTrabajador: number; ccssPatrono: number; fecha: string }[] {
-    const historicoKey = this.getStorageKey(this.HISTORICO_KEY);
-    const data = localStorage.getItem(historicoKey);
-    return data ? JSON.parse(data) : [];
+  /** 🔹 Obtiene el histórico de Firebase */
+  obtenerHistorico() {
+    const cedula = this.getEmpresaCedula();
+
+    return this.afs
+      .collection<{
+        ccssTrabajador: number;
+        ccssPatrono: number;
+        fecha: string
+      }>(
+        `empresas/${cedula}/configuracion/cargasSociales/historicoCargas`,
+        ref => ref.orderBy('fecha', 'desc')
+      )
+      .valueChanges({ idField: 'id' });
   }
+
 }
+
 
 

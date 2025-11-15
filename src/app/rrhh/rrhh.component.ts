@@ -5,6 +5,7 @@ import { RrhhService, Empleado } from '../services/rrhh.service';
 import { SesionService } from '../services/sesion.service';
 
 import { KeyValue } from '@angular/common';
+import { PlanillasService } from '../services/planillas.service';
 
 @Component({
   selector: 'app-rrhh',
@@ -35,20 +36,23 @@ export class RrhhComponent implements OnInit {
   constructor(
     private vacacionesService: VacacionesService,
     private rrhhService: RrhhService,
-    private sesionService: SesionService
+    private sesionService: SesionService,
+    private planillasService: PlanillasService
   ) { }
 
   ngOnInit() {
     const userData = localStorage.getItem('usuarioActivo');
     if (userData) this.usuarioActivo = JSON.parse(userData);
 
-    this.empleados = this.rrhhService.obtener();
-
-    const planillasData = localStorage.getItem('planillas');
-    if (planillasData) this.planillas = JSON.parse(planillasData);
-
-    this.actualizarDiasVacaciones();
-    this.calcularAguinaldos();
+    this.rrhhService.obtener().subscribe(data => {
+      this.empleados = data;
+      this.actualizarDiasVacaciones();
+    });
+    this.planillasService.obtener().subscribe((data: any[]) => {
+      this.planillas = data || [];
+      // recalcular aguinaldos luego de que lleguen las planillas
+      this.calcularAguinaldos();
+    });
   }
 
   agregar() {
@@ -102,8 +106,8 @@ export class RrhhComponent implements OnInit {
         tipoContrato: this.tipoContrato,
         fechaFinContrato: this.tipoContrato === 'definido' ? this.fechaFinContrato : ''
       };
-      this.rrhhService.agregar(nuevo);
-      this.empleados.push(nuevo);
+      this.rrhhService.agregar(nuevo).then(() => {
+      });
     }
 
     this.limpiarFormulario();
@@ -152,24 +156,59 @@ export class RrhhComponent implements OnInit {
     const añoActual = new Date().getFullYear();
     this.aguinaldos = {};
 
+    // seguridad: si no hay empleados o planillas, limpiamos y salimos
+    if (!this.empleados?.length || !this.planillas?.length) {
+      this.empleados.forEach(e => this.aguinaldos[String(e.id)] = 0);
+      return;
+    }
+
     this.empleados.forEach(e => {
+      const empIdStr = String(e.id);
       let totalAnual = 0;
+
       this.planillas.forEach(p => {
-        const mes = new Date(p.mes + '-01');
-        if (mes.getFullYear() === añoActual) {
-          const detalle = p.detalleEmpleados?.find((d: any) => d.id === e.id);
-          if (detalle) totalAnual += detalle.salarioNeto;
+        // seguridad: si p.mes no existe, saltar
+        if (!p?.mes) return;
+
+        // obtener year del mes guardado (soportamos 'YYYY-MM' o 'YYYY-MM-DD')
+        let year = null;
+        try {
+          // si p.mes es '2025-03' o '2025-03-01'
+          const mesIso = p.mes.length === 7 ? `${p.mes}-01` : p.mes;
+          year = new Date(mesIso).getFullYear();
+        } catch {
+          return;
+        }
+
+        if (year === añoActual) {
+          // buscar detalle por id convirtiendo ambos a string
+          const detalle = (p.detalleEmpleados || []).find((d: any) => String(d.id) === empIdStr);
+          if (detalle && typeof detalle.salarioNeto === 'number') {
+            totalAnual += detalle.salarioNeto;
+          }
         }
       });
-      this.aguinaldos[e.id] = totalAnual / 12;
+
+      this.aguinaldos[empIdStr] = totalAnual / 12;
     });
+
   }
+
 
   actualizarDiasVacaciones() {
     this.empleados.forEach(e => {
-      this.diasVacaciones[e.id] = this.vacacionesService.calcularDiasPendientes(e.id, e.fechaIngreso);
+      this.vacacionesService.calcularDiasPendientes(e.id, e.fechaIngreso)
+        .subscribe(dias => {
+          // usar el año actual como periodo
+          const periodo = new Date().getFullYear().toString();
+
+          this.diasVacaciones[e.id] = {
+            [periodo]: dias
+          };
+        });
     });
   }
+
 
   tieneVacacionesPendientes(id: string): boolean {
     const vac = this.diasVacaciones[id];

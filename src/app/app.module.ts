@@ -12,6 +12,13 @@ import { FinanzasModule } from './finanzas/finanzas.module';
 import { VacacionesComponent } from './vacaciones/vacaciones.component';
 import { IncapacidadesComponent } from './incapacidades/incapacidades.component';
 import { LoginComponent } from './login/login.component';
+import { environment } from 'src/environments/environment';
+
+// 🔥 Import correcto de AngularFire
+import { AngularFireModule } from '@angular/fire';
+import { AngularFirestoreModule } from '@angular/fire/firestore';
+import { AngularFireAuthModule } from '@angular/fire/auth';
+import { AngularFireStorageModule } from '@angular/fire/storage';
 
 @NgModule({
   declarations: [
@@ -24,8 +31,19 @@ import { LoginComponent } from './login/login.component';
     IncapacidadesComponent,
     LoginComponent
   ],
-  imports: [BrowserModule, FormsModule, AppRoutingModule, FinanzasModule],
+  imports: [
+    BrowserModule,
+    FormsModule,
+    AppRoutingModule,
+    FinanzasModule,
+
+    // ✅ Inicialización de Firebase
+    AngularFireModule.initializeApp(environment.firebase),
+    AngularFirestoreModule,
+    AngularFireAuthModule,
+    AngularFireStorageModule
+  ],
   providers: [],
   bootstrap: [AppComponent]
 })
-export class AppModule {}
+export class AppModule { }
