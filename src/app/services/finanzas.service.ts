@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
-import { SesionService } from '../services/sesion.service'; // 👈 importamos el servicio de sesión
+import { AngularFirestore } from '@angular/fire/firestore';
+import { SesionService } from '../services/sesion.service';
 
 export interface Transaccion {
   id: string;
@@ -11,34 +12,43 @@ export interface Transaccion {
 
 @Injectable({ providedIn: 'root' })
 export class FinanzasService {
-  private key = 'finanzas_data';
 
-  constructor(private sesionService: SesionService) { } // 👈 inyección del servicio de sesión
+  constructor(
+    private afs: AngularFirestore,
+    private sesionService: SesionService
+  ) { }
 
-  /** 🔹 Devuelve una clave única por empresa (ej: finanzas_data_3-102-908063) */
-  private getStorageKey(): string {
-    const cedula = this.sesionService.getCedulaEmpresaActual();
-    return cedula ? `${this.key}_${cedula}` : this.key;
+  /** 🔹 Obtener cédula activa */
+  private getCedula(): string {
+    return this.sesionService.getCedulaEmpresaActual() || 'sin_cedula';
   }
 
-  obtener(): Transaccion[] {
-    return JSON.parse(localStorage.getItem(this.getStorageKey()) || '[]');
+  /** 🔹 Obtener lista de transacciones desde Firebase */
+  obtener() {
+    const cedula = this.getCedula();
+    return this.afs
+      .collection<Transaccion>(
+        `empresas/${cedula}/finanzas`,
+        ref => ref.orderBy('fecha', 'desc')
+      )
+      .valueChanges({ idField: 'id' });
   }
 
+  /** 🔹 Guardar transacción */
   agregar(t: Transaccion) {
-    const lista = this.obtener();
-    lista.push(t);
-    localStorage.setItem(this.getStorageKey(), JSON.stringify(lista));
+    const cedula = this.getCedula();
+    return this.afs
+      .collection(`empresas/${cedula}/finanzas`)
+      .doc(t.id)
+      .set(t);
   }
 
+  /** 🔹 Eliminar transacción */
   eliminar(id: string) {
-    const lista = this.obtener().filter(t => t.id !== id);
-    localStorage.setItem(this.getStorageKey(), JSON.stringify(lista));
-  }
-
-  balance() {
-    return this.obtener().reduce((acc, t) =>
-      t.tipo === 'ingreso' ? acc + t.monto : acc - t.monto, 0);
+    const cedula = this.getCedula();
+    return this.afs
+      .collection(`empresas/${cedula}/finanzas`)
+      .doc(id)
+      .delete();
   }
 }
-

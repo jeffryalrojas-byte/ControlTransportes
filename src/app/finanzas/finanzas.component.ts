@@ -8,26 +8,21 @@ import { FinanzasService, Transaccion } from '../services/finanzas.service';
   styleUrls: ['./finanzas.component.scss']
 })
 export class FinanzasComponent implements OnInit {
+
   movimientos: Transaccion[] = [];
   descripcion = '';
   monto = 0;
   tipo: 'ingreso' | 'gasto' = 'ingreso';
 
-  constructor(private finanzasService: FinanzasService) { } // 👈 usamos el servicio
+  constructor(private finanzasService: FinanzasService) { }
 
   ngOnInit() {
-    this.movimientos = this.finanzasService.obtener();
+    this.finanzasService.obtener().subscribe(data => {
+      this.movimientos = data || [];
+    });
   }
 
-  guardar() {
-    // 🔹 Actualiza el almacenamiento de la empresa activa
-    localStorage.setItem(
-      this.finanzasService['getStorageKey'](), // accedemos a la clave interna
-      JSON.stringify(this.movimientos)
-    );
-  }
-
-  agregar() {
+  async agregar() {
     if (!this.descripcion || this.monto <= 0) return;
 
     const nuevo: Transaccion = {
@@ -35,20 +30,18 @@ export class FinanzasComponent implements OnInit {
       descripcion: this.descripcion,
       monto: this.monto,
       tipo: this.tipo,
-      fecha: new Date().toLocaleString()
+      fecha: new Date().toISOString()
     };
 
-    this.finanzasService.agregar(nuevo);
-    this.movimientos = this.finanzasService.obtener(); // refrescamos la lista
+    await this.finanzasService.agregar(nuevo);
 
     this.descripcion = '';
     this.monto = 0;
     this.tipo = 'ingreso';
   }
 
-  eliminar(id: string) {
-    this.finanzasService.eliminar(id);
-    this.movimientos = this.finanzasService.obtener();
+  async eliminar(id: string) {
+    await this.finanzasService.eliminar(id);
   }
 
   totalIngresos(): number {
