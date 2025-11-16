@@ -26,7 +26,9 @@
   <label>Observación:</label>
   <textarea [(ngModel)]="observacion"></textarea>
 
-  <button class="btn-guardar" (click)="registrar()"> 💾 Guardar</button>
+  <button class="btn-guardar" (click)="registrar()" [disabled]="!diasSolicitados || diasSolicitados <= 0">
+    💾 Guardar
+  </button>
 </div>
 
 <hr>

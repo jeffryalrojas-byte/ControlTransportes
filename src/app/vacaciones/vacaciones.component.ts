@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { v4 as uuid } from 'uuid';
 import { VacacionesService, SolicitudVacaciones } from '../services/vacaciones.service';
 import { RrhhService, Empleado } from '../services/rrhh.service';
+import { take } from 'rxjs/operators';
 
 @Component({
   selector: 'app-vacaciones',
@@ -54,23 +55,83 @@ export class VacacionesComponent implements OnInit {
       return;
     }
 
-    const nueva: SolicitudVacaciones = {
-      id: uuid(),
-      empleadoId: this.empleadoId,
-      fechaInicio: this.fechaInicio,
-      fechaFin: this.fechaFin,
-      diasSolicitados: this.diasSolicitados,
-      observacion: this.observacion
-    };
+    this.vacacionesService.calcularDiasPendientes(
+      this.empleadoId,
+      this.empleadoSeleccionado.fechaIngreso
+    ).pipe(take(1))
+      .subscribe(periodos => {
 
-    this.vacacionesService
-      .registrarSolicitud(nueva, this.empleadoSeleccionado)
-      .then(() => {
-        alert('Solicitud registrada');
-        this.cargarSolicitudes();
-        this.limpiar();
+        const diasSolicitados = this.diasSolicitados;
+
+        // Obtener total disponible
+        const diasTotales: number = Object.values(periodos)
+          .map(v => Number(v))
+          .reduce((a, b) => a + b, 0);
+
+
+        // ❌ Si solicita más de lo que tiene → error
+        if (diasSolicitados > diasTotales) {
+          alert(`El empleado solo tiene ${diasTotales} días disponibles.`);
+          return;
+        }
+
+        let diasPorRegistrar = diasSolicitados;
+        const solicitudesARegistrar: SolicitudVacaciones[] = [];
+
+        let fechaCursor = new Date(this.fechaInicio);
+
+        for (const periodo of Object.keys(periodos)) {
+          if (diasPorRegistrar <= 0) break;
+
+          const disponibles = Number(periodos[periodo]);
+
+          if (disponibles > 0) {
+
+            const usar = Math.min(disponibles, diasPorRegistrar);
+
+            // Calcular fecha fin correcta según los días usados
+            const fechaFinCalculada = this.sumarDias(fechaCursor, usar);
+
+            solicitudesARegistrar.push({
+              id: uuid(),
+              empleadoId: this.empleadoId,
+              fechaInicio: new Date(fechaCursor).toISOString().split('T')[0],
+              fechaFin: fechaFinCalculada.toISOString().split('T')[0],
+              diasSolicitados: usar,
+              observacion: this.observacion,
+              periodo: periodo
+            });
+
+
+
+            // Avanzar el cursor al día siguiente para el siguiente periodo
+            fechaCursor = new Date(fechaFinCalculada);
+            fechaCursor.setDate(fechaCursor.getDate() + 1);
+
+            diasPorRegistrar -= usar;
+          }
+        }
+
+
+        // ✔ Registrar cada una
+        const promesas = solicitudesARegistrar.map(s =>
+          this.vacacionesService.registrarSolicitud(s, this.empleadoSeleccionado)
+        );
+
+        Promise.all(promesas).then(() => {
+          alert('Vacaciones registradas correctamente.');
+          this.cargarSolicitudes();
+          this.limpiar();
+        });
       });
   }
+
+  sumarDias(fecha: Date, dias: number): Date {
+    const f = new Date(fecha);
+    f.setDate(f.getDate() + dias - 1);
+    return f;
+  }
+
 
   limpiar() {
     this.fechaInicio = '';

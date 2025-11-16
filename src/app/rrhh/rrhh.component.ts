@@ -209,12 +209,8 @@ export class RrhhComponent implements OnInit {
     this.empleados.forEach(e => {
       this.vacacionesService.calcularDiasPendientes(e.id, e.fechaIngreso)
         .subscribe(dias => {
-          // usar el año actual como periodo
-          const periodo = new Date().getFullYear().toString();
+          this.diasVacaciones[e.id] = dias;
 
-          this.diasVacaciones[e.id] = {
-            [periodo]: dias
-          };
         });
     });
   }
