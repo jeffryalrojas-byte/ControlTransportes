@@ -91,11 +91,15 @@ export class PlanillaComponent implements OnInit {
 
 
     // Cargar incapacidades
-    this.incapacidades = this.incapacidadesService.obtener();
+    this.incapacidadesService.obtener().subscribe(data => {
+      this.incapacidades = data;
+    });
 
     // Cargar planillas desde Firebase
     this.planillasService.obtener().subscribe((data: any[]) => {
-      this.planillas = data;
+      this.planillas = data.sort((a: any, b: any) => {
+        return a.mes.localeCompare(b.mes); // ordena YYYY-MM correctamente
+      });
     });
 
     // Sincronizar días
@@ -112,34 +116,76 @@ export class PlanillaComponent implements OnInit {
 
   salarioBruto(e: Empleado): number {
     const montoPorDia = e.tipoPago === 'mensual' ? e.salarioBase / 30 : e.salarioBase;
-    const diasTrab = e.tipoPago === 'mensual' ? 30 : (this.diasTrabajados[e.id] || 0);
-    let bruto = diasTrab * montoPorDia;
+    const diasTrabOriginal = e.tipoPago === 'mensual' ? 30 : (this.diasTrabajados[e.id] || 0);
 
-    if (!this.mesActual) return bruto;
+    if (!this.mesActual) {
+      return diasTrabOriginal * montoPorDia;
+    }
 
-    const incapacidadesMes = this.incapacidades.filter(i => {
-      if (i.empleadoId !== e.id) return false;
-      return i.mes?.slice(0, 7) === this.mesActual.slice(0, 7);
-    });
+    // incapacidades del mes (las partes que pertenecen al mes actual)
+    const incapacidadesMes = this.incapacidades.filter(i =>
+      i.empleadoId === e.id &&
+      i.mes?.slice(0, 7) === this.mesActual.slice(0, 7)
+    );
 
-    let rebajo = 0;
+    // 1) total días de incapacidad en este mes (suma simple)
+    const totalDiasIncapEnMes = incapacidadesMes.reduce((s, x) => s + (x.dias || 0), 0);
 
-    incapacidadesMes.forEach(i => {
-      const dias = i.dias;
-      const tipo = i.tipo.toLowerCase();
+    // 2) calcular cuántos días al 50% *corresponden al mes actual* (respetando 3 días por numIncapacidad)
+    let totalDias50EnMes = 0;
 
-      if (['maternidad', 'accidente', 'permisosg'].includes(tipo)) {
-        rebajo += dias * montoPorDia;
-      } else if (tipo === 'enfermedad') {
-        const diasPagados50 = Math.min(dias, 3);
-        const totalPagadoIncapacidad = diasPagados50 * (montoPorDia * 0.5);
-        const totalNormal = dias * montoPorDia;
-        rebajo += totalNormal - totalPagadoIncapacidad;
+    // agrupar todas las partes por numIncapacidad (solo para este empleado)
+    const grupos = new Map<string, any[]>();
+    this.incapacidades
+      .filter(x => x.empleadoId === e.id && x.numIncapacidad) // todas las partes del empleado
+      .forEach(x => {
+        const key = x.numIncapacidad!;
+        if (!grupos.has(key)) grupos.set(key, []);
+        grupos.get(key)!.push(x);
+      });
+
+    const mesKey = this.mesActual.slice(0, 7);
+
+    grupos.forEach(partes => {
+      // ordenar partes por fechaInicio ascendente
+      partes.sort((a, b) => a.fechaInicio.localeCompare(b.fechaInicio));
+
+      // contar días ya usados en meses ANTERIORES
+      let diasUsadosPrevios = 0;
+      for (const p of partes) {
+        const pMes = p.mes?.slice(0, 7);
+        if (!pMes) continue;
+        if (pMes === mesKey) break;
+        diasUsadosPrevios += p.dias;
+      }
+
+      // cuántos días de los 3 ya están "consumidos"
+      let restante50 = Math.max(3 - diasUsadosPrevios, 0);
+
+      // ahora asignar los días 50% que correspondan a las partes del MES actual
+      for (const p of partes) {
+        const pMes = p.mes?.slice(0, 7);
+        if (pMes !== mesKey) continue; // sólo nos interesan las partes del mes actual
+        if (restante50 <= 0) break;
+
+        const diasEnEstaParte = p.dias;
+        const dias50ParaEstaParte = Math.min(restante50, diasEnEstaParte);
+        totalDias50EnMes += dias50ParaEstaParte;
+        restante50 -= dias50ParaEstaParte;
       }
     });
 
-    return Math.max(bruto - rebajo, 0);
+    // 3) ahora calcular el salario bruto efectivo:
+    //    dias efectivamente trabajados este mes = diasTrabOriginal - totalDiasIncapEnMes
+    const diasTrabEfectivos = Math.max(diasTrabOriginal - totalDiasIncapEnMes, 0);
+
+    // bruto = (días trabajados efectivos * montoPorDia) + (días al 50% * montoPorDia * 0.5)
+    const bruto = (diasTrabEfectivos * montoPorDia) + (totalDias50EnMes * montoPorDia * 0.5);
+
+    return Math.max(bruto, 0);
   }
+
+
 
   rebajosTrabajador(e: Empleado): number {
     if (e.tipoPago === 'diario') return 0;
@@ -234,7 +280,10 @@ export class PlanillaComponent implements OnInit {
 
 
   onMesChange() {
-    this.incapacidades = this.incapacidadesService.obtener();
-    this.calcularTotales();
+    this.incapacidadesService.obtener().subscribe(data => {
+      this.incapacidades = data;
+      this.calcularTotales();
+    });
+
   }
 }

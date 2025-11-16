@@ -85,7 +85,17 @@
         </div>
       </td>
 
-      <td>"Aqui va la incapacidad..."</td>
+      <td>
+        <ng-container *ngIf="getDiasPendientesIncapacidad(e.id) > 0; else noIncapacidad">
+          Días pendientes:
+          {{ getDiasPendientesIncapacidad(e.id) }}
+        </ng-container>
+
+        <ng-template #noIncapacidad>
+          No activas
+        </ng-template>
+      </td>
+
       <td>{{ aguinaldos[e.id] | currency:'CRC' }}</td>
       <td>
         <button (click)="editar(e)">✏️</button>

@@ -6,6 +6,7 @@ import { SesionService } from '../services/sesion.service';
 
 import { KeyValue } from '@angular/common';
 import { PlanillasService } from '../services/planillas.service';
+import { IncapacidadesService } from '../services/incapacidades.service';
 
 @Component({
   selector: 'app-rrhh',
@@ -33,11 +34,14 @@ export class RrhhComponent implements OnInit {
   idEditando: string | null = null;
   usuarioActivo: any;
 
+  incapacidades: any[] = [];
+
   constructor(
     private vacacionesService: VacacionesService,
     private rrhhService: RrhhService,
     private sesionService: SesionService,
-    private planillasService: PlanillasService
+    private planillasService: PlanillasService,
+    private incapacidadesService: IncapacidadesService
   ) { }
 
   ngOnInit() {
@@ -48,10 +52,16 @@ export class RrhhComponent implements OnInit {
       this.empleados = data;
       this.actualizarDiasVacaciones();
     });
+
     this.planillasService.obtener().subscribe((data: any[]) => {
       this.planillas = data || [];
       // recalcular aguinaldos luego de que lleguen las planillas
       this.calcularAguinaldos();
+    });
+
+    // 🔥 Cargar incapacidades
+    this.incapacidadesService.obtener().subscribe(data => {
+      this.incapacidades = data;
     });
   }
 
@@ -215,6 +225,47 @@ export class RrhhComponent implements OnInit {
     if (!vac) return false;
     return Object.values(vac).some((dias: any) => dias > 0);
   }
+
+
+  getDiasPendientesIncapacidad(empleadoId: string): number {
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+
+    // Filtrar incapacidades del empleado que NO han terminado
+    const futurasYActivas = this.incapacidades.filter(i => {
+      if (i.empleadoId !== empleadoId) return false;
+
+      const fin = new Date(i.fechaFin);
+      fin.setHours(0, 0, 0, 0);
+
+      return fin >= hoy; // aún no termina (incluye las futuras)
+    });
+
+    if (futurasYActivas.length === 0) return 0;
+
+    let totalPendiente = 0;
+
+    futurasYActivas.forEach(inc => {
+      const inicio = new Date(inc.fechaInicio);
+      const fin = new Date(inc.fechaFin);
+
+      inicio.setHours(0, 0, 0, 0);
+      fin.setHours(0, 0, 0, 0);
+
+      if (hoy < inicio) {
+        // incapacidad FUTURA → contar todos los días completos
+        const diff = (fin.getTime() - inicio.getTime()) / (1000 * 60 * 60 * 24) + 1;
+        totalPendiente += diff;
+      } else {
+        // incapacidad ACTIVA → contar desde hoy hasta fin
+        const diff = (fin.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24) + 1;
+        totalPendiente += diff;
+      }
+    });
+
+    return totalPendiente;
+  }
+
 
   vacacionKeyValueFn = (a: KeyValue<string, number>, b: KeyValue<string, number>): number => {
     return 0; // no importa el orden, solo lo usamos para tipar correctamente

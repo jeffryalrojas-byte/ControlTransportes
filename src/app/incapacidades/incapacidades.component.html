@@ -1,13 +1,17 @@
-<h2>🏥 Registrar Incapacidad o permiso sin goce</h2>
+<h2>🏥 Registrar incapacidad o permiso sin goce</h2>
 
 <div class="form">
+
+    <!-- Empleado -->
     <label>Empleado:</label>
-    <select [(ngModel)]="empleadoId">
+    <select [(ngModel)]="empleadoId" (change)="seleccionarEmpleado(empleadoId)">
         <option value="" disabled selected>Seleccione un empleado</option>
         <option *ngFor="let e of empleados" [value]="e.id">
             {{ e.nombre }} ({{ e.cedula }})
         </option>
     </select>
+
+    <!-- Tipo -->
     <label>Tipo de incapacidad o permiso:</label>
     <select [(ngModel)]="tipo">
         <option value="" disabled selected>Seleccione el tipo</option>
@@ -15,54 +19,71 @@
         <option value="accidente">Accidente laboral</option>
         <option value="maternidad">Maternidad</option>
         <option value="permisosg">Permiso sin goce salarial</option>
+        <option value="paternidad">Paternidad</option>
     </select>
 
+    <!-- Fechas -->
     <label>Fecha inicio:</label>
     <input type="date" [(ngModel)]="fechaInicio" (change)="calcularDias()">
 
     <label>Fecha fin:</label>
     <input type="date" [(ngModel)]="fechaFin" (change)="calcularDias()">
 
-    <button (click)="guardarIncapacidad()">💾 Registrar incapacidad</button>
-    <button (click)="limpiarCampos()">🧹 Limpiar</button>
-    <button class="info-btn" (click)="mostrarInfo = !mostrarInfo">
-        📘 Información de reglamento
-    </button>
+    <!-- Número de incapacidad -->
+    <label>Número de incapacidad:</label>
+    <input type="text" [(ngModel)]="numIncapacidad" placeholder="Ej: 123456">
 
+    <!-- Botones -->
+    <div class="btns">
+        <button [disabled]="!empleadoId || !fechaInicio || !fechaFin || !tipo || !numIncapacidad"
+            (click)="guardarIncapacidad()">
+            💾 Registrar incapacidad
+        </button>
+
+        <button class="sec" (click)="limpiar()">🧹 Limpiar</button>
+
+        <button class="info-btn" (click)="mostrarInfo = !mostrarInfo">
+            📘 Información de reglamento
+        </button>
+    </div>
+
+    <!-- Días calculados -->
     <p *ngIf="fechaInicio && fechaFin">🗓 Total días: {{ calcularDias() }}</p>
 </div>
 
 <!-- Panel informativo -->
 <div class="info-panel" *ngIf="mostrarInfo">
     <h3>📋 Reglamento sobre incapacidades</h3>
-    <p>
-        🔹 <strong>Días 1 al 3:</strong> El patrono paga el <strong>50%</strong> del salario diario.
-        La CCSS no cubre incapacidades menores a 3 días.
+    <p>🔹 <strong>Días 1 al 3:</strong> El patrono paga el <strong>50%</strong> del salario diario. La CCSS no cubre
+        incapacidades menores a 3 días.</p>
+    <p>🔹 <strong>Del día 4 en adelante:</strong> La CCSS paga el <strong>60%</strong> del salario promedio reportado.
     </p>
-    <p>
-        🔹 <strong>Del día 4 en adelante:</strong> La <strong>CCSS paga el 60%</strong> del salario promedio reportado.
-        El patrono ya no tiene obligación de pagar.
+    <p>🔹 <strong>Accidente laboral:</strong> El INS paga el <strong>67%</strong> del salario desde el primer día.</p>
+    <p>🔹 <strong>Maternidad:</strong> La CCSS paga el <strong>100%</strong> del salario (1 mes antes y 3 meses después
+        del parto).</p>
+    <p>🔹 <strong>Paternidad:</strong> El trabajador tiene derecho a <strong>8 días hábiles</strong>
+        (2 días por semana durante 4 semanas). Si el patrono acuerda otorgarlos de forma continua,
+        igual deben contabilizarse únicamente <strong>días hábiles</strong>, es decir, sin contar sábados ni domingos.
     </p>
-    <p>
-        🔹 <strong>Accidente laboral:</strong> El <strong>INS paga el 67%</strong> del salario desde el primer día.
-    </p>
-    <p>
-        🔹 <strong>Maternidad:</strong> La CCSS paga el <strong>100%</strong> del salario (1 mes antes y 3 meses después
-        del parto).
-    </p>
+
 
     <h4>⚖️ Base legal</h4>
     <ul>
-        <li><strong>CCSS:</strong> Reglamento del Seguro de Salud, artículos 79, 80, 92 y 93.</li>
-        <li><strong>Código de Trabajo:</strong> Artículo 231 (Riesgos del Trabajo).</li>
+        <li><strong>CCSS:</strong> Reglamento del Seguro de Salud, arts. 79, 80, 92, 93.</li>
+        <li><strong>Código de Trabajo:</strong> Art. 231 (Riesgos del trabajo).</li>
     </ul>
 </div>
 
 <hr>
 
-<h2>📋 Incapacidades Registradas</h2>
+<!-- Lista de incapacidades -->
+<h2>📋 Incapacidades registradas</h2>
 
-<table border="1" cellpadding="6">
+<div *ngIf="!empleadoSeleccionado">
+    <p>👈 Seleccione un empleado para ver sus incapacidades.</p>
+</div>
+
+<table *ngIf="empleadoSeleccionado && incapacidades.length > 0" border="1" cellpadding="6">
     <thead>
         <tr>
             <th>Empleado</th>
@@ -70,44 +91,78 @@
             <th>Fecha Inicio</th>
             <th>Fecha Fin</th>
             <th>Días</th>
-            <th>🗓 Mes</th>
+            <th>N° Incapacidad</th>
+            <th>Mes</th>
             <th>Acciones</th>
         </tr>
     </thead>
+
     <tbody>
         <tr *ngFor="let i of incapacidades">
-            <td>{{ obtenerNombreEmpleado(i.empleadoId) }}</td>
+            <td>{{ empleadoSeleccionado?.nombre }}</td>
             <td>
-                {{ i.tipo === 'enfermedad' ? 'Enfermedad' : i.tipo === 'accidente' ? 'Accidente laboral' : i.tipo ===
-                'permisosg' ? 'Permiso sin goce' : 'Maternidad'
+                {{
+                i.tipo === 'enfermedad' ? 'Enfermedad' :
+                i.tipo === 'accidente' ? 'Accidente laboral' :
+                i.tipo === 'maternidad' ? 'Maternidad' :
+                i.tipo === 'paternidad' ? 'Paternidad' :
+                'Permiso sin goce'
                 }}
             </td>
             <td>{{ i.fechaInicio }}</td>
             <td>{{ i.fechaFin }}</td>
             <td>{{ i.dias }}</td>
+            <td>{{ i.numIncapacidad }}</td>
             <td>{{ formatearMes(i.mes) }}</td>
             <td>
-                <button (click)="eliminar(i.id)">🗑️ Eliminar</button>
+                <button class="del" (click)="eliminar(i.id)">🗑️ Eliminar</button>
             </td>
         </tr>
     </tbody>
 </table>
 
+<p *ngIf="empleadoSeleccionado && incapacidades.length === 0">
+    📭 No hay incapacidades registradas para este empleado.
+</p>
 
 <style>
-    .info-btn {
-        margin-left: 10px;
-        background-color: #1976d2;
-        color: white;
-        border: none;
-        padding: 6px 12px;
+    select,
+    input[type="date"] {
+        padding: 6px;
+        margin-bottom: 10px;
         border-radius: 6px;
-        cursor: pointer;
-        font-size: 14px;
+        border: 1px solid #ccc;
     }
 
-    .info-btn:hover {
-        background-color: #125ca3;
+    .btns {
+        margin-top: 10px;
+    }
+
+    button {
+        padding: 8px 14px;
+        border: none;
+        background: #1976d2;
+        color: white;
+        border-radius: 6px;
+        cursor: pointer;
+        margin-right: 8px;
+    }
+
+    button[disabled] {
+        background: #b5b5b5;
+        cursor: not-allowed;
+    }
+
+    .sec {
+        background: #555;
+    }
+
+    .del {
+        background: #c62828;
+    }
+
+    .info-btn {
+        background: #0d47a1;
     }
 
     .info-panel {
@@ -117,20 +172,5 @@
         margin-top: 12px;
         border-radius: 8px;
         font-size: 14px;
-        line-height: 1.5;
-    }
-
-    .info-panel h3 {
-        margin-top: 0;
-        color: #0a4fa0;
-    }
-
-    .info-panel ul {
-        margin: 8px 0;
-        padding-left: 20px;
-    }
-
-    .info-panel li {
-        margin-bottom: 4px;
     }
 </style>
