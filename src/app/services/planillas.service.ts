@@ -55,4 +55,15 @@ export class PlanillasService {
       .doc(id)
       .delete();
   }
+
+  /** Verifica si ya existe una planilla registrada para el mes */
+  existePlanillaMes(mes: string) {
+    const cedula = this.obtenerEmpresaCedula();
+    return this.afs
+      .collection<Planilla>(`empresas/${cedula}/planillas`, ref =>
+        ref.where('mes', '==', mes)
+      )
+      .valueChanges();
+  }
+
 }

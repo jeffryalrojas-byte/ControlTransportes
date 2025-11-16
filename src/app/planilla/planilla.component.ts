@@ -233,30 +233,39 @@ export class PlanillaComponent implements OnInit {
       return;
     }
 
-    this.calcularTotales();
+    // 🔥 VALIDAR SI YA EXISTE PLANILLA DEL MES
+    this.planillasService.existePlanillaMes(this.mesActual).subscribe(planillas => {
 
-    const nuevaPlanilla: Planilla = {
-      id: uuid(),
-      mes: this.mesActual,
-      fechaCreacion: new Date().toLocaleString(),
-      totalNeto: this.totalNeto,
-      totalCargas: this.totalCargas,
-      detalleEmpleados: this.empleados.map(e => ({
-        id: e.id,
-        salarioNeto: this.salarioNeto(e)
-      })),
-      empresaCedula: this.empresaCedulaActual
-    };
+      if (planillas.length > 0) {
+        alert(`🚫 No se puede guardar la planilla.\nLa planilla del mes ${this.mesActual} ya fue presentada.\n\n➡️ Si desea modificar información, primero debe eliminarla.`);
+        return;
+      }
 
-    this.planillasService.agregar(nuevaPlanilla)
-      .then(() => {
-        alert(`✅ Planilla del mes ${this.mesActual} guardada correctamente.`);
-        this.mesActual = '';
-      })
-      .catch(err => {
-        console.error(err);
-        alert('❌ Error al guardar la planilla.');
-      });
+      this.calcularTotales();
+
+      const nuevaPlanilla: Planilla = {
+        id: uuid(),
+        mes: this.mesActual,
+        fechaCreacion: new Date().toLocaleString(),
+        totalNeto: this.totalNeto,
+        totalCargas: this.totalCargas,
+        detalleEmpleados: this.empleados.map(e => ({
+          id: e.id,
+          salarioNeto: this.salarioNeto(e)
+        })),
+        empresaCedula: this.empresaCedulaActual!
+      };
+
+      this.planillasService.agregar(nuevaPlanilla)
+        .then(() => {
+          alert(`✅ Planilla del mes ${this.mesActual} guardada correctamente.`);
+          this.mesActual = '';
+        })
+        .catch(err => {
+          console.error(err);
+          alert('❌ Error al guardar la planilla.');
+        });
+    }); // end subscribe
   }
 
   // ===============================

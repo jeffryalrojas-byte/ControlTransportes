@@ -1,8 +1,11 @@
 <h2>💼 Planilla Mensual</h2>
 
-<label>📅 Mes:</label>
-<input type="month" [(ngModel)]="mesActual" (change)="onMesChange()">
-<button (click)="guardarPlanilla()">Guardar planilla</button>
+<div style="display: flex; align-items: center; gap: 10px;">
+  <label>📅 Mes:</label>
+  <input type="month" [(ngModel)]="mesActual" (change)="onMesChange()">
+  <button class="btn-guardar" (click)="guardarPlanilla()">💾 Guardar</button>
+</div>
+
 
 <hr>
 

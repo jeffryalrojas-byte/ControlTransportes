@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { IncapacidadesService, Incapacidad } from '../services/incapacidades.service';
 import { RrhhService } from '../services/rrhh.service';
 import { v4 as uuid } from 'uuid';
+import { PlanillasService } from '../services/planillas.service';
 
 @Component({
   selector: 'app-incapacidades',
@@ -24,7 +25,8 @@ export class IncapacidadesComponent implements OnInit {
 
   constructor(
     private incapacidadesService: IncapacidadesService,
-    private rrhhService: RrhhService
+    private rrhhService: RrhhService,
+    private planillasService: PlanillasService
   ) { }
 
   ngOnInit() {
@@ -85,52 +87,70 @@ export class IncapacidadesComponent implements OnInit {
       return;
     }
 
-    // 🔥 Si es PATERNIDAD → NO dividir por mes
-    if (this.tipo === 'paternidad') {
+    // 📌 Obtener el mes de la incapacidad
+    const inicio = new Date(`${this.fechaInicio}T00:00:00`);
+    const mes = `${inicio.getFullYear()}-${String(inicio.getMonth() + 1).padStart(2, '0')}`;
 
-      const inicio = new Date(`${this.fechaInicio}T00:00:00`);
-      const mes = `${inicio.getFullYear()}-${String(inicio.getMonth() + 1).padStart(2, '0')}`;
+    // 🔥 PRIMER PASO → verificar si la planilla ya está cerrada
+    this.planillasService.existePlanillaMes(mes).subscribe(planillas => {
 
-      const incapacidad: Incapacidad = {
-        id: uuid(),
-        empleadoId: this.empleadoId,
-        fechaInicio: this.fechaInicio,
-        fechaFin: this.fechaFin,
-        dias: this.calcularDias(), // tu método original
-        mes,
-        tipo: this.tipo,
-        numIncapacidad: this.numIncapacidad
-      };
+      if (planillas.length > 0) {
+        // ❌ Ya existe planilla
+        alert(`🚫 No se puede registrar la incapacidad.\nLa planilla del mes ${mes} ya fue presentada.\n\n➡️ Debe eliminar la planilla primero.`);
+        return;
+      }
 
-      this.incapacidadesService.guardar(incapacidad);
-      alert('✅ Incapacidad registrada correctamente');
+      // ===============================
+      //   SI NO HAY PLANILLA → GUARDAR
+      // 
+
+      // 🔥 Si es PATERNIDAD → NO dividir por mes
+      if (this.tipo === 'paternidad') {
+
+        const inicio = new Date(`${this.fechaInicio}T00:00:00`);
+        const mes = `${inicio.getFullYear()}-${String(inicio.getMonth() + 1).padStart(2, '0')}`;
+
+        const incapacidad: Incapacidad = {
+          id: uuid(),
+          empleadoId: this.empleadoId,
+          fechaInicio: this.fechaInicio,
+          fechaFin: this.fechaFin,
+          dias: this.calcularDias(), // tu método original
+          mes,
+          tipo: this.tipo,
+          numIncapacidad: this.numIncapacidad
+        };
+
+        this.incapacidadesService.guardar(incapacidad);
+        alert('✅ Incapacidad registrada correctamente');
+        this.limpiar();
+        return;
+      }
+
+      // 🔥 PARA TODO LO DEMÁS → DIVIDIR ENTRE MESES
+      const rangos = this.dividirPorMes(this.fechaInicio, this.fechaFin);
+
+      rangos.forEach(r => {
+        const year = r.inicio.getFullYear();
+        const month = String(r.inicio.getMonth() + 1).padStart(2, '0');
+
+        const incapacidad: Incapacidad = {
+          id: uuid(),
+          empleadoId: this.empleadoId,
+          fechaInicio: r.inicio.toISOString().substring(0, 10),
+          fechaFin: r.fin.toISOString().substring(0, 10),
+          dias: this.calcularDiasMes(r.inicio, r.fin),
+          mes: `${year}-${month}`,
+          tipo: this.tipo as Incapacidad['tipo'],
+          numIncapacidad: this.numIncapacidad
+        };
+
+        this.incapacidadesService.guardar(incapacidad);
+      });
+
+      alert('✅ Incapacidad registrada por mes correctamente');
       this.limpiar();
-      return;
-    }
-
-    // 🔥 PARA TODO LO DEMÁS → DIVIDIR ENTRE MESES
-    const rangos = this.dividirPorMes(this.fechaInicio, this.fechaFin);
-
-    rangos.forEach(r => {
-      const year = r.inicio.getFullYear();
-      const month = String(r.inicio.getMonth() + 1).padStart(2, '0');
-
-      const incapacidad: Incapacidad = {
-        id: uuid(),
-        empleadoId: this.empleadoId,
-        fechaInicio: r.inicio.toISOString().substring(0, 10),
-        fechaFin: r.fin.toISOString().substring(0, 10),
-        dias: this.calcularDiasMes(r.inicio, r.fin),
-        mes: `${year}-${month}`,
-        tipo: this.tipo as Incapacidad['tipo'],
-        numIncapacidad: this.numIncapacidad
-      };
-
-      this.incapacidadesService.guardar(incapacidad);
     });
-
-    alert('✅ Incapacidad registrada por mes correctamente');
-    this.limpiar();
   }
 
 
