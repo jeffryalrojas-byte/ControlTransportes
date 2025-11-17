@@ -24,14 +24,14 @@
 
     <!-- Fechas -->
     <label>Fecha inicio:</label>
-    <input type="date" [(ngModel)]="fechaInicio" (change)="calcularDias()">
+    <input type="date" [(ngModel)]="fechaInicio" (change)="calcularDias()" [disabled]="estadoBotones">
 
     <label>Fecha fin:</label>
-    <input type="date" [(ngModel)]="fechaFin" (change)="calcularDias()">
+    <input type="date" [(ngModel)]="fechaFin" (change)="calcularDias()" [disabled]="estadoBotones">
 
     <!-- Número de incapacidad -->
     <label>Número de incapacidad:</label>
-    <input type="text" [(ngModel)]="numIncapacidad" placeholder="Ej: 123456">
+    <input type="text" [(ngModel)]="numIncapacidad" placeholder="Ej: 123456" [disabled]="estadoBotones">
 
     <!-- Botones -->
     <div class="btns">
@@ -56,14 +56,14 @@
     <h3>📋 Reglamento sobre incapacidades</h3>
     <p>🔹 <strong>Días 1 al 3:</strong> El patrono paga el <strong>50%</strong> del salario diario. La CCSS no cubre
         incapacidades menores a 3 días.</p>
-    <p>🔹 <strong>Del día 4 en adelante:</strong> La CCSS paga el <strong>60%</strong> del salario promedio reportado.
+    <p>🔹 <strong>Del día 4 en adelante:</strong> Únicamente la CCSS paga el <strong>60%</strong> del salario promedio
+        reportado.
     </p>
     <p>🔹 <strong>Accidente laboral:</strong> El INS paga el <strong>67%</strong> del salario desde el primer día.</p>
     <p>🔹 <strong>Maternidad:</strong> La CCSS paga el <strong>100%</strong> del salario (1 mes antes y 3 meses después
         del parto).</p>
     <p>🔹 <strong>Paternidad:</strong> El trabajador tiene derecho a <strong>8 días hábiles</strong>
-        (2 días por semana durante 4 semanas). Si el patrono acuerda otorgarlos de forma continua,
-        igual deben contabilizarse únicamente <strong>días hábiles</strong>, es decir, sin contar sábados ni domingos.
+        (2 días por semana durante 4 semanas). Si el patrono - empleado acuerdan, pueden otorgarlos de forma continua.
     </p>
 
 

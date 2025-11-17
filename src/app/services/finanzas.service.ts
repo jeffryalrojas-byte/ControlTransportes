@@ -8,6 +8,7 @@ export interface Transaccion {
   descripcion: string;
   monto: number;
   fecha: string;
+  mes: string;
 }
 
 @Injectable({ providedIn: 'root' })

@@ -13,6 +13,9 @@ interface Empleado {
   tipoPago: 'mensual' | 'diario';
   salarioBase: number;
   dias?: number;
+  tipoContrato?: 'indefinido' | 'definido';
+  fechaFinContrato?: string | Date | null;
+  fechaFinContratoDate?: Date | null;
 }
 
 interface Planilla {
@@ -33,6 +36,8 @@ interface Planilla {
 export class PlanillaComponent implements OnInit {
 
   empleados: Empleado[] = [];
+  empleadosOriginal: Empleado[] = [];
+
   diasTrabajados: { [id: number]: number } = {};
   planillas: Planilla[] = [];
   incapacidades: any[] = [];
@@ -61,7 +66,6 @@ export class PlanillaComponent implements OnInit {
       return;
     }
 
-    // Cargar cargas de CCSS
     // Cargar cargas de CCSS desde Firebase
     this.configuracionService.obtenerCargas().subscribe(cargas => {
       if (cargas) {
@@ -77,16 +81,22 @@ export class PlanillaComponent implements OnInit {
 
     // Cargar empleados desde Firebase
     this.rrhhService.obtener().subscribe(empList => {
-      this.empleados = empList.map(e => ({
-        id: e.id, // O dejalo como string si tu modelo lo permite
+      const lista = empList.map(e => ({
+        id: e.id,
         nombre: e.nombre,
         puesto: e.puesto,
         tipoPago: e.tipoPago,
         salarioBase: e.tipoPago === 'mensual'
           ? e.salarioMensual
           : e.salarioDiario,
-        dias: 0
+        dias: 0,
+        tipoContrato: e.tipoContrato,
+        fechaFinContrato: e.fechaFinContrato || '',
+        fechaFinContratoDate: e.fechaFinContrato ? new Date(e.fechaFinContrato) : null
       }));
+      this.empleadosOriginal = [...lista];
+      this.empleados = [...lista];
+
     });
 
 
@@ -116,7 +126,26 @@ export class PlanillaComponent implements OnInit {
 
   salarioBruto(e: Empleado): number {
     const montoPorDia = e.tipoPago === 'mensual' ? e.salarioBase / 30 : e.salarioBase;
-    const diasTrabOriginal = e.tipoPago === 'mensual' ? 30 : (this.diasTrabajados[e.id] || 0);
+    let diasTrabOriginal = e.tipoPago === 'mensual' ? 30 : (this.diasTrabajados[e.id] || 0);
+
+    // 🔥 AJUSTE POR CONTRATO VENCIDO DENTRO DEL MES
+    if (e.tipoContrato === 'definido' && e.fechaFinContratoDate && this.mesActual) {
+      const [anio, mes] = this.mesActual.split("-");
+      const finMes = new Date(Number(anio), Number(mes), 0);
+
+      // si vence dentro del mes → se le pagan solo hasta esa fecha
+      if (e.fechaFinContratoDate < finMes) {
+        const diaFinContrato = e.fechaFinContratoDate.getDate();
+        const maxDias = Math.min(diaFinContrato, diasTrabOriginal);
+
+        if (e.tipoPago === 'mensual') {
+          diasTrabOriginal = maxDias;
+        } else {
+          diasTrabOriginal = Math.min(this.diasTrabajados[e.id] || 0, maxDias);
+        }
+      }
+    }
+
 
     if (!this.mesActual) {
       return diasTrabOriginal * montoPorDia;
@@ -234,7 +263,9 @@ export class PlanillaComponent implements OnInit {
     }
 
     // 🔥 VALIDAR SI YA EXISTE PLANILLA DEL MES
-    this.planillasService.existePlanillaMes(this.mesActual).subscribe(planillas => {
+    this.planillasService.existePlanillaMes(this.mesActual).subscribe(snap => {
+
+      const planillas = snap.docs.map(d => d.data());
 
       if (planillas.length > 0) {
         alert(`🚫 No se puede guardar la planilla.\nLa planilla del mes ${this.mesActual} ya fue presentada.\n\n➡️ Si desea modificar información, primero debe eliminarla.`);
@@ -291,8 +322,26 @@ export class PlanillaComponent implements OnInit {
   onMesChange() {
     this.incapacidadesService.obtener().subscribe(data => {
       this.incapacidades = data;
+
+      if (this.mesActual) {
+        const [anio, mes] = this.mesActual.split("-");
+        const inicioMes = new Date(Number(anio), Number(mes) - 1, 1);
+
+        // 🔥 USAR SIEMPRE LA LISTA ORIGINAL
+        this.empleados = this.empleadosOriginal.filter(e => {
+          if (e.tipoContrato === 'indefinido') return true;
+          if (!e.fechaFinContratoDate) return true;
+          return e.fechaFinContratoDate >= inicioMes;
+        });
+
+      } else {
+        // si borra el mes → restaurar todos
+        this.empleados = [...this.empleadosOriginal];
+      }
+
       this.calcularTotales();
     });
-
   }
+
+
 }

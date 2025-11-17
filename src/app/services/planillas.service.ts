@@ -63,7 +63,8 @@ export class PlanillasService {
       .collection<Planilla>(`empresas/${cedula}/planillas`, ref =>
         ref.where('mes', '==', mes)
       )
-      .valueChanges();
+      .get(); // <-- ESTO evita que se dispare varias veces
   }
+
 
 }

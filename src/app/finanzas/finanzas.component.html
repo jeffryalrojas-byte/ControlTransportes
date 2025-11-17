@@ -1,5 +1,11 @@
 <h2>📊 Control Financiero</h2>
 
+<!-- 🔥 SELECCIONAR EL MES A TRABAJAR -->
+<div class="mes-selector">
+  <label>Seleccionar mes:</label>
+  <input type="month" [(ngModel)]="mesActivo" (change)="filtrarPorMes()">
+</div>
+<hr>
 <div class="form">
   <input placeholder="Descripción" [(ngModel)]="descripcion">
   <input type="number" placeholder="Monto" [ngModel]="monto" (ngModelChange)="monto = +$event">
@@ -23,7 +29,7 @@
   </thead>
 
   <tbody>
-    <tr *ngFor="let m of movimientos">
+    <tr *ngFor="let m of movimientosFiltrados">
       <td>{{ m.descripcion }}</td>
       <td [ngStyle]="{'color': m.tipo === 'ingreso' ? 'green' : 'red'}">
         {{ m.tipo | uppercase }}
@@ -38,12 +44,34 @@
 
 <hr>
 
-<div class="resumen">
-  <p>💵 Total Ingresos: <strong>{{ totalIngresos() | currency:'CRC' }}</strong></p>
-  <p>💸 Total Gastos: <strong>{{ totalGastos() | currency:'CRC' }}</strong></p>
-  <p>🧾 Balance Final: 
-    <strong [ngStyle]="{'color': balance() >= 0 ? 'green' : 'red'}">
-      {{ balance() | currency:'CRC' }}
-    </strong>
-  </p>
+<div class="resumen-container" style="display: flex; justify-content: space-between; gap: 30px;">
+
+  <!-- 🔹 RESUMEN DEL MES -->
+  <div class="resumen">
+    <h3>📅 Resumen del mes ({{ mesActivo }})</h3>
+    <p>💵 Total Ingresos: <strong>{{ totalIngresos() | currency:'CRC' }}</strong></p>
+    <p>💸 Total Gastos: <strong>{{ totalGastos() | currency:'CRC' }}</strong></p>
+    <p>🧾 Balance Final:
+      <strong [ngStyle]="{'color': balance() >= 0 ? 'green' : 'red'}">
+        {{ balance() | currency:'CRC' }}
+      </strong>
+    </p>
+  </div>
+
+  <!-- 🔹 RESUMEN GLOBAL -->
+  <div class="resumen">
+    <h3>🌎 Balance General</h3>
+    <p>💵 Ingresos Totales:
+      <strong>{{ totalIngresosGlobal() | currency:'CRC' }}</strong>
+    </p>
+    <p>💸 Gastos Totales:
+      <strong>{{ totalGastosGlobal() | currency:'CRC' }}</strong>
+    </p>
+    <p>🧾 Balance General:
+      <strong [ngStyle]="{'color': balanceGlobal() >= 0 ? 'green' : 'red'}">
+        {{ balanceGlobal() | currency:'CRC' }}
+      </strong>
+    </p>
+  </div>
+
 </div>

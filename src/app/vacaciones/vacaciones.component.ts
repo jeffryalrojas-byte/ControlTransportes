@@ -72,6 +72,19 @@ export class VacacionesComponent implements OnInit {
       return;
     }
 
+    //Validamos que las vaciones esten dentro del rango del contrato
+    if (this.empleadoSeleccionado.fechaFinContrato) {
+      const finContrato = new Date(this.empleadoSeleccionado.fechaFinContrato);
+      const inicioVac = new Date(this.fechaInicio);
+      const finVac = new Date(this.fechaFin);
+
+      // Si la fecha de vacaciones esta fuera del rango del contrato
+      if (inicioVac > finContrato || finVac > finContrato) {
+        alert('🚫 No puede registrar vacaciones en fechas en las que el empleado no tiene nombramiento activo.\n\nVerifique las fechas del contrato.');
+        return;
+      }
+    }
+
     this.vacacionesService.calcularDiasPendientes(
       this.empleadoId,
       this.empleadoSeleccionado.fechaIngreso

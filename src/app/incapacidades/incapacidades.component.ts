@@ -23,6 +23,8 @@ export class IncapacidadesComponent implements OnInit {
   empleadoSeleccionado: any = null;
   mostrarInfo: boolean = false;
 
+  estadoBotones: boolean = false;
+
   constructor(
     private incapacidadesService: IncapacidadesService,
     private rrhhService: RrhhService,
@@ -37,7 +39,18 @@ export class IncapacidadesComponent implements OnInit {
   }
 
   seleccionarEmpleado(id: string) {
+    this.estadoBotones = false
     this.empleadoSeleccionado = this.empleados.find(e => e.id === id) || null;
+
+    if (!this.empleadoSeleccionado) return;
+
+    const estado = this.rrhhService.obtenerEstadoEmpleado(this.empleadoSeleccionado);
+
+    // Aquí NO limpiamos al empleado, solo bloqueamos nuevas solicitudes
+    if (estado === 'inactivo') {
+      this.estadoBotones = true;
+      alert('El empleado está INACTIVO. No puede solicitar permisos o registrar incapacidades, pero se mostrarán sus solicitudes.');
+    }
 
     this.incapacidadesService.obtenerPorEmpleado(id).subscribe(list => {
       this.incapacidades = list;
@@ -87,12 +100,27 @@ export class IncapacidadesComponent implements OnInit {
       return;
     }
 
+    //Validamos que las vaciones esten dentro del rango del contrato
+    if (this.empleadoSeleccionado.fechaFinContrato) {
+      const finContrato = new Date(this.empleadoSeleccionado.fechaFinContrato);
+      const inicioVac = new Date(this.fechaInicio);
+      const finVac = new Date(this.fechaFin);
+
+      // Si la fecha de la incapacidad esta fura del rango del contrato
+      if (inicioVac > finContrato || finVac > finContrato) {
+        alert('🚫 No puede registrar incapacidades en fechas en las que el empleado no tiene nombramiento activo.\n\nVerifique las fechas del contrato.');
+        return;
+      }
+    }
+
     // 📌 Obtener el mes de la incapacidad
     const inicio = new Date(`${this.fechaInicio}T00:00:00`);
     const mes = `${inicio.getFullYear()}-${String(inicio.getMonth() + 1).padStart(2, '0')}`;
 
     // 🔥 PRIMER PASO → verificar si la planilla ya está cerrada
-    this.planillasService.existePlanillaMes(mes).subscribe(planillas => {
+    this.planillasService.existePlanillaMes(mes).subscribe(snap => {
+
+      const planillas = snap.docs.map(d => d.data());
 
       if (planillas.length > 0) {
         // ❌ Ya existe planilla
@@ -165,6 +193,7 @@ export class IncapacidadesComponent implements OnInit {
     this.fechaInicio = '';
     this.fechaFin = '';
     this.tipo = '';
+    this.numIncapacidad = '';
     this.empleadoSeleccionado = null;
     this.incapacidades = [];
   }
