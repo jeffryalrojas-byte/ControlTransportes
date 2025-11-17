@@ -56,6 +56,7 @@
       <th>Vacaciones Pendientes</th>
       <th>Incapacidades</th>
       <th>Aguinaldo aprox.</th>
+      <th>Estado</th>
       <th>Acciones</th>
     </tr>
   </thead>
@@ -84,7 +85,6 @@
           </div>
         </div>
       </td>
-
       <td>
         <ng-container *ngIf="getDiasPendientesIncapacidad(e.id) > 0; else noIncapacidad">
           Días pendientes:
@@ -97,6 +97,17 @@
       </td>
 
       <td>{{ aguinaldos[e.id] | currency:'CRC' }}</td>
+      <td>
+        <ng-container [ngSwitch]="obtenerEstadoEmpleado(e)">
+          <span *ngSwitchCase="'activo'" style="color: green; font-weight: bold;">
+            Activo
+          </span>
+          <span *ngSwitchCase="'inactivo'" style="color: red; font-weight: bold;">
+            Inactivo
+          </span>
+        </ng-container>
+      </td>
+
       <td>
         <button (click)="editar(e)">✏️</button>
         <button *ngIf="puedeEliminar()" (click)="eliminar(e.id)">🗑 Eliminar</button>

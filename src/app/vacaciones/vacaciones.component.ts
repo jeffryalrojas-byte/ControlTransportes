@@ -22,6 +22,8 @@ export class VacacionesComponent implements OnInit {
 
   empleadoSeleccionado: Empleado | null = null;
 
+  estadoBotones: boolean = false;
+
   constructor(
     private vacacionesService: VacacionesService,
     private rrhhService: RrhhService
@@ -45,9 +47,24 @@ export class VacacionesComponent implements OnInit {
   }
 
   seleccionarEmpleado(id: string) {
+    this.estadoBotones = false
     this.empleadoSeleccionado = this.empleados.find(e => e.id === id) || null;
+
+    if (!this.empleadoSeleccionado) return;
+
+    const estado = this.rrhhService.obtenerEstadoEmpleado(this.empleadoSeleccionado);
+
+    // Aquí NO limpiamos al empleado, solo bloqueamos nuevas solicitudes
+    if (estado === 'inactivo') {
+      this.estadoBotones = true;
+      alert('El empleado está INACTIVO. No puede solicitar vacaciones, pero se mostrarán sus solicitudes.');
+    }
+
+    // Ahora sí cargamos las solicitudes SIEMPRE
     this.cargarSolicitudes();
   }
+
+
 
   registrar() {
     if (!this.empleadoSeleccionado) {

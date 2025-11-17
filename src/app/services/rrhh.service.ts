@@ -86,6 +86,25 @@ export class RrhhService {
       .update(e);
   }
 
+  //ESTADO DEL EMPLEADO
+  public obtenerEstadoEmpleado(e: Empleado): 'activo' | 'inactivo' {
+    if (e.tipoContrato === 'indefinido') {
+      return 'activo';
+    }
+
+    // Contrato definido
+    if (!e.fechaFinContrato) return 'activo';
+
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+
+    const fin = new Date(e.fechaFinContrato);
+    fin.setHours(0, 0, 0, 0);
+
+    return fin >= hoy ? 'activo' : 'inactivo';
+  }
+
+
   // ===========================
   // 📌 ELIMINAR EMPLEADO
   // ===========================

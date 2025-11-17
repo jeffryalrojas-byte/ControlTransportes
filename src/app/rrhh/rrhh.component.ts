@@ -267,6 +267,11 @@ export class RrhhComponent implements OnInit {
     return 0; // no importa el orden, solo lo usamos para tipar correctamente
   };
 
+  obtenerEstadoEmpleado(e: Empleado) {
+    return this.rrhhService.obtenerEstadoEmpleado(e)
+  }
+
+
   puedeEliminar(): boolean {
     return this.usuarioActivo?.rol === 'Supervisor';
   }
