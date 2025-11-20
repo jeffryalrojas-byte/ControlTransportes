@@ -109,6 +109,7 @@
       </td>
 
       <td>
+        <button (click)="imprimirContrato(e)">📄 Imprimir contrato</button>
         <button (click)="editar(e)">✏️</button>
         <button *ngIf="puedeEliminar()" (click)="eliminar(e.id)">🗑 Eliminar</button>
       </td>

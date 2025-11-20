@@ -12,6 +12,7 @@ export class NavbarComponent implements OnInit {
   usuarioActivo: any;
   nombreEmpresa: string = '';
   cedulaEmpresa: string = '';
+  logoURL: string = '';
 
   constructor(
     private router: Router,
@@ -26,6 +27,14 @@ export class NavbarComponent implements OnInit {
     if (this.usuarioActivo) {
       this.nombreEmpresa = this.sesionService.getEmpresaActual() || 'Empresa desconocida';
       this.cedulaEmpresa = this.sesionService.getCedulaEmpresaActual() || 'Sin cédula';
+    }
+
+    //Logo
+    if (this.cedulaEmpresa == '3-102-908063') {
+      this.logoURL = 'assets/LogoDyF.jpg'; // ruta del logo
+
+    } else {
+      this.logoURL = 'assets/LogoGyA.png'; // ruta del logo
     }
   }
 

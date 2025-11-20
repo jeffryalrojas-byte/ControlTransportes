@@ -36,6 +36,10 @@ export class RrhhComponent implements OnInit {
 
   incapacidades: any[] = [];
 
+  //Para los datos de la sociedad
+  nombreEmpresa: string = '';
+  cedulaEmpresa: string = '';
+
   constructor(
     private vacacionesService: VacacionesService,
     private rrhhService: RrhhService,
@@ -47,6 +51,10 @@ export class RrhhComponent implements OnInit {
   ngOnInit() {
     const userData = localStorage.getItem('usuarioActivo');
     if (userData) this.usuarioActivo = JSON.parse(userData);
+
+    //Datos de la Sociedad
+    this.nombreEmpresa = this.sesionService.getEmpresaActual() || 'Empresa desconocida';
+    this.cedulaEmpresa = this.sesionService.getCedulaEmpresaActual() || 'Sin cédula';
 
     this.rrhhService.obtener().subscribe(data => {
       this.empleados = data;
@@ -279,6 +287,230 @@ export class RrhhComponent implements OnInit {
   esAdmin(): boolean {
     return this.usuarioActivo?.rol === 'Administrador';
   }
+
+
+  //ESTO ES PARA EL TEMA DEL CONTRATO
+
+  imprimirContrato(e: any) {
+    const hoy = new Date().toLocaleDateString('es-CR');
+
+    let logoURL = ''
+    // Datos de la empresa desde sesión
+    const empresa = this.nombreEmpresa;
+    const cedula = this.cedulaEmpresa;
+
+    if (cedula == '3-102-908063') {
+      logoURL = 'assets/LogoDyF.jpg'; // ruta del logo
+
+    } else {
+      logoURL = 'assets/LogoGyA.png'; // ruta del logo
+    }
+
+    const contrato = `
+    <html>
+    <head>
+      <title>Contrato de Trabajo</title>
+      <style>
+        body {
+          font-family: Arial, sans-serif;
+          padding: 40px;
+          line-height: 1.5;
+          font-size: 14px;
+        }
+
+        h1 { text-align: center; }
+
+        .logo {
+          width: 180px;
+          display: block;
+          margin-left: auto;
+          margin-right: auto;
+          margin-bottom: 20px;
+        }
+
+        .titulo-sec {
+          margin-top: 20px;
+          font-weight: bold;
+          font-size: 16px;
+        }
+
+        .firma {
+          margin-top: 60px;
+          display: flex;
+          justify-content: space-between;
+        }
+
+        .firma div {
+          text-align: center;
+          width: 45%;
+        }
+      </style>
+    </head>
+
+    <body>
+
+    <img src="${logoURL}" class="logo">
+
+    <h1>CONTRATO INDIVIDUAL DE TRABAJO</h1>
+
+    <p>En Buenos Aires, Puntarenas, a los <b>${hoy}</b>, entre 
+    <b>${empresa}</b>, Cédula Jurídica <b>${cedula}</b>, representada por su administrador,
+    en adelante como “EL EMPLEADOR”, y 
+    <b>${e.nombre}</b>, portador(a) de la cédula de identidad <b>${e.cedula}</b>,
+    en adelante “LA PERSONA TRABAJADORA”, se acuerda el presente Contrato Individual de Trabajo,
+    sujeto a las siguientes cláusulas:</p>
+
+    <div class="titulo-sec">PRIMERO: Naturaleza de los servicios</div>
+    <p>
+    La persona trabajadora se obliga a prestar sus servicios en el puesto de 
+    <b>${e.puesto}</b>, cumpliendo las labores propias del cargo, las instrucciones superiores, 
+    así como cualquier otra función complementaria y razonable relacionada con sus 
+    responsabilidades.
+    </p>
+
+    <div class="titulo-sec">SEGUNDO: Lugar donde se prestarán los servicios</div>
+    <p>
+    La persona trabajadora ejecutará sus labores principalmente en las instalaciones 
+    del centro asignado por la CCSS o en las rutas establecidas por el empleador, pudiendo 
+    ser trasladada temporalmente a otros lugares siempre que las necesidades del servicio 
+    lo requieran.
+    </p>
+
+    <div class="titulo-sec">TERCERO: Jornada y horario</div>
+    <p>
+    La jornada será la correspondiente al servicio contratado por la CCSS, respetando la 
+    normativa laboral vigente. El horario podrá ajustarse cuando las condiciones operativas 
+    lo ameriten.
+    </p>
+
+    <div class="titulo-sec">CUARTO: Salario</div>
+    <p>
+      La persona trabajadora devengará un salario de: <br>
+      Mensual: ₡${e.salarioMensual || 0}</b> 
+      (colones).<br>
+      Diario de <b>₡${e.salarioDiario || 0}</b>.
+      <br><br>
+      El salario será cancelado conforme las disposiciones legales, mediante transferencia o 
+      el método de pago autorizado por el empleador.
+    </p>
+
+    <div class="titulo-sec">QUINTO: Obligaciones de la persona trabajadora</div>
+    <p>
+      a) Cumplir las políticas internas del empleador.<br>
+      b) Tratar con respeto a compañeros, usuarios y superiores.<br>
+      c) Hacer buen uso del vehículo asignado y reportar cualquier daño o anomalía.<br>
+      d) Cumplir con las normas de tránsito, seguridad y salud ocupacional.<br>
+      e) Mantener la confidencialidad de la información relacionada con el trabajo.
+    </p>
+
+    <div class="titulo-sec">SEXTO: Plazo del contrato</div>
+    <p>
+      Tipo de contrato: <b>${e.tipoContrato}</b><br>
+      ${e.tipoContrato === 'definido'
+        ? `Este contrato tendrá vigencia desde el <b>${e.fechaIngreso}</b> 
+             hasta el <b>${e.fechaFinContrato}</b>.`
+        : `El contrato es por tiempo indefinido conforme al Código de Trabajo.`
+      }
+    </p>
+
+    <div class="titulo-sec">SÉTIMO: Terminación del contrato</div>
+    <p>
+      El contrato podrá darse por terminado conforme a los artículos 81, 82 y 85 
+      del Código de Trabajo, así como por las demás causales previstas en la legislación 
+      vigente.
+    </p>
+
+    <div class="titulo-sec">OCTAVO: Riesgos de trabajo</div>
+    <p>
+      El empleador garantiza que la persona trabajadora se encuentra asegurada mediante 
+      una póliza de riesgos del trabajo vigente ante el INS.
+    </p>
+
+    <div class="titulo-sec">NOVENO: Vacaciones, aguinaldo y demás derechos</div>
+    <p>
+      La persona trabajadora gozará de vacaciones, aguinaldo, descansos y demás derechos 
+      establecidos en la legislación costarricense.
+    </p>
+
+    <div class="titulo-sec">DÉCIMO: Mantenimiento y limpieza del vehículo</div>
+    <p>
+      El trabajador se compromete a mantener en óptimas condiciones de limpieza y mantenimiento 
+      el vehículo asignado para sus labores. En particular, deberá:
+	    1.	Mantener el vehículo limpio, tanto en su interior como en su exterior.
+	    2.	Limpiar regularmente el cajón del vehículo, evitando acumulación de suciedad, 
+          residuos o materiales innecesarios.
+	    3.	Cuidar y mantener en buen estado la capota o canopy, asegurándose de que los 
+          zippers estén limpios y funcionando correctamente, utilizando un cepillo u otro 
+          método adecuado para su limpieza.
+	    4.	Estar atento a los cambios de aceite y otros aspectos básicos del mantenimiento 
+          preventivo del vehículo, reportando cualquier anomalía o necesidad de servicio 
+          mecánico oportunamente.
+    </p>
+
+    <div class="titulo-sec">UNDÉCIMO: De la conducción y el recorrido de la gira</div>
+    <p>
+      El trabajador deberá conducir el vehículo de manera prudente y respetando en todo momento
+       los límites de velocidad y las normas de tránsito vigentes. Queda estrictamente prohibido
+       el manejo a alta velocidad o de forma temeraria, priorizando siempre la seguridad de los 
+       ocupantes y de terceros.
+
+      En caso de que algún funcionario de la CCSS solicite regresar a un punto anterior debido 
+       al olvido de insumos u otro motivo, el trabajador deberá informar de inmediato al administrador
+       del contrato para obtener su aprobación. Si el regreso no es autorizado, los kilómetros 
+       recorridos por dicha desviación no serán reconocidos para efectos de pago.
+
+    </p>
+    <div class="titulo-sec">DUODECIMO: Del uso del vehículo</div>
+    <p>
+      El vehículo asignado es de uso exclusivo para actividades laborales y no podrá ser utilizado 
+      para fines personales, en horarios fuera de la jornada de trabajo, días feriados, no laborados 
+      o libres, salvo autorización expresa del empleador.
+
+      Se permite que el trabajador lleve el vehículo a su casa, siempre y cuando se comprometa a 
+      mantenerlo resguardado dentro de su propiedad, en un lugar seguro. Cualquier uso indebido del 
+      vehículo o incumplimiento de esta disposición podrá ser motivo de sanciones disciplinarias. 
+      Cuando el empleador así lo requiera, el vehículo podrá ser dejado en algún punto específico y 
+      el empleado debe de llegar por sus propios medios a dicho establecimiento. 
+
+    </p>
+    <div class="titulo-sec">DÉCIMOTERCERO: Disposiciones finales</div>
+    <p>
+      El incumplimiento de estas disposiciones podrá ser motivo de medidas disciplinarias 
+      conforme a la normativa interna de la empresa.
+      Ambas partes manifiestan su conformidad con lo anterior y firman en dos ejemplares 
+      del mismo tenor.
+    </p>
+
+    <div class="firma">
+      <div>
+        ____________________________ <br>
+        ${empresa}<br>
+        Cédula Jurídica: ${cedula}<br>
+        Representante Legal
+      </div>
+
+      <div>
+        ____________________________ <br>
+        ${e.nombre}<br>
+        Cédula: ${e.cedula}<br>
+        Teléfono:
+      </div>
+    </div>
+
+    </body>
+    </html>
+  `;
+
+    const newWindow = window.open('', '_blank');
+    newWindow!.document.write(contrato);
+    newWindow!.document.close();
+
+    setTimeout(() => {
+      newWindow!.print();
+    }, 700);
+  }
+
+
 }
 
 
