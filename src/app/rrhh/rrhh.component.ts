@@ -171,10 +171,16 @@ export class RrhhComponent implements OnInit {
   }
 
   calcularAguinaldos() {
-    const añoActual = new Date().getFullYear();
+    const hoy = new Date();
+    const añoActual = hoy.getFullYear();
+    const añoAnterior = añoActual - 1;
+
+    // Periodo general del aguinaldo
+    const inicioPeriodo = new Date(`${añoAnterior}-11-01`);
+    const finPeriodo = new Date(`${añoActual}-10-31`);
+
     this.aguinaldos = {};
 
-    // seguridad: si no hay empleados o planillas, limpiamos y salimos
     if (!this.empleados?.length || !this.planillas?.length) {
       this.empleados.forEach(e => this.aguinaldos[String(e.id)] = 0);
       return;
@@ -182,35 +188,43 @@ export class RrhhComponent implements OnInit {
 
     this.empleados.forEach(e => {
       const empIdStr = String(e.id);
-      let totalAnual = 0;
+      let totalPeriodo = 0;
+
+      // 📌 FECHA REAL DE INICIO considering fechaIngreso
+      let fechaIngreso = new Date(e.fechaIngreso);
+      fechaIngreso.setHours(0, 0, 0, 0);
+
+      // Usar el máximo entre ingreso y 1 noviembre
+      const inicioReal = fechaIngreso > inicioPeriodo ? fechaIngreso : inicioPeriodo;
 
       this.planillas.forEach(p => {
-        // seguridad: si p.mes no existe, saltar
         if (!p?.mes) return;
 
-        // obtener year del mes guardado (soportamos 'YYYY-MM' o 'YYYY-MM-DD')
-        let year = null;
+        // Convierte el campo mes ('YYYY-MM' o 'YYYY-MM-DD') a Date
+        let fechaMes: Date;
         try {
-          // si p.mes es '2025-03' o '2025-03-01'
           const mesIso = p.mes.length === 7 ? `${p.mes}-01` : p.mes;
-          year = new Date(mesIso).getFullYear();
+          fechaMes = new Date(mesIso);
         } catch {
           return;
         }
 
-        if (year === añoActual) {
-          // buscar detalle por id convirtiendo ambos a string
-          const detalle = (p.detalleEmpleados || []).find((d: any) => String(d.id) === empIdStr);
+        // 📌 Solo sumar planillas dentro del rango válido
+        if (fechaMes >= inicioReal && fechaMes <= finPeriodo) {
+          const detalle = (p.detalleEmpleados || [])
+            .find((d: any) => String(d.id) === empIdStr);
+
           if (detalle && typeof detalle.salarioNeto === 'number') {
-            totalAnual += detalle.salarioNeto;
+            totalPeriodo += detalle.salarioNeto;
           }
         }
       });
 
-      this.aguinaldos[empIdStr] = totalAnual / 12;
+      // 🟢 Fórmula oficial: total devengado / 12
+      this.aguinaldos[empIdStr] = totalPeriodo / 12;
     });
-
   }
+
 
 
   actualizarDiasVacaciones() {

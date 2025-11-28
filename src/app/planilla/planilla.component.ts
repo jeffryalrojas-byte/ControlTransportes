@@ -16,6 +16,7 @@ interface Empleado {
   tipoContrato?: 'indefinido' | 'definido';
   fechaFinContrato?: string | Date | null;
   fechaFinContratoDate?: Date | null;
+  extras?: number;   // 
 }
 
 interface Planilla {
@@ -92,7 +93,8 @@ export class PlanillaComponent implements OnInit {
         dias: 0,
         tipoContrato: e.tipoContrato,
         fechaFinContrato: e.fechaFinContrato || '',
-        fechaFinContratoDate: e.fechaFinContrato ? new Date(e.fechaFinContrato) : null
+        fechaFinContratoDate: e.fechaFinContrato ? new Date(e.fechaFinContrato) : null,
+        extras: 0
       }));
       this.empleadosOriginal = [...lista];
       this.empleados = [...lista];
@@ -211,7 +213,9 @@ export class PlanillaComponent implements OnInit {
     // bruto = (días trabajados efectivos * montoPorDia) + (días al 50% * montoPorDia * 0.5)
     const bruto = (diasTrabEfectivos * montoPorDia) + (totalDias50EnMes * montoPorDia * 0.5);
 
-    return Math.max(bruto, 0);
+    const extras = e.extras || 0;
+
+    return Math.max(bruto + extras, 0);
   }
 
 
