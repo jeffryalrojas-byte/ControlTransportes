@@ -127,95 +127,83 @@ export class PlanillaComponent implements OnInit {
   // ===============================
 
   salarioBruto(e: Empleado): number {
-    const montoPorDia = e.tipoPago === 'mensual' ? e.salarioBase / 30 : e.salarioBase;
-    let diasTrabOriginal = e.tipoPago === 'mensual' ? 30 : (this.diasTrabajados[e.id] || 0);
 
-    // 🔥 AJUSTE POR CONTRATO VENCIDO DENTRO DEL MES
-    if (e.tipoContrato === 'definido' && e.fechaFinContratoDate && this.mesActual) {
-      const [anio, mes] = this.mesActual.split("-");
-      const finMes = new Date(Number(anio), Number(mes), 0);
+    const montoPorDia = e.tipoPago === 'mensual'
+      ? e.salarioBase / 30
+      : e.salarioBase;
 
-      // si vence dentro del mes → se le pagan solo hasta esa fecha
-      if (e.fechaFinContratoDate < finMes) {
-        const diaFinContrato = e.fechaFinContratoDate.getDate();
-        const maxDias = Math.min(diaFinContrato, diasTrabOriginal);
-
-        if (e.tipoPago === 'mensual') {
-          diasTrabOriginal = maxDias;
-        } else {
-          diasTrabOriginal = Math.min(this.diasTrabajados[e.id] || 0, maxDias);
-        }
-      }
-    }
-
+    let diasTrabOriginal = e.tipoPago === 'mensual'
+      ? 30
+      : (this.diasTrabajados[e.id] || 0);
 
     if (!this.mesActual) {
       return diasTrabOriginal * montoPorDia;
     }
 
-    // incapacidades del mes (las partes que pertenecen al mes actual)
-    const incapacidadesMes = this.incapacidades.filter(i =>
-      i.empleadoId === e.id &&
-      i.mes?.slice(0, 7) === this.mesActual.slice(0, 7)
-    );
-
-    // 1) total días de incapacidad en este mes (suma simple)
-    const totalDiasIncapEnMes = incapacidadesMes.reduce((s, x) => s + (x.dias || 0), 0);
-
-    // 2) calcular cuántos días al 50% *corresponden al mes actual* (respetando 3 días por numIncapacidad)
-    let totalDias50EnMes = 0;
-
-    // agrupar todas las partes por numIncapacidad (solo para este empleado)
-    const grupos = new Map<string, any[]>();
-    this.incapacidades
-      .filter(x => x.empleadoId === e.id && x.numIncapacidad) // todas las partes del empleado
-      .forEach(x => {
-        const key = x.numIncapacidad!;
-        if (!grupos.has(key)) grupos.set(key, []);
-        grupos.get(key)!.push(x);
-      });
-
     const mesKey = this.mesActual.slice(0, 7);
 
-    grupos.forEach(partes => {
-      // ordenar partes por fechaInicio ascendente
-      partes.sort((a, b) => a.fechaInicio.localeCompare(b.fechaInicio));
+    // Incapacidades del mes
+    const incs = this.incapacidades
+      .filter(i => i.empleadoId === e.id && i.mes?.slice(0, 7) === mesKey)
+      .sort((a, b) => a.fechaInicio.localeCompare(b.fechaInicio));
 
-      // contar días ya usados en meses ANTERIORES
-      let diasUsadosPrevios = 0;
-      for (const p of partes) {
-        const pMes = p.mes?.slice(0, 7);
-        if (!pMes) continue;
-        if (pMes === mesKey) break;
-        diasUsadosPrevios += p.dias;
+    // =========================================
+    // 1) DIVIDIR INCAPACIDADES EN BLOQUES
+    //    SOLO SI SON REALMENTE CONTINUAS
+    // =========================================
+    let bloques: number[] = [];
+
+    if (incs.length > 0) {
+      let inicio = new Date(incs[0].fechaInicio);
+      let fin = new Date(incs[0].fechaFin);
+
+      for (let i = 1; i < incs.length; i++) {
+        const inicioActual = new Date(incs[i].fechaInicio);
+
+        const diaSiguiente = new Date(fin);
+        diaSiguiente.setDate(diaSiguiente.getDate() + 1);
+
+        // Si NO es continua → cerrar bloque
+        if (inicioActual.getTime() !== diaSiguiente.getTime()) {
+          const diasBloque = Math.floor((fin.getTime() - inicio.getTime()) / 86400000) + 1;
+          bloques.push(diasBloque);
+
+          inicio = inicioActual;
+        }
+
+        // Actualizar fin siempre
+        fin = new Date(incs[i].fechaFin);
       }
 
-      // cuántos días de los 3 ya están "consumidos"
-      let restante50 = Math.max(3 - diasUsadosPrevios, 0);
+      // último bloque
+      const diasUltimo = Math.floor((fin.getTime() - inicio.getTime()) / 86400000) + 1;
+      bloques.push(diasUltimo);
+    }
 
-      // ahora asignar los días 50% que correspondan a las partes del MES actual
-      for (const p of partes) {
-        const pMes = p.mes?.slice(0, 7);
-        if (pMes !== mesKey) continue; // sólo nos interesan las partes del mes actual
-        if (restante50 <= 0) break;
+    // =========================================
+    // 2) CALCULAR DÍAS AL 50% POR CADA BLOQUE
+    // =========================================
 
-        const diasEnEstaParte = p.dias;
-        const dias50ParaEstaParte = Math.min(restante50, diasEnEstaParte);
-        totalDias50EnMes += dias50ParaEstaParte;
-        restante50 -= dias50ParaEstaParte;
-      }
-    });
+    let totalDias50 = 0;
+    let totalDiasIncap = 0;
 
-    // 3) ahora calcular el salario bruto efectivo:
-    //    dias efectivamente trabajados este mes = diasTrabOriginal - totalDiasIncapEnMes
-    const diasTrabEfectivos = Math.max(diasTrabOriginal - totalDiasIncapEnMes, 0);
+    for (const dias of bloques) {
+      totalDias50 += Math.min(3, dias);
+      totalDiasIncap += dias;
+    }
 
-    // bruto = (días trabajados efectivos * montoPorDia) + (días al 50% * montoPorDia * 0.5)
-    const bruto = (diasTrabEfectivos * montoPorDia) + (totalDias50EnMes * montoPorDia * 0.5);
+    // =========================================
+    // 3) SALARIO
+    // =========================================
+
+    const diasTrabEfectivos = Math.max(diasTrabOriginal - totalDiasIncap, 0);
+
+    const salarioTrabajado = diasTrabEfectivos * montoPorDia;
+    const salario50 = totalDias50 * montoPorDia * 0.5;
 
     const extras = e.extras || 0;
 
-    return Math.max(bruto + extras, 0);
+    return salarioTrabajado + salario50 + extras;
   }
 
 
@@ -346,6 +334,9 @@ export class PlanillaComponent implements OnInit {
       this.calcularTotales();
     });
   }
+
+
+
 
 
 }
