@@ -128,83 +128,155 @@ export class PlanillaComponent implements OnInit {
 
   salarioBruto(e: Empleado): number {
 
-    const montoPorDia = e.tipoPago === 'mensual'
-      ? e.salarioBase / 30
-      : e.salarioBase;
+    // ============================================
+    // 1) MONTO POR DÍA
+    // ============================================
+    const montoPorDia =
+      e.tipoPago === 'mensual'
+        ? e.salarioBase / 30
+        : e.salarioBase;
 
-    let diasTrabOriginal = e.tipoPago === 'mensual'
-      ? 30
-      : (this.diasTrabajados[e.id] || 0);
+    let diasTrabOriginal =
+      e.tipoPago === 'mensual'
+        ? 30
+        : (this.diasTrabajados[e.id] || 0);
+
+    // ============================================
+    // 2) AJUSTE POR CONTRATO DEFINIDO
+    // ============================================
+    if (e.tipoContrato === 'definido' && e.fechaFinContratoDate && this.mesActual) {
+      const [anio, mes] = this.mesActual.split("-");
+      const finMes = new Date(Number(anio), Number(mes), 0);
+
+      if (e.fechaFinContratoDate < finMes) {
+        const diaFinContrato = e.fechaFinContratoDate.getDate();
+        const maxDias = Math.min(diaFinContrato, diasTrabOriginal);
+
+        diasTrabOriginal =
+          e.tipoPago === 'mensual'
+            ? maxDias
+            : Math.min(this.diasTrabajados[e.id] || 0, maxDias);
+      }
+    }
 
     if (!this.mesActual) {
       return diasTrabOriginal * montoPorDia;
     }
 
     const mesKey = this.mesActual.slice(0, 7);
+    const [anio, mes] = mesKey.split("-");
+    const inicioMes = new Date(Number(anio), Number(mes) - 1, 1);
+    const finMes = new Date(Number(anio), Number(mes), 0);
 
-    // Incapacidades del mes
-    const incs = this.incapacidades
-      .filter(i => i.empleadoId === e.id && i.mes?.slice(0, 7) === mesKey)
+    // ============================================
+    // 3) TOMAR TODAS LAS INCAPACIDADES DEL EMPLEADO
+    //    (NO SOLO LAS DEL MES)
+    // ============================================
+    const todas = this.incapacidades
+      .filter(i => i.empleadoId === e.id)
       .sort((a, b) => a.fechaInicio.localeCompare(b.fechaInicio));
 
-    // =========================================
-    // 1) DIVIDIR INCAPACIDADES EN BLOQUES
-    //    SOLO SI SON REALMENTE CONTINUAS
-    // =========================================
-    let bloques: number[] = [];
+    // ============================================
+    // 4) FORMAR BLOQUES CONTINUOS
+    // ============================================
+    let bloques: { inicio: Date, fin: Date, dias: number, tipo: string }[] = [];
 
-    if (incs.length > 0) {
-      let inicio = new Date(incs[0].fechaInicio);
-      let fin = new Date(incs[0].fechaFin);
+    let temp: any = null;
 
-      for (let i = 1; i < incs.length; i++) {
-        const inicioActual = new Date(incs[i].fechaInicio);
+    for (const inc of todas) {
+      const ini = new Date(inc.fechaInicio);
+      const fi = new Date(inc.fechaFin);
 
-        const diaSiguiente = new Date(fin);
-        diaSiguiente.setDate(diaSiguiente.getDate() + 1);
-
-        // Si NO es continua → cerrar bloque
-        if (inicioActual.getTime() !== diaSiguiente.getTime()) {
-          const diasBloque = Math.floor((fin.getTime() - inicio.getTime()) / 86400000) + 1;
-          bloques.push(diasBloque);
-
-          inicio = inicioActual;
-        }
-
-        // Actualizar fin siempre
-        fin = new Date(incs[i].fechaFin);
+      if (!temp) {
+        temp = { inicio: ini, fin: fi, tipo: inc.tipo };
+        continue;
       }
 
-      // último bloque
-      const diasUltimo = Math.floor((fin.getTime() - inicio.getTime()) / 86400000) + 1;
-      bloques.push(diasUltimo);
+      const diaSiguiente = new Date(temp.fin);
+      diaSiguiente.setDate(diaSiguiente.getDate() + 1);
+
+      // Continua SOLO si es el mismo tipo y día seguido
+      if (ini.getTime() === diaSiguiente.getTime() && inc.tipo === temp.tipo) {
+        temp.fin = fi;
+      } else {
+        const dias = Math.floor((temp.fin.getTime() - temp.inicio.getTime()) / 86400000) + 1;
+        bloques.push({ ...temp, dias });
+
+        temp = { inicio: ini, fin: fi, tipo: inc.tipo };
+      }
     }
 
-    // =========================================
-    // 2) CALCULAR DÍAS AL 50% POR CADA BLOQUE
-    // =========================================
+    if (temp) {
+      const dias = Math.floor((temp.fin.getTime() - temp.inicio.getTime()) / 86400000) + 1;
+      bloques.push({ ...temp, dias });
+    }
 
-    let totalDias50 = 0;
+    // ============================================
+    // 5) CALCULAR EFECTO DE CADA BLOQUE EN ESTE MES
+    // ============================================
     let totalDiasIncap = 0;
+    let totalDias50 = 0;
 
-    for (const dias of bloques) {
-      totalDias50 += Math.min(3, dias);
-      totalDiasIncap += dias;
+    for (const b of bloques) {
+
+      // NO afecta este mes → ignorar
+      if (b.fin < inicioMes || b.inicio > finMes) continue;
+
+      // dias del bloque que caen en ESTE mes
+      const inicioCalc = b.inicio < inicioMes ? inicioMes : b.inicio;
+      const finCalc = b.fin > finMes ? finMes : b.fin;
+
+      const diasEnEsteMes =
+        Math.floor((finCalc.getTime() - inicioCalc.getTime()) / 86400000) + 1;
+
+      // ---------------------
+      // tipo: ENFERMEDAD
+      // ---------------------
+      if (b.tipo === "enfermedad") {
+
+        // cuantos días del bloque vienen ANTES del mes?
+        let diasPrevios =
+          b.inicio < inicioMes
+            ? Math.floor((inicioMes.getTime() - b.inicio.getTime()) / 86400000)
+            : 0;
+
+        // ya se consumieron 3 días en meses previos?
+        const restantes50 = Math.max(3 - diasPrevios, 0);
+
+        // en este mes aplican al 50% solo los que falten
+        const d50_mes = Math.min(restantes50, diasEnEsteMes);
+
+        totalDias50 += d50_mes;
+        totalDiasIncap += diasEnEsteMes;
+      }
+
+      // ---------------------
+      // ACCIDENTE, MATERNIDAD, PERMISOSG
+      // ---------------------
+      else if (b.tipo === "accidente" || b.tipo === "maternidad" || b.tipo === "permisosg") {
+        totalDiasIncap += diasEnEsteMes;
+      }
+
+      // ---------------------
+      // PATERNIDAD → NO REBAJA DÍAS
+      // ---------------------
+      else if (b.tipo === "paternidad") {
+        // NO suma a incapacidad
+      }
     }
 
-    // =========================================
-    // 3) SALARIO
-    // =========================================
-
+    // ============================================
+    // 6) SALARIO FINAL
+    // ============================================
     const diasTrabEfectivos = Math.max(diasTrabOriginal - totalDiasIncap, 0);
 
     const salarioTrabajado = diasTrabEfectivos * montoPorDia;
     const salario50 = totalDias50 * montoPorDia * 0.5;
 
-    const extras = e.extras || 0;
-
-    return salarioTrabajado + salario50 + extras;
+    return salarioTrabajado + salario50 + (e.extras || 0);
   }
+
+
 
 
 
