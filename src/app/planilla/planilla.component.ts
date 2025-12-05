@@ -40,7 +40,13 @@ export class PlanillaComponent implements OnInit {
   empleadosOriginal: Empleado[] = [];
 
   diasTrabajados: { [id: number]: number } = {};
+
+  //Para cargar las planillas
   planillas: Planilla[] = [];
+  planillasDelAnio: any[] = [];
+  planillasAnteriores: any[] = [];
+
+  //Para cargar las incapacidades
   incapacidades: any[] = [];
 
   ccssTrabajador = 0.0967;
@@ -51,6 +57,10 @@ export class PlanillaComponent implements OnInit {
   totalCargas = 0;
 
   empresaCedulaActual: string | null = null;
+
+  //Para ordenar la planilla
+  anioActual: number = new Date().getFullYear();
+  mostrarAnteriores: boolean = false;
 
   constructor(
     private configuracionService: ConfiguracionService,
@@ -109,10 +119,18 @@ export class PlanillaComponent implements OnInit {
 
     // Cargar planillas desde Firebase
     this.planillasService.obtener().subscribe((data: any[]) => {
-      this.planillas = data.sort((a: any, b: any) => {
-        return a.mes.localeCompare(b.mes); // ordena YYYY-MM correctamente
-      });
+      // ordenar desc
+      const ordenadas = data.sort((a, b) => b.mes.localeCompare(a.mes));
+
+      this.planillas = ordenadas;
+
+      // solo del año actual
+      this.planillasDelAnio = ordenadas.filter(p => p.mes.startsWith(this.anioActual.toString()));
+
+      // planillas anteriores
+      this.planillasAnteriores = ordenadas.filter(p => !p.mes.startsWith(this.anioActual.toString()));
     });
+
 
     // Sincronizar días
     this.empleados.forEach(e => {

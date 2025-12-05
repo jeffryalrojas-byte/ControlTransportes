@@ -5,14 +5,62 @@
   <label>Seleccionar mes:</label>
   <input type="month" [(ngModel)]="mesActivo" (change)="filtrarPorMes()">
 </div>
+
 <hr>
+
+<!-- 🔎 FILTRO POR CATEGORÍAS -->
+<div class="filtros">
+  <strong>Filtrar por categoría:</strong><br><br>
+
+  <!-- Selección de AÑO -->
+  <label><strong>Seleccionar Año:</strong></label>
+  <select [(ngModel)]="anioActivo" (change)="filtrarPorAnio()">
+    <option *ngFor="let a of aniosDisponibles" [value]="a">
+      {{ a }}
+    </option>
+  </select>
+  <hr>
+  <button *ngFor="let c of categorias" (click)="filtrarPorCategoria(c)">
+    {{ c }}
+  </button>
+
+  <button (click)="filtrarPorAnio()">Mostrar año seleccionado</button>
+  <button (click)="filtrarPorMes()">Mostrar mes seleccionado</button>
+  <button (click)="movimientosFiltrados = movimientos">Mostrar todas</button>
+
+  <hr>
+</div>
+
+
+<hr>
+
+<!-- Input para agregar nueva categoría -->
+<div class="add-category">
+  <input placeholder="Nueva categoría" [(ngModel)]="nuevaCategoria">
+  <button class="btn-agregar-categoria" (click)="agregarCategoria()">➕ Agregar categoría</button>
+</div>
+
+<hr>
+
 <div class="form">
   <input placeholder="Descripción" [(ngModel)]="descripcion">
+
   <input type="number" placeholder="Monto" [ngModel]="monto" (ngModelChange)="monto = +$event">
-  <select [(ngModel)]="tipo">
-    <option value="ingreso">Ingreso</option>
-    <option value="gasto">Gasto</option>
+
+  <!-- SELECT de categorías -->
+  <select [(ngModel)]="categoriaSeleccionada">
+    <option value="">-- Seleccionar categoría --</option>
+
+    <option *ngFor="let c of categorias" [value]="c">
+      {{ c }}
+    </option>
   </select>
+
+  <select [(ngModel)]="tipo">
+    <option value="gasto">Gasto</option>
+    <option value="ingreso">Ingreso</option>
+  </select>
+
   <button (click)="agregar()">Agregar</button>
 </div>
 
@@ -22,6 +70,7 @@
   <thead>
     <tr>
       <th>Descripción</th>
+      <th>Categoría</th>
       <th>Tipo</th>
       <th>Monto</th>
       <th>Acciones</th>
@@ -31,12 +80,16 @@
   <tbody>
     <tr *ngFor="let m of movimientosFiltrados">
       <td>{{ m.descripcion }}</td>
+      <td>{{ m.categoria }}</td>
+
       <td [ngStyle]="{'color': m.tipo === 'ingreso' ? 'green' : 'red'}">
         {{ m.tipo | uppercase }}
       </td>
+
       <td [ngStyle]="{'color': m.tipo === 'ingreso' ? 'green' : 'red'}">
         {{ m.monto | currency:'CRC' }}
       </td>
+
       <td><button (click)="eliminar(m.id)">❌</button></td>
     </tr>
   </tbody>
@@ -59,7 +112,7 @@
   </div>
 
   <!-- 🔹 RESUMEN GLOBAL -->
-  <div class="resumen">
+  <div class="resumen" *ngIf="puedeVisualizarGeneral()">
     <h3>🌎 Balance General</h3>
     <p>💵 Ingresos Totales:
       <strong>{{ totalIngresosGlobal() | currency:'CRC' }}</strong>

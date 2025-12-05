@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { v4 as uuid } from 'uuid';
 import { FinanzasService, Transaccion } from '../services/finanzas.service';
+import { SesionService } from '../services/sesion.service';
 
 @Component({
   selector: 'app-finanzas',
@@ -13,18 +14,62 @@ export class FinanzasComponent implements OnInit {
   movimientos: Transaccion[] = [];
   movimientosFiltrados: Transaccion[] = [];
 
+  usuarioActivo: any;
+
   descripcion = '';
   monto = 0;
   tipo: 'ingreso' | 'gasto' = 'ingreso';
   mesActivo: string = new Date().toISOString().slice(0, 7); // YYYY-MM
 
-  constructor(private finanzasService: FinanzasService) { }
+  anioActivo: string = new Date().getFullYear().toString();
+
+  aniosDisponibles: string[] = [];
+
+  categorias: string[] = [
+    "Pago de CCSS",
+    "Combustible",
+    "Contabilidad",
+    "CANON CTP",
+    "Seguros INS",
+    "Marchamo",
+    "Patente",
+    "Impuesto Renta",
+    "Impuesto Sociedad",
+    "Salarios Choferes",
+    "Mantenimiento",
+    "Chofer comodín",
+    "Planilla CCSS",
+    "GPS",
+    "Abogados",
+    "Otros Gastos",
+    "Salarios dueños"
+  ];
+
+  categoriaSeleccionada = "";
+  nuevaCategoria = "";
+
+  constructor(private finanzasService: FinanzasService,
+    private sesionService: SesionService
+  ) { }
 
   ngOnInit() {
+
+    // Obtenemos el usuario desde el servicio
+    this.usuarioActivo = this.sesionService.getUsuarioActivo();
+
     // Cargar todos
     this.finanzasService.obtener().subscribe(data => {
       this.movimientos = data || [];
       this.filtrarPorMes();
+      // Cargar años disponibles dinámicamente
+      const añosSet = new Set(
+        this.movimientos
+          .filter(m => m.mes)
+          .map(m => m.mes.substring(0, 4))
+      );
+
+      this.aniosDisponibles = Array.from(añosSet).sort();
+
     });
   }
 
@@ -39,11 +84,20 @@ export class FinanzasComponent implements OnInit {
     );
   }
 
-  async agregar() {
-    if (!this.descripcion || this.monto <= 0) return;
+  filtrarPorAnio() {
+    if (!this.anioActivo) {
+      this.movimientosFiltrados = [];
+      return;
+    }
 
-    if (!this.mesActivo) {
-      alert("⚠️ Primero seleccione el mes en el que desea registrar el movimiento.");
+    this.movimientosFiltrados = this.movimientos.filter(m =>
+      m.mes?.startsWith(this.anioActivo) // ejemplo: "2025-03"
+    );
+  }
+
+  async agregar() {
+    if (!this.descripcion || this.monto <= 0 || !this.categoriaSeleccionada) {
+      alert("Debe completar descripción, monto y categoría.");
       return;
     }
 
@@ -53,7 +107,8 @@ export class FinanzasComponent implements OnInit {
       monto: this.monto,
       tipo: this.tipo,
       fecha: new Date().toISOString(),
-      mes: this.mesActivo  // 🔥 GUARDAMOS EL MES SELECCIONADO
+      mes: this.mesActivo,
+      categoria: this.categoriaSeleccionada   // ← AGREGADO
     };
 
     await this.finanzasService.agregar(nuevo);
@@ -61,8 +116,11 @@ export class FinanzasComponent implements OnInit {
     this.descripcion = '';
     this.monto = 0;
     this.tipo = 'ingreso';
+    this.categoriaSeleccionada = '';
+
     this.filtrarPorMes();
   }
+
 
   async eliminar(id: string) {
     await this.finanzasService.eliminar(id);
@@ -99,6 +157,30 @@ export class FinanzasComponent implements OnInit {
 
   balanceGlobal() {
     return this.totalIngresosGlobal() - this.totalGastosGlobal();
+  }
+
+  puedeVisualizarGeneral(): boolean {
+    return this.usuarioActivo?.rol === 'Supervisor';
+  }
+
+  agregarCategoria() {
+
+    confirm(`En Costrucción actualmente....`);
+    /* const c = this.nuevaCategoria.trim();
+
+    if (!c) return;
+
+    if (!this.categorias.includes(c)) {
+      this.categorias.push(c);
+    }
+
+    this.nuevaCategoria = ""; */
+  }
+
+
+  filtrarPorCategoria(cat: string) {
+    this.movimientosFiltrados = this.movimientos
+      .filter(m => m.mes === this.mesActivo && m.categoria === cat);
   }
 
 }

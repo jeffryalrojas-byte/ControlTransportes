@@ -71,6 +71,9 @@
 <hr>
 
 <h3>📚 Histórico de planillas guardadas</h3>
+
+<h4>Planillas {{ anioActual }}</h4>
+
 <table border="1" cellpadding="6">
   <thead>
     <tr>
@@ -78,11 +81,11 @@
       <th>Fecha de Creación</th>
       <th>Total Neto</th>
       <th>Total Cargas</th>
-      <th>Acciones</th> <!-- nueva columna -->
+      <th>Acciones</th>
     </tr>
   </thead>
   <tbody>
-    <tr *ngFor="let p of planillas; let i = index">
+    <tr *ngFor="let p of planillasDelAnio">
       <td>{{ p.mes }}</td>
       <td>{{ p.fechaCreacion }}</td>
       <td>{{ p.totalNeto | currency:'CRC' }}</td>
@@ -93,3 +96,36 @@
     </tr>
   </tbody>
 </table>
+
+<!-- BOTÓN PARA MOSTRAR AÑOS ANTERIORES -->
+<button (click)="mostrarAnteriores = !mostrarAnteriores" class="btn-guardar">
+  {{ mostrarAnteriores ? '⬆ Ocultar años anteriores' : '⬇ Mostrar años anteriores' }}
+</button>
+
+<!-- SECCIÓN DE AÑOS ANTERIORES -->
+<div *ngIf="mostrarAnteriores">
+  <h4>Años anteriores</h4>
+
+  <table border="1" cellpadding="6">
+    <thead>
+      <tr>
+        <th>Mes</th>
+        <th>Fecha de Creación</th>
+        <th>Total Neto</th>
+        <th>Total Cargas</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let p of planillasAnteriores">
+        <td>{{ p.mes }}</td>
+        <td>{{ p.fechaCreacion }}</td>
+        <td>{{ p.totalNeto | currency:'CRC' }}</td>
+        <td>{{ p.totalCargas | currency:'CRC' }}</td>
+        <td>
+          <button (click)="eliminarPlanilla(p)">❌ Eliminar</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>

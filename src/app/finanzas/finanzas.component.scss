@@ -34,3 +34,17 @@
         margin: 5px 0;
     }
 }
+
+.btn-agregar-categoria {
+    background-color: #4fd86f;
+    color: white;
+    padding: 5px 12px;
+    border-radius: 6px;
+    margin-left: 10px;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-agregar-categoria:hover {
+    background-color: #218838;
+}

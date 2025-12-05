@@ -16,7 +16,7 @@ export class NavbarComponent implements OnInit {
 
   constructor(
     private router: Router,
-    private sesionService: SesionService // 👈 inyecta el servicio
+    private sesionService: SesionService
   ) { }
 
   ngOnInit(): void {
