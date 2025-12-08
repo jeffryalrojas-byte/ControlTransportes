@@ -91,7 +91,7 @@
       <td>{{ p.totalNeto | currency:'CRC' }}</td>
       <td>{{ p.totalCargas | currency:'CRC' }}</td>
       <td>
-        <button (click)="eliminarPlanilla(p)">❌ Eliminar</button>
+        <button *ngIf="!puedeEliminar(p)" (click)="eliminarPlanilla(p)">❌ Eliminar</button>
       </td>
     </tr>
   </tbody>
@@ -123,7 +123,7 @@
         <td>{{ p.totalNeto | currency:'CRC' }}</td>
         <td>{{ p.totalCargas | currency:'CRC' }}</td>
         <td>
-          <button (click)="eliminarPlanilla(p)">❌ Eliminar</button>
+          <button *ngIf="!puedeEliminar(p)" (click)="eliminarPlanilla(p)">❌ Eliminar</button>
         </td>
       </tr>
     </tbody>

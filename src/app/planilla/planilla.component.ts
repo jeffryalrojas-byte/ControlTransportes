@@ -400,6 +400,19 @@ export class PlanillaComponent implements OnInit {
       });
   }
 
+  //Valida si puedo eliminar la planilla para que aparezca el botón
+  puedeEliminar(planilla: any): boolean {
+    const fechaCreacion = new Date(planilla.fechaCreacion);
+    const hoy = new Date();
+
+    // Obtener fecha límite (hoy - 2 meses)
+    const haceDosMeses = new Date();
+    haceDosMeses.setMonth(haceDosMeses.getMonth() - 2);
+
+    // Si la fecha de creación es más antigua que hace 2 meses → NO se puede eliminar
+    return fechaCreacion >= haceDosMeses;
+  }
+
 
   onMesChange() {
     this.incapacidadesService.obtener().subscribe(data => {
