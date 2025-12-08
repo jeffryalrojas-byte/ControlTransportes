@@ -52,6 +52,9 @@ export class IncapacidadesComponent implements OnInit {
       alert('El empleado está INACTIVO. No puede solicitar permisos o registrar incapacidades, pero se mostrarán sus solicitudes.');
     }
 
+    // 🧹 LIMPIAR INCAPACIDADES
+    this.incapacidades = [];
+
     this.incapacidadesService.obtenerPorEmpleado(id).subscribe(list => {
       this.incapacidades = list;
     });
