@@ -413,8 +413,11 @@ export class PlanillaComponent implements OnInit {
     return fechaCreacion >= haceDosMeses;
   }
 
-
+  //Cada vez que selecciona el mes a presentar la planilla hace validaciones.
   onMesChange() {
+
+    alert('Recuerde antes de presentar la planilla, ingresar cualquier incapacidad o permiso que tenga el empleado para el mes seleccionado.');
+
     this.incapacidadesService.obtener().subscribe(data => {
       this.incapacidades = data;
 
