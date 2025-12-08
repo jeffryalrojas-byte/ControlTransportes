@@ -60,7 +60,7 @@
       <td>{{ s.diasSolicitados }}</td>
       <td>{{ s.observacion }}</td>
       <td>
-        <button (click)="eliminarSolicitud(s.id)">🗑️ Eliminar</button>
+        <button *ngIf="!puedeEliminar(s)" (click)="eliminarSolicitud(s.id)">🗑️ Eliminar</button>
       </td>
     </tr>
   </tbody>

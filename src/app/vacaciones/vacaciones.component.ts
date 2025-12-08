@@ -3,6 +3,7 @@ import { v4 as uuid } from 'uuid';
 import { VacacionesService, SolicitudVacaciones } from '../services/vacaciones.service';
 import { RrhhService, Empleado } from '../services/rrhh.service';
 import { take } from 'rxjs/operators';
+import { SesionService } from '../services/sesion.service';
 
 @Component({
   selector: 'app-vacaciones',
@@ -10,6 +11,8 @@ import { take } from 'rxjs/operators';
   styleUrls: ['./vacaciones.component.scss']
 })
 export class VacacionesComponent implements OnInit {
+
+  usuarioActivo: any;
 
   empleados: Empleado[] = [];
   solicitudes: SolicitudVacaciones[] = [];
@@ -26,10 +29,14 @@ export class VacacionesComponent implements OnInit {
 
   constructor(
     private vacacionesService: VacacionesService,
-    private rrhhService: RrhhService
+    private rrhhService: RrhhService,
+    private sesionService: SesionService
   ) { }
 
   ngOnInit() {
+    // Obtenemos el usuario desde el servicio
+    this.usuarioActivo = this.sesionService.getUsuarioActivo();
+
     // 🔥 Cargar empleados desde Firebase
     this.rrhhService.obtener().subscribe(data => {
       this.empleados = data;
@@ -175,6 +182,19 @@ export class VacacionesComponent implements OnInit {
       this.vacacionesService.eliminarSolicitud(id).then(() => {
         this.cargarSolicitudes();
       });
+    }
+  }
+
+  //Valida si puedo eliminar las vacaciones solicitadas, para que aparezca el botón
+  puedeEliminar(vacaciones: any): boolean {
+
+    if (this.usuarioActivo?.rol === 'Supervisor') {
+      return false;
+    } else {
+      const fechaFin = new Date(vacaciones.fechaFin);
+      const hoy = new Date();
+
+      return fechaFin <= hoy;
     }
   }
 }

@@ -36,6 +36,8 @@ interface Planilla {
 })
 export class PlanillaComponent implements OnInit {
 
+  usuarioActivo: any;
+
   empleados: Empleado[] = [];
   empleadosOriginal: Empleado[] = [];
 
@@ -71,6 +73,9 @@ export class PlanillaComponent implements OnInit {
   ) { }
 
   ngOnInit() {
+    // Obtenemos el usuario desde el servicio
+    this.usuarioActivo = this.sesionService.getUsuarioActivo();
+
     this.empresaCedulaActual = this.sesionService.getCedulaEmpresaActual();
     if (!this.empresaCedulaActual) {
       alert('⚠️ No se encontró una empresa activa. Inicia sesión nuevamente.');
@@ -402,16 +407,20 @@ export class PlanillaComponent implements OnInit {
 
   //Valida si puedo eliminar la planilla para que aparezca el botón
   puedeEliminar(planilla: any): boolean {
-    const fechaCreacion = new Date(planilla.fechaCreacion);
-    const hoy = new Date();
 
-    // Obtener fecha límite (hoy - 2 meses)
-    const haceDosMeses = new Date();
-    haceDosMeses.setMonth(haceDosMeses.getMonth() - 2);
+    if (this.usuarioActivo?.rol === 'Supervisor') {
+      return false;
+    }
 
-    // Si la fecha de creación es más antigua que hace 2 meses → NO se puede eliminar
-    return fechaCreacion >= haceDosMeses;
+    const fechaCreacion = this.parseFechaYHora(planilla.fechaCreacion);
+
+    const haceUnMes = new Date();
+    haceUnMes.setMonth(haceUnMes.getMonth() - 1);
+
+    // Retorna true si se puede eliminar
+    return fechaCreacion <= haceUnMes;
   }
+
 
   //Cada vez que selecciona el mes a presentar la planilla hace validaciones.
   onMesChange() {
@@ -441,8 +450,14 @@ export class PlanillaComponent implements OnInit {
     });
   }
 
+  private parseFechaYHora(fechaStr: string): Date {
+    // Separa fecha y hora
+    const [fecha, hora] = fechaStr.split(', ');
 
+    const [dia, mes, anio] = fecha.split('/').map(Number);
+    const [hh, mm, ss] = hora.split(':').map(Number);
 
-
+    return new Date(anio, mes - 1, dia, hh, mm, ss);
+  }
 
 }

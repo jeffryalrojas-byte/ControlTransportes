@@ -3,6 +3,11 @@
     <img [src]="logoURL" class="logo">
     <strong>{{ nombreEmpresa }}</strong>
     <small>Cédula: {{ cedulaEmpresa }}</small>
+
+    <!-- 👇 Aquí mostramos el rol -->
+    <small *ngIf="usuarioActivo">
+      Rol: <strong>{{ usuarioActivo.rol }}</strong>
+    </small>
   </div>
 
   <a routerLink="/rrhh" routerLinkActive="active">👷‍♂️ RRHH</a>
