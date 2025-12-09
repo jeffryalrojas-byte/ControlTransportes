@@ -41,6 +41,7 @@ export class FinanzasComponent implements OnInit {
     "Planilla CCSS",
     "GPS",
     "Abogados",
+    "Aguinaldo",
     "Otros Gastos",
     "Salarios dueños"
   ];
