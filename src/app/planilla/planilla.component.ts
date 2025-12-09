@@ -64,6 +64,11 @@ export class PlanillaComponent implements OnInit {
   anioActual: number = new Date().getFullYear();
   mostrarAnteriores: boolean = false;
 
+  //Para visualizar el detalle de la planilla
+  detalleVisible = false;
+  planillaSeleccionada: any = null;
+  detallesMostrar: any[] = [];
+
   constructor(
     private configuracionService: ConfiguracionService,
     private sesionService: SesionService,
@@ -458,6 +463,24 @@ export class PlanillaComponent implements OnInit {
     const [hh, mm, ss] = hora.split(':').map(Number);
 
     return new Date(anio, mes - 1, dia, hh, mm, ss);
+  }
+
+  //Ver detalles de los salarios de la planilla del mes seleccionado
+  verDetalles(planilla: any) {
+    this.planillaSeleccionada = planilla;
+
+    // planilla.detalleEmpleados solo trae id y salarioNeto.
+    // Necesitamos buscar nombre del empleado.
+    this.detallesMostrar = planilla.detalleEmpleados.map((de: any) => {
+      const emp = this.empleadosOriginal.find(e => e.id == de.id);
+
+      return {
+        nombre: emp ? emp.nombre : 'Empleado no encontrado',
+        salarioNeto: de.salarioNeto
+      };
+    });
+
+    this.detalleVisible = true;
   }
 
 }

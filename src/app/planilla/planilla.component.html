@@ -92,6 +92,7 @@
       <td>{{ p.totalCargas | currency:'CRC' }}</td>
       <td>
         <button *ngIf="!puedeEliminar(p)" (click)="eliminarPlanilla(p)">❌ Eliminar</button>
+        <button (click)="verDetalles(p)">📄 Detalles</button>
       </td>
     </tr>
   </tbody>
@@ -124,8 +125,30 @@
         <td>{{ p.totalCargas | currency:'CRC' }}</td>
         <td>
           <button *ngIf="!puedeEliminar(p)" (click)="eliminarPlanilla(p)">❌ Eliminar</button>
+          <button (click)="verDetalles(p)">📄 Detalles</button>
         </td>
       </tr>
     </tbody>
   </table>
+</div>
+
+<!-- MODAL DE DETALLES -->
+<div class="modal" *ngIf="detalleVisible">
+  <div class="modal-content">
+    <h3>Detalles de la planilla {{ planillaSeleccionada?.mes }}</h3>
+
+    <table border="1" cellpadding="5">
+      <tr>
+        <th>Empleado</th>
+        <th>Salario Neto Reportado</th>
+      </tr>
+
+      <tr *ngFor="let d of detallesMostrar">
+        <td>{{ d.nombre }}</td>
+        <td>{{ d.salarioNeto | currency:'CRC' }}</td>
+      </tr>
+    </table>
+
+    <button (click)="detalleVisible = false">Cerrar</button>
+  </div>
 </div>

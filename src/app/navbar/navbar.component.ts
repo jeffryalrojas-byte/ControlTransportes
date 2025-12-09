@@ -34,7 +34,7 @@ export class NavbarComponent implements OnInit {
       this.logoURL = 'assets/LogoDyF.jpg'; // ruta del logo
 
     } else {
-      this.logoURL = 'assets/LogoGyA.png'; // ruta del logo
+      this.logoURL = 'assets/LogoGyA.jpg'; // ruta del logo
     }
   }
 
