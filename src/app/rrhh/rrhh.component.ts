@@ -175,9 +175,12 @@ export class RrhhComponent implements OnInit {
     const añoActual = hoy.getFullYear();
     const añoAnterior = añoActual - 1;
 
-    // Periodo general del aguinaldo
-    const inicioPeriodo = new Date(`${añoAnterior}-11-01`);
-    const finPeriodo = new Date(`${añoActual}-10-31`);
+    // Periodo general del aguinaldo, el mes Enero = 0 por eso los datos
+    const inicioPeriodo = new Date(añoAnterior, 11, 1);
+    inicioPeriodo.setHours(0, 0, 0, 0);
+
+    const finPeriodo = new Date(añoActual, 10, 30);
+    finPeriodo.setHours(0, 0, 0, 0);
 
     this.aguinaldos = {};
 
@@ -192,6 +195,7 @@ export class RrhhComponent implements OnInit {
 
       // 📌 FECHA REAL DE INICIO considering fechaIngreso
       let fechaIngreso = new Date(e.fechaIngreso);
+      fechaIngreso = new Date(fechaIngreso.getFullYear(), fechaIngreso.getMonth(), 1);
       fechaIngreso.setHours(0, 0, 0, 0);
 
       // Usar el máximo entre ingreso y 1 noviembre
@@ -203,8 +207,9 @@ export class RrhhComponent implements OnInit {
         // Convierte el campo mes ('YYYY-MM' o 'YYYY-MM-DD') a Date
         let fechaMes: Date;
         try {
-          const mesIso = p.mes.length === 7 ? `${p.mes}-01` : p.mes;
-          fechaMes = new Date(mesIso);
+          let [yyyy, mm] = p.mes.split('-');
+          fechaMes = new Date(Number(yyyy), Number(mm) - 1, 1);
+          fechaMes.setHours(0, 0, 0, 0);
         } catch {
           return;
         }
@@ -214,8 +219,15 @@ export class RrhhComponent implements OnInit {
           const detalle = (p.detalleEmpleados || [])
             .find((d: any) => String(d.id) === empIdStr);
 
-          if (detalle && typeof detalle.salarioNeto === 'number') {
-            totalPeriodo += detalle.salarioNeto;
+          if (detalle) {
+            const bruto =
+              typeof detalle.salarioBruto === 'number'
+                ? detalle.salarioBruto
+                : detalle.salarioNeto; // fallback para planillas viejas
+
+            if (typeof bruto === 'number') {
+              totalPeriodo += bruto;
+            }
           }
         }
       });

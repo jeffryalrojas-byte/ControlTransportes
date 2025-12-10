@@ -140,14 +140,17 @@
     <table border="1" cellpadding="5">
       <tr>
         <th>Empleado</th>
-        <th>Salario Neto Reportado</th>
+        <th>Salario Bruto</th>
+        <th>Salario Neto</th>
       </tr>
 
       <tr *ngFor="let d of detallesMostrar">
         <td>{{ d.nombre }}</td>
+        <td>{{ d.salarioBruto | currency:'CRC' }}</td>
         <td>{{ d.salarioNeto | currency:'CRC' }}</td>
       </tr>
     </table>
+
 
     <button (click)="detalleVisible = false">Cerrar</button>
   </div>

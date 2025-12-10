@@ -25,7 +25,7 @@ interface Planilla {
   fechaCreacion: string;
   totalNeto: number;
   totalCargas: number;
-  detalleEmpleados: { id: string | number; salarioNeto: number }[];
+  detalleEmpleados: { id: string | number; salarioBruto: number; salarioNeto: number }[];
   empresaCedula: string;
 }
 
@@ -374,6 +374,7 @@ export class PlanillaComponent implements OnInit {
         totalCargas: this.totalCargas,
         detalleEmpleados: this.empleados.map(e => ({
           id: e.id,
+          salarioBruto: this.salarioBruto(e),
           salarioNeto: this.salarioNeto(e)
         })),
         empresaCedula: this.empresaCedulaActual!
@@ -469,18 +470,18 @@ export class PlanillaComponent implements OnInit {
   verDetalles(planilla: any) {
     this.planillaSeleccionada = planilla;
 
-    // planilla.detalleEmpleados solo trae id y salarioNeto.
-    // Necesitamos buscar nombre del empleado.
     this.detallesMostrar = planilla.detalleEmpleados.map((de: any) => {
       const emp = this.empleadosOriginal.find(e => e.id == de.id);
 
       return {
         nombre: emp ? emp.nombre : 'Empleado no encontrado',
+        salarioBruto: de.salarioBruto ?? de.salarioNeto, // fallback si es planilla vieja
         salarioNeto: de.salarioNeto
       };
     });
 
     this.detalleVisible = true;
   }
+
 
 }
