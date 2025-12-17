@@ -56,24 +56,50 @@ export class RrhhComponent implements OnInit {
     this.nombreEmpresa = this.sesionService.getEmpresaActual() || 'Empresa desconocida';
     this.cedulaEmpresa = this.sesionService.getCedulaEmpresaActual() || 'Sin cédula';
 
+    //Cargamos Planillas
+    this.CargarPlanillas();
+
+    //Cargamos Empleados
+    this.CargarEmpleados();
+
+    //Cargamos Incapacidades
+    this.CargarIncapacidades()
+
+
+  }
+
+
+  public CargarEmpleados(): any {
     this.rrhhService.obtener().subscribe(data => {
       this.empleados = data;
       this.actualizarDiasVacaciones();
+      this.intentarCalcularAguinaldos(); // 👈 clave
     });
+  }
 
+  public CargarPlanillas(): any {
     this.planillasService.obtener().subscribe((data: any[]) => {
       this.planillas = data || [];
-      // recalcular aguinaldos luego de que lleguen las planillas
-      this.calcularAguinaldos();
+      // recalcular aguinaldos luego de que lleguen las planillas 
+      this.intentarCalcularAguinaldos(); // 👈 clave
     });
+  }
 
+  public CargarIncapacidades(): any {
     // 🔥 Cargar incapacidades
     this.incapacidadesService.obtener().subscribe(data => {
       this.incapacidades = data;
     });
   }
 
-  agregar() {
+
+  private intentarCalcularAguinaldos() {
+    if (this.empleados?.length && this.planillas?.length) {
+      this.calcularAguinaldos();
+    }
+  }
+
+  public agregar() {
     if (!this.cedula || !this.nombre || !this.puesto || !this.fechaIngreso) return;
 
     const empresaId = this.usuarioActivo?.empresa?.id || this.usuarioActivo?.empresa || 'desconocida';
@@ -241,11 +267,24 @@ export class RrhhComponent implements OnInit {
 
   actualizarDiasVacaciones() {
     this.empleados.forEach(e => {
-      this.vacacionesService.calcularDiasPendientes(e.id, e.fechaIngreso)
-        .subscribe(dias => {
-          this.diasVacaciones[e.id] = dias;
+      // 🟢 EMPLEADO DIARIO → usa planillas
+      if (e.tipoPago === 'diario') {
+        this.vacacionesService
+          .calcularDiasPendientes(e, this.planillas)
+          .subscribe(dias => {
+            this.diasVacaciones[e.id] = dias;
+          });
+      }
 
-        });
+      // 🟢 EMPLEADO MENSUAL → usa incapacidades
+      else {
+        this.vacacionesService
+          .calcularDiasPendientesSinPlanillas(e)
+          .subscribe(dias => {
+            this.diasVacaciones[e.id] = dias;
+          });
+      }
+
     });
   }
 

@@ -1,38 +1,38 @@
 <h2>🏥 Registrar incapacidad o permiso sin goce</h2>
 
 <div class="form">
+    <div>
+        <!-- Empleado -->
+        <label>Empleado:</label>
+        <select [(ngModel)]="empleadoId" (change)="seleccionarEmpleado(empleadoId)">
+            <option value="" disabled selected>Seleccione un empleado</option>
+            <option *ngFor="let e of empleados" [value]="e.id">
+                {{ e.nombre }} ({{ e.cedula }})
+            </option>
+        </select>
 
-    <!-- Empleado -->
-    <label>Empleado:</label>
-    <select [(ngModel)]="empleadoId" (change)="seleccionarEmpleado(empleadoId)">
-        <option value="" disabled selected>Seleccione un empleado</option>
-        <option *ngFor="let e of empleados" [value]="e.id">
-            {{ e.nombre }} ({{ e.cedula }})
-        </option>
-    </select>
+        <!-- Tipo -->
+        <label>Tipo de incapacidad o permiso:</label>
+        <select [(ngModel)]="tipo">
+            <option value="" disabled selected>Seleccione el tipo</option>
+            <option value="enfermedad">Enfermedad</option>
+            <option value="accidente">Accidente laboral</option>
+            <option value="maternidad">Maternidad</option>
+            <option value="permisosg">Permiso sin goce salarial</option>
+            <option value="paternidad">Paternidad</option>
+        </select>
 
-    <!-- Tipo -->
-    <label>Tipo de incapacidad o permiso:</label>
-    <select [(ngModel)]="tipo">
-        <option value="" disabled selected>Seleccione el tipo</option>
-        <option value="enfermedad">Enfermedad</option>
-        <option value="accidente">Accidente laboral</option>
-        <option value="maternidad">Maternidad</option>
-        <option value="permisosg">Permiso sin goce salarial</option>
-        <option value="paternidad">Paternidad</option>
-    </select>
+        <!-- Fechas -->
+        <label>Fecha inicio:</label>
+        <input type="date" [(ngModel)]="fechaInicio" (change)="calcularDias()" [disabled]="estadoBotones">
 
-    <!-- Fechas -->
-    <label>Fecha inicio:</label>
-    <input type="date" [(ngModel)]="fechaInicio" (change)="calcularDias()" [disabled]="estadoBotones">
+        <label>Fecha fin:</label>
+        <input type="date" [(ngModel)]="fechaFin" (change)="calcularDias()" [disabled]="estadoBotones">
 
-    <label>Fecha fin:</label>
-    <input type="date" [(ngModel)]="fechaFin" (change)="calcularDias()" [disabled]="estadoBotones">
-
-    <!-- Número de incapacidad -->
-    <label>Número de incapacidad:</label>
-    <input type="text" [(ngModel)]="numIncapacidad" placeholder="Ej: 123456" [disabled]="estadoBotones">
-
+        <!-- Número de incapacidad -->
+        <label>Número de incapacidad:</label>
+        <input type="text" [(ngModel)]="numIncapacidad" placeholder="Ej: 123456" [disabled]="estadoBotones">
+    </div>
     <!-- Botones -->
     <div class="btns">
         <button [disabled]="!empleadoId || !fechaInicio || !fechaFin || !tipo || !numIncapacidad"
@@ -124,53 +124,3 @@
 <p *ngIf="empleadoSeleccionado && incapacidades.length === 0">
     📭 No hay incapacidades registradas para este empleado.
 </p>
-
-<style>
-    select,
-    input[type="date"] {
-        padding: 6px;
-        margin-bottom: 10px;
-        border-radius: 6px;
-        border: 1px solid #ccc;
-    }
-
-    .btns {
-        margin-top: 10px;
-    }
-
-    button {
-        padding: 8px 14px;
-        border: none;
-        background: #1976d2;
-        color: white;
-        border-radius: 6px;
-        cursor: pointer;
-        margin-right: 8px;
-    }
-
-    button[disabled] {
-        background: #b5b5b5;
-        cursor: not-allowed;
-    }
-
-    .sec {
-        background: #555;
-    }
-
-    .del {
-        background: #c62828;
-    }
-
-    .info-btn {
-        background: #0d47a1;
-    }
-
-    .info-panel {
-        background-color: #f7faff;
-        border-left: 4px solid #1976d2;
-        padding: 15px;
-        margin-top: 12px;
-        border-radius: 8px;
-        font-size: 14px;
-    }
-</style>

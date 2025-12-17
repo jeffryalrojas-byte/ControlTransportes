@@ -31,6 +31,40 @@
   </button>
 
 </div>
+<hr>
+<button class="info-btn" (click)="mostrarInfo = !mostrarInfo">
+  📘 Información de reglamento
+</button>
+<!-- Panel informativo -->
+<div class="info-panel" *ngIf="mostrarInfo">
+  <h3>📋 Reglamento sobre Vacaciones</h3>
+  <p>🔹 <strong>12 días hábiles:</strong> Por cada 50-52 semanas trabajadas. Un año de servicio. Un día (1) por mes
+    laborado.</p>
+  <p>🔹 <strong>Empleados con contratos diarios:</strong> Por cada <strong>22 días</strong> trabajados, según datos de
+    la planilla, tiene derecho a 1 día de
+    vacaciones.
+  </p>
+  <p>🔹 <strong>No Acumulables (Regla General):</strong> Deben disfrutarse. No se pueden compensar en dinero, salvo
+    excepciones muy calificadas.</p>
+  <p>🔹 <strong>Excepciones a la Compensación:</strong> Fin de contrato, trabajo ocasional/a destajo, o si el exceso de
+    2 semanas se acuerda compensar (máximo 3 períodos acumulados, sin haberlo recibido antes).</p>
+  <p>🔹 <strong>Fraccionamiento:</strong> Pueden dividirse según acuerdo previo con su Jefatura directa.
+  <p>🔹 <strong>Plazo para Disfrutar:</strong> El patrono debe concederlos dentro de los 5 meses siguientes al
+    cumplimiento del año de servicio, señalando la fecha.
+  </p>
+  <p>🔹 <strong>Nota Importante! Cálculo de vacaciones:</strong> Las <strong>incapacidades</strong> o los
+    <strong>permisos sin goce
+      salarial</strong> afectan la continuidad para las vacaciones, ya que el calculo es sobre semanas efectivas
+    laboradas.
+  </p>
+
+
+  <h4>⚖️ Base legal</h4>
+  <ul>
+    <li><strong>Interno:</strong> Reglamento Interno de la empresa</li>
+    <li><strong>Código de Trabajo:</strong> (Artículos 153, 155, 156, 157).</li>
+  </ul>
+</div>
 
 <hr>
 

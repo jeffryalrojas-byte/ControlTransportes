@@ -4,6 +4,7 @@ import { VacacionesService, SolicitudVacaciones } from '../services/vacaciones.s
 import { RrhhService, Empleado } from '../services/rrhh.service';
 import { take } from 'rxjs/operators';
 import { SesionService } from '../services/sesion.service';
+import { PlanillasService } from '../services/planillas.service';
 
 @Component({
   selector: 'app-vacaciones',
@@ -16,6 +17,9 @@ export class VacacionesComponent implements OnInit {
 
   empleados: Empleado[] = [];
   solicitudes: SolicitudVacaciones[] = [];
+  planillas: any[] = [];
+
+  mostrarInfo: boolean = false;
 
   empleadoId = '';
   fechaInicio = '';
@@ -30,16 +34,31 @@ export class VacacionesComponent implements OnInit {
   constructor(
     private vacacionesService: VacacionesService,
     private rrhhService: RrhhService,
-    private sesionService: SesionService
+    private sesionService: SesionService,
+    private planillasService: PlanillasService
   ) { }
 
   ngOnInit() {
     // Obtenemos el usuario desde el servicio
     this.usuarioActivo = this.sesionService.getUsuarioActivo();
+    //Cargamos los empleados
+    this.CargarEmpleados();
 
+    //Cargamos las planillas
+    this.CargarPlanillas();
+  }
+
+
+  public CargarEmpleados(): any {
     // 🔥 Cargar empleados desde Firebase
     this.rrhhService.obtener().subscribe(data => {
       this.empleados = data;
+    });
+  }
+
+  public CargarPlanillas(): any {
+    this.planillasService.obtener().subscribe((data: any[]) => {
+      this.planillas = data || [];
     });
   }
 
@@ -92,10 +111,24 @@ export class VacacionesComponent implements OnInit {
       }
     }
 
-    this.vacacionesService.calcularDiasPendientes(
-      this.empleadoId,
-      this.empleadoSeleccionado.fechaIngreso
-    ).pipe(take(1))
+    let obsDiasPendientes;
+
+    if (this.empleadoSeleccionado.tipoPago === 'diario') {
+      // 🔥 DIARIO → CON PLANILLAS
+      obsDiasPendientes = this.vacacionesService.calcularDiasPendientes(
+        this.empleadoSeleccionado,
+        this.planillas
+      );
+    } else {
+      // 🔥 MENSUAL → SIN PLANILLAS
+      obsDiasPendientes = this.vacacionesService.calcularDiasPendientesSinPlanillas(
+        this.empleadoSeleccionado
+      );
+    }
+
+    //Esto es según el método que se necesita
+    obsDiasPendientes
+      .pipe(take(1))
       .subscribe(periodos => {
 
         const diasSolicitados = this.diasSolicitados;

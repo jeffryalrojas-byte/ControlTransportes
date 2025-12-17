@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { AngularFirestore } from '@angular/fire/firestore';
 import { SesionService } from './sesion.service';
 import { v4 as uuid } from 'uuid';
+import { Observable } from 'rxjs';
 
 export interface Planilla {
   id?: string;
@@ -65,6 +66,16 @@ export class PlanillasService {
       )
       .get(); // <-- ESTO evita que se dispare varias veces
   }
+  /** Método que nos permite obtener los días trabajados de un empleado*/
+  obtenerDiasTrabajadosPorEmpleado(empleadoId: number): Observable<any[]> {
+    const empresaId = this.sesionService.getCedulaEmpresaActual();
+
+    return this.afs.collection(
+      `empresas/${empresaId}/planillas`,
+      ref => ref.where('detalleEmpleados', 'array-contains', { id: empleadoId })
+    ).valueChanges();
+  }
+
 
 
 }

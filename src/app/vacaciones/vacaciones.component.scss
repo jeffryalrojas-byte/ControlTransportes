@@ -23,3 +23,34 @@
 .btn-guardar:active {
     transform: translateY(0px);
 }
+
+button {
+    padding: 8px 14px;
+    border: none;
+    background: #1976d2;
+    color: white;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-right: 8px;
+
+    &[disabled] {
+        background: #b5b5b5;
+        cursor: not-allowed;
+    }
+
+    &.sec {
+        background: #555;
+    }
+
+    &.del {
+        background: #c62828;
+    }
+
+    &.info-btn {
+        background: #0d47a1;
+    }
+}
+
+.btns {
+    margin-top: 16px;
+}
