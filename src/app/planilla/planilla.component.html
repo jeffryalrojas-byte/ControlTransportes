@@ -34,6 +34,7 @@
       <th>Días Trabajados</th>
       <th>Salario Bruto</th>
       <th>Extras</th>
+      <th>Incentivo</th>
       <th>Rebajos Trabajador</th>
       <th>Salario Neto</th>
       <th>Cargas Patronales</th>
@@ -55,6 +56,9 @@
       <td>{{ salarioBruto(e) | currency:'CRC' }}</td>
       <td>
         <input type="number" [(ngModel)]="e.extras" (change)="calcularTotales()" min="0" style="width: 90px;">
+      </td>
+      <td>
+        {{ incentivos[e.puesto] || 0 | currency:'CRC' }}
       </td>
       <td>{{ rebajosTrabajador(e) | currency:'CRC' }}</td>
       <td>{{ salarioNeto(e) | currency:'CRC' }}</td>

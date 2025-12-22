@@ -19,6 +19,8 @@ import { AngularFireModule } from '@angular/fire';
 import { AngularFirestoreModule } from '@angular/fire/firestore';
 import { AngularFireAuthModule } from '@angular/fire/auth';
 import { AngularFireStorageModule } from '@angular/fire/storage';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { MatTabsModule } from '@angular/material/tabs';
 
 @NgModule({
   declarations: [
@@ -36,6 +38,8 @@ import { AngularFireStorageModule } from '@angular/fire/storage';
     FormsModule,
     AppRoutingModule,
     FinanzasModule,
+    MatTabsModule,
+    BrowserAnimationsModule,
 
     // ✅ Inicialización de Firebase
     AngularFireModule.initializeApp(environment.firebase),

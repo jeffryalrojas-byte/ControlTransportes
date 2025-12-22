@@ -44,6 +44,24 @@ export class ConfiguracionService {
       .valueChanges();
   }
 
+  guardarIncentivos(incentivos: { [puesto: string]: number }) {
+    const cedula = this.getEmpresaCedula();
+
+    return this.afs
+      .collection(`empresas/${cedula}/configuracion`)
+      .doc('incentivos')
+      .set(incentivos, { merge: true });
+  }
+
+  obtenerIncentivos() {
+    const cedula = this.getEmpresaCedula();
+
+    return this.afs
+      .collection(`empresas/${cedula}/configuracion`)
+      .doc<{ [puesto: string]: number }>('incentivos')
+      .valueChanges();
+  }
+
   /** 🔹 Guarda histórico en Firebase */
   guardarHistorico(cargas: CargasSociales) {
     const cedula = this.getEmpresaCedula();

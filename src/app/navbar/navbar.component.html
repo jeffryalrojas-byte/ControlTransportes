@@ -1,13 +1,17 @@
 <nav class="navbar">
   <div class="empresa-info">
     <img [src]="logoURL" class="logo">
-    <strong>{{ nombreEmpresa }}</strong>
-    <small>Cédula: {{ cedulaEmpresa }}</small>
-
-    <!-- 👇 Aquí mostramos el rol -->
-    <small *ngIf="usuarioActivo">
-      Rol: <strong>{{ usuarioActivo.rol }}</strong>
-    </small>
+    <div>
+      <strong>{{ nombreEmpresa }}</strong>
+    </div>
+    <div>
+      <small>Cédula: {{ cedulaEmpresa }}</small>
+    </div>
+    <div *ngIf="usuarioActivo">
+      <small class="rol">
+        Rol: <strong>{{ usuarioActivo.rol }}</strong>
+      </small>
+    </div>
   </div>
 
   <a routerLink="/rrhh" routerLinkActive="active">👷‍♂️ RRHH</a>

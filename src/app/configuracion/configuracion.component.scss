@@ -1,0 +1,20 @@
+.config-form {
+    margin-top: 15px;
+}
+
+.campo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.campo label {
+    min-width: 160px;
+    font-weight: 600;
+}
+
+.campo input {
+    width: 120px;
+    padding: 4px 6px;
+}

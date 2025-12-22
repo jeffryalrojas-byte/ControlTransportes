@@ -1,35 +1,62 @@
-<h2>⚙️ Configuración de Cargas Sociales</h2>
+<h2>⚙️ Configuración</h2>
 
-<div class="config-form">
-  <label>🧾 CCSS Trabajador:</label>
-  <input type="number" step="0.01" [(ngModel)]="cargas.ccssTrabajador" /> %
+<mat-tab-group>
 
-  <label>🏢 CCSS Patrono:</label>
-  <input type="number" step="0.01" [(ngModel)]="cargas.ccssPatrono" /> %
+  <!-- 🔹 TAB 1: Cargas Sociales -->
+  <mat-tab label="Cargas Sociales">
+    <div class="config-form">
 
-  <br />
-  <button (click)="guardarCambios()">💾 Guardar Cambios</button>
-</div>
+      <div class="campo">
+        <label>🧾 CCSS Trabajador:</label>
+        <input type="number" step="0.01" [(ngModel)]="cargas.ccssTrabajador" /> %
+      </div>
 
-<hr>
+      <div class="campo">
+        <label>🏢 CCSS Patrono:</label>
+        <input type="number" step="0.01" [(ngModel)]="cargas.ccssPatrono" /> %
+      </div>
 
-<h3>📜 Historial de Configuraciones Guardadas</h3>
-<table border="1" cellpadding="6" *ngIf="historico.length > 0">
-  <thead>
-    <tr>
-      <th>Fecha</th>
-      <th>CCSS Trabajador</th>
-      <th>CCSS Patrono</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr *ngFor="let h of historico">
-      <td>{{ h.fecha }}</td>
-      <td>{{ (h.ccssTrabajador * 100) | number:'1.2-2' }} %</td>
-      <td>{{ (h.ccssPatrono * 100) | number:'1.2-2' }} %</td>
-    </tr>
-  </tbody>
-</table>
+      <br />
+      <button (click)="guardarCambios()">💾 Guardar Cambios</button>
 
-<p *ngIf="historico.length === 0">No hay configuraciones guardadas aún.</p>
+      <hr>
 
+      <h3>📜 Historial</h3>
+      <table border="1" cellpadding="6" *ngIf="historico.length > 0">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>CCSS Trabajador</th>
+            <th>CCSS Patrono</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let h of historico">
+            <td>{{ h.fecha }}</td>
+            <td>{{ (h.ccssTrabajador * 100) | number:'1.2-2' }} %</td>
+            <td>{{ (h.ccssPatrono * 100) | number:'1.2-2' }} %</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p *ngIf="historico.length === 0">
+        No hay configuraciones guardadas aún.
+      </p>
+
+    </div>
+  </mat-tab>
+
+  <!-- 🔹 TAB 2: Incentivos -->
+  <mat-tab label="Incentivos por Puesto">
+    <h3>🎁 Incentivos</h3>
+
+    <div class="campo" *ngFor="let p of puestos">
+      <label>{{ p }}:</label>
+      <input type="number" min="0" [(ngModel)]="incentivos[p]" />
+    </div>
+
+    <br>
+    <button (click)="guardarIncentivos()">💾 Guardar Incentivos</button>
+  </mat-tab>
+
+</mat-tab-group>

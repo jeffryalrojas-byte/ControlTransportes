@@ -19,6 +19,13 @@ export class RrhhComponent implements OnInit {
   aguinaldos: { [id: string]: number } = {};
   diasVacaciones: { [id: string]: any } = {};
 
+  //Lista de puestos dispobibles
+  puestosDisponibles: string[] = [
+    'Administrador',
+    'Chofer',
+    'Asistente'
+  ];
+
   // Campos del formulario
   cedula = '';
   nombre = '';

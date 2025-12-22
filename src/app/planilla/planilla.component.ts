@@ -77,6 +77,10 @@ export class PlanillaComponent implements OnInit {
   planillaSeleccionada: any = null;
   detallesMostrar: any[] = [];
 
+  //Para obtener los incentivos del puesto 
+  incentivos: { [puesto: string]: number } = {};
+
+
   constructor(
     private configuracionService: ConfiguracionService,
     private sesionService: SesionService,
@@ -106,6 +110,9 @@ export class PlanillaComponent implements OnInit {
 
     //Cargamos Planillas
     this.CargamosPlanillas();
+
+    //Cargamos Incentivos
+    this.CargamosIncentivos();
 
     this.calcularTotales();
   }
@@ -179,6 +186,12 @@ export class PlanillaComponent implements OnInit {
     });
   }
 
+  public CargamosIncentivos(): any {
+    this.configuracionService.obtenerIncentivos().subscribe(data => {
+      this.incentivos = data || {};
+    });
+  }
+
 
   // ===============================
   //   CÁLCULOS
@@ -186,8 +199,9 @@ export class PlanillaComponent implements OnInit {
 
   /** Método que nos permite obtener el salario Neto y Bruto del empleado
    * ya quenos permite tomar en cuenta permisos, incapacidad o vacaciones si es el caso
+   * NO SUMA Aquí los incentivos, ya que los mismos no se rebajan
   */
-  public salarioBruto(e: Empleado): number {
+  public salarioBrutoBase(e: Empleado): number {
 
     // ============================================
     // 1) MONTO POR DÍA
@@ -248,24 +262,31 @@ export class PlanillaComponent implements OnInit {
     return salarioTrabajado + salario50 + (e.extras || 0);
   }
 
-
-
+  /** Método encargardo de guardar el salario bruto más el incentivo si el puesto lo amerita
+  */
+  salarioBruto(e: Empleado): number {
+    return this.salarioBrutoBase(e) + this.incentivoPorPuesto(e);
+  }
 
 
   rebajosTrabajador(e: Empleado): number {
     if (e.tipoPago === 'diario') return 0;
-    return this.salarioBruto(e) * this.ccssTrabajador;
+    return this.salarioBrutoBase(e) * this.ccssTrabajador;
   }
 
   salarioNeto(e: Empleado): number {
-    const bruto = this.salarioBruto(e);
-    if (e.tipoPago === 'diario') return bruto;
-    return bruto - this.rebajosTrabajador(e);
+    const base = this.salarioBrutoBase(e);
+    const incentivo = this.incentivoPorPuesto(e);
+
+    if (e.tipoPago === 'diario') {
+      return base + incentivo;
+    }
+    return base - this.rebajosTrabajador(e) + incentivo;
   }
 
   cargaPatronal(e: Empleado): number {
     if (e.tipoPago === 'diario') return 0;
-    return this.salarioBruto(e) * this.ccssPatrono;
+    return this.salarioBrutoBase(e) * this.ccssPatrono;
   }
 
   actualizarDias(id: number, event: any) {
@@ -283,6 +304,9 @@ export class PlanillaComponent implements OnInit {
     this.totalCargas = this.empleados.reduce((sum, e) => sum + this.cargaPatronal(e), 0);
   }
 
+  private incentivoPorPuesto(e: Empleado): number {
+    return this.incentivos[e.puesto] || 0;
+  }
   // ===============================
   //   GUARDAR EN FIREBASE
   // ===============================

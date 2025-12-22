@@ -12,6 +12,10 @@ export class ConfiguracionComponent implements OnInit {
     ccssPatrono: 0
   };
 
+  //Variables para incentivos
+  puestos: string[] = ['Administrador', 'Chofer', 'Asistente'];
+  incentivos: { [puesto: string]: number } = {};
+
   historico: {
     id: string;
     ccssTrabajador: number;
@@ -31,6 +35,10 @@ export class ConfiguracionComponent implements OnInit {
       }
     });
 
+    this.configuracionService.obtenerIncentivos().subscribe(data => {
+      this.incentivos = data || {};
+    });
+
     this.configuracionService.obtenerHistorico().subscribe(data => {
       this.historico = data;
     });
@@ -46,6 +54,11 @@ export class ConfiguracionComponent implements OnInit {
     this.configuracionService.guardarHistorico(cargasConvertidas);
 
     alert('✅ Cargas sociales actualizadas correctamente');
+  }
+
+  guardarIncentivos() {
+    this.configuracionService.guardarIncentivos(this.incentivos);
+    alert('✅ Incentivos guardados correctamente');
   }
 
 }

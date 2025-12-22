@@ -3,7 +3,13 @@
 <div class="form">
   <input placeholder="Cédula" [(ngModel)]="cedula">
   <input placeholder="Nombre" [(ngModel)]="nombre">
-  <input placeholder="Puesto" [(ngModel)]="puesto">
+  <label>Puesto:</label>
+  <select [(ngModel)]="puesto">
+    <option value="">Seleccione un puesto</option>
+    <option *ngFor="let p of puestosDisponibles" [value]="p">
+      {{ p }}
+    </option>
+  </select>
   <label>Fecha de ingreso:</label>
   <input type="date" [(ngModel)]="fechaIngreso">
 
