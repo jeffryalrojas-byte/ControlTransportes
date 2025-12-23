@@ -14,6 +14,8 @@ export class FinanzasComponent implements OnInit {
   movimientos: Transaccion[] = [];
   movimientosFiltrados: Transaccion[] = [];
 
+  categoriaActiva: string | null = null;
+
   usuarioActivo: any;
 
   descripcion = '';
@@ -80,9 +82,14 @@ export class FinanzasComponent implements OnInit {
       return;
     }
 
-    this.movimientosFiltrados = this.movimientos.filter(m =>
+    // 🔥 BORRAR EL AÑO SELECCIONADO
+    this.anioActivo = '';
+
+    const filtrados = this.movimientos.filter(m =>
       m.mes === this.mesActivo
     );
+
+    this.movimientosFiltrados = this.ordenarPorMesDesc(filtrados);
   }
 
   filtrarPorAnio() {
@@ -90,9 +97,19 @@ export class FinanzasComponent implements OnInit {
       this.movimientosFiltrados = [];
       return;
     }
+    // 🔥 BORRAR EL MES SELECCIONADO
+    this.mesActivo = '';
 
-    this.movimientosFiltrados = this.movimientos.filter(m =>
-      m.mes?.startsWith(this.anioActivo) // ejemplo: "2025-03"
+    const filtrados = this.movimientos.filter(m =>
+      m.mes?.startsWith(this.anioActivo)
+    );
+
+    this.movimientosFiltrados = this.ordenarPorMesDesc(filtrados);
+  }
+
+  ordenarPorMesDesc(lista: Transaccion[]): Transaccion[] {
+    return [...lista].sort((a, b) =>
+      b.mes.localeCompare(a.mes)
     );
   }
 
@@ -180,9 +197,28 @@ export class FinanzasComponent implements OnInit {
 
 
   filtrarPorCategoria(cat: string) {
-    this.movimientosFiltrados = this.movimientos
-      .filter(m => m.mes === this.mesActivo && m.categoria === cat);
+
+    const filtrados = this.movimientos.filter(m => {
+
+      // 🔹 Coincide categoría
+      const mismaCategoria = m.categoria === cat;
+
+      // 🔹 Coincide año
+      const mismoAnio = this.anioActivo
+        ? m.mes?.startsWith(this.anioActivo)
+        : true;
+
+      // 🔹 Coincide mes (solo si el usuario lo está usando)
+      const mismoMes = this.mesActivo
+        ? m.mes === this.mesActivo
+        : true;
+
+      return mismaCategoria && mismoAnio && mismoMes;
+    });
+    // 🔥 ORDENAR POR MES (YYYY-MM)
+    this.movimientosFiltrados = this.ordenarPorMesDesc(filtrados);
   }
+
 
 }
 

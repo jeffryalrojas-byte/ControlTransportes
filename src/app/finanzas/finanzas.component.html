@@ -69,6 +69,7 @@
 <table border="1" cellpadding="4" width="100%">
   <thead>
     <tr>
+      <th>Mes</th>
       <th>Descripción</th>
       <th>Categoría</th>
       <th>Tipo</th>
@@ -79,6 +80,7 @@
 
   <tbody>
     <tr *ngFor="let m of movimientosFiltrados">
+      <td>{{ m.mes }}</td>
       <td>{{ m.descripcion }}</td>
       <td>{{ m.categoria }}</td>
 
