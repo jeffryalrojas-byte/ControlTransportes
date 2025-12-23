@@ -72,7 +72,9 @@ export class VacacionesService {
     return this.afs
       .collection<SolicitudVacaciones>(
         `empresas/${empresaId}/vacaciones`,
-        ref => ref.where('empleadoId', '==', empleadoId)
+        ref => ref
+          .where('empleadoId', '==', empleadoId)
+          .orderBy('periodo', 'desc') //MÁS RECIENTE PRIMERO
       )
       .valueChanges({ idField: 'id' });
   }
