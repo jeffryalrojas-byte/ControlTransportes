@@ -75,6 +75,7 @@ export class VacacionesService {
         ref => ref
           .where('empleadoId', '==', empleadoId)
           .orderBy('periodo', 'desc') //MÁS RECIENTE PRIMERO
+          .orderBy('fechaInicio', 'desc') //MÁS RECIENTE PRIMERO
       )
       .valueChanges({ idField: 'id' });
   }
