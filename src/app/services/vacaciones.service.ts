@@ -112,11 +112,19 @@ export class VacacionesService {
 
     return this.obtenerSolicitudesEmpleado(empleado.id).pipe(
       map((solicitudes: SolicitudVacaciones[]) => {
-        const fechaCalculo =
+        let fechaCalculo = new Date();
+
+        if (
           empleado.tipoContrato === 'definido' &&
-            empleado.fechaFinContrato
-            ? new Date(empleado.fechaFinContrato)
-            : new Date();
+          empleado.fechaFinContrato
+        ) {
+
+          const fechaFin = new Date(empleado.fechaFinContrato);
+
+          if (fechaFin < fechaCalculo) {
+            fechaCalculo = fechaFin;
+          }
+        }
 
         let inicio = new Date(ingreso);
         let fin = new Date(inicio);
@@ -225,11 +233,19 @@ export class VacacionesService {
     ]).pipe(
       map(([solicitudes, incapacidades]) => {
 
-        const fechaCalculo =
+        let fechaCalculo = new Date();
+
+        if (
           empleado.tipoContrato === 'definido' &&
-            empleado.fechaFinContrato
-            ? new Date(empleado.fechaFinContrato)
-            : new Date();
+          empleado.fechaFinContrato
+        ) {
+
+          const fechaFin = new Date(empleado.fechaFinContrato);
+
+          if (fechaFin < fechaCalculo) {
+            fechaCalculo = fechaFin;
+          }
+        }
 
         let inicio = new Date(ingreso);
         let fin = new Date(inicio);
