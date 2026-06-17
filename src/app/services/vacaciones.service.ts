@@ -112,7 +112,11 @@ export class VacacionesService {
 
     return this.obtenerSolicitudesEmpleado(empleado.id).pipe(
       map((solicitudes: SolicitudVacaciones[]) => {
-        const hoy = new Date();
+        const fechaCalculo =
+          empleado.tipoContrato === 'definido' &&
+            empleado.fechaFinContrato
+            ? new Date(empleado.fechaFinContrato)
+            : new Date();
 
         let inicio = new Date(ingreso);
         let fin = new Date(inicio);
@@ -120,13 +124,13 @@ export class VacacionesService {
 
         const resultado: any = {};
 
-        while (inicio <= hoy) {
+        while (inicio <= fechaCalculo) {
           const periodo = `${inicio.getFullYear()}-${fin.getFullYear()}`;
 
           const meses = this.calcularMesesDentroPeriodo(
             inicio,
             fin,
-            hoy,
+            fechaCalculo,
             ingreso
           );
 
@@ -221,7 +225,11 @@ export class VacacionesService {
     ]).pipe(
       map(([solicitudes, incapacidades]) => {
 
-        const hoy = new Date();
+        const fechaCalculo =
+          empleado.tipoContrato === 'definido' &&
+            empleado.fechaFinContrato
+            ? new Date(empleado.fechaFinContrato)
+            : new Date();
 
         let inicio = new Date(ingreso);
         let fin = new Date(inicio);
@@ -229,7 +237,7 @@ export class VacacionesService {
 
         const resultado: any = {};
 
-        while (inicio <= hoy) {
+        while (inicio <= fechaCalculo) {
 
           const periodo = `${inicio.getFullYear()}-${fin.getFullYear()}`;
 
@@ -237,7 +245,7 @@ export class VacacionesService {
           const mesesTrabajados = this.calcularMesesDentroPeriodo(
             inicio,
             fin,
-            hoy,
+            fechaCalculo,
             ingreso
           );
 

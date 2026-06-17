@@ -274,6 +274,11 @@ export class RrhhComponent implements OnInit {
 
   actualizarDiasVacaciones() {
     this.empleados.forEach(e => {
+      //OBTENER ESTADO DEL EMPLEADO, INACTIVO NO MOSTRAR VACACIONES
+      /* if (this.obtenerEstadoEmpleado(e) === 'inactivo') {
+        this.diasVacaciones[e.id] = {};
+        return;
+      } */
       // 🟢 EMPLEADO DIARIO → usa planillas
       if (e.tipoPago === 'diario') {
         this.vacacionesService
