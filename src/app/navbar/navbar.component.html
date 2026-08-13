@@ -1,26 +1,78 @@
-<nav class="navbar">
-  <div class="empresa-info">
-    <img [src]="logoDisplay" class="logo" alt="Logo empresa">
-    <div>
-      <strong>{{ nombreEmpresa }}</strong>
+<mat-toolbar color="primary" class="app-navbar">
+  <!-- Logo y Empresa Info -->
+  <div class="navbar-left">
+    <img [src]="logoDisplay" class="logo" alt="Logo empresa" matTooltip="Logo de {{ nombreEmpresa }}">
+
+    <div class="empresa-section">
+      <div class="empresa-nombre">{{ nombreEmpresa }}</div>
+      <div class="empresa-cedula">{{ cedulaEmpresa }}</div>
     </div>
-    <div>
-      <small>Cédula: {{ cedulaEmpresa }}</small>
-    </div>
-    <div *ngIf="usuarioActivo">
-      <small class="rol">
-        Rol: <strong>{{ usuarioActivo.rol }}</strong>
-      </small>
+
+    <!-- Separador visual -->
+    <mat-divider [vertical]="true" class="navbar-divider"></mat-divider>
+
+    <!-- Usuario Info -->
+    <div class="usuario-section" *ngIf="usuarioActivo">
+      <mat-icon class="user-icon">person_circle</mat-icon>
+      <div class="usuario-info">
+        <div class="usuario-nombre">{{ usuarioActivo.nombre }}</div>
+        <div class="usuario-rol">
+          <mat-chip-set aria-label="Rol">
+            <mat-chip [highlighted]="usuarioActivo.rol === 'admin'">
+              {{ usuarioActivo.rol | uppercase }}
+            </mat-chip>
+          </mat-chip-set>
+        </div>
+      </div>
     </div>
   </div>
 
-  <a routerLink="/rrhh" routerLinkActive="active">👷‍♂️ RRHH</a>
-  <a routerLink="/planilla" routerLinkActive="active">💰 Planilla</a>
-  <a routerLink="/finanzas" routerLinkActive="active">📊 Finanzas</a>
-  <a routerLink="/vacaciones" routerLinkActive="active">🌴 Vacaciones</a>
-  <a routerLink="/incapacidades" routerLinkActive="active">🤒 Incapacidades/Permisos</a>
-  <a *ngIf="puedeEditar()" routerLink="/configuracion" routerLinkActive="active">⚙️ Configuración</a>
+  <!-- Spacer -->
+  <span class="spacer"></span>
 
-  <button (click)="logout()">🚪 Cerrar sesión</button>
-</nav>
-<hr>
+  <!-- Navigation Links -->
+  <div class="navbar-center">
+    <button mat-button routerLink="/rrhh" routerLinkActive="active-link" [routerLinkActiveOptions]="{ exact: false }">
+      <mat-icon>people</mat-icon>
+      <span>RRHH</span>
+    </button>
+
+    <button mat-button routerLink="/planilla" routerLinkActive="active-link"
+      [routerLinkActiveOptions]="{ exact: false }">
+      <mat-icon>receipt</mat-icon>
+      <span>Planilla</span>
+    </button>
+
+    <button mat-button routerLink="/finanzas" routerLinkActive="active-link"
+      [routerLinkActiveOptions]="{ exact: false }">
+      <mat-icon>trending_up</mat-icon>
+      <span>Finanzas</span>
+    </button>
+
+    <button mat-button routerLink="/vacaciones" routerLinkActive="active-link"
+      [routerLinkActiveOptions]="{ exact: false }">
+      <mat-icon>beach_access</mat-icon>
+      <span>Vacaciones</span>
+    </button>
+
+    <button mat-button routerLink="/incapacidades" routerLinkActive="active-link"
+      [routerLinkActiveOptions]="{ exact: false }">
+      <mat-icon>local_hospital</mat-icon>
+      <span>Incapacidades/Permisos</span>
+    </button>
+
+    <button *ngIf="puedeEditar()" mat-button routerLink="/configuracion" routerLinkActive="active-link"
+      [routerLinkActiveOptions]="{ exact: false }">
+      <mat-icon>settings</mat-icon>
+      <span>Config</span>
+    </button>
+  </div>
+
+  <!-- Spacer -->
+  <span class="spacer"></span>
+
+  <!-- Logout Button -->
+  <button mat-icon-button (click)="logout()" matTooltip="Cerrar sesión" class="logout-btn">
+    <mat-icon>logout</mat-icon>
+  </button>
+</mat-toolbar>

@@ -40,6 +40,8 @@ import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialogModule } from '@angular/material/dialog';
+import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatDividerModule } from '@angular/material/divider';
 
 @NgModule({
   declarations: [
@@ -78,7 +80,9 @@ import { MatDialogModule } from '@angular/material/dialog';
     MatCardModule,
     MatChipsModule,
     MatTooltipModule,
-    MatDialogModule
+    MatDialogModule,
+    MatToolbarModule,
+    MatDividerModule
   ],
   providers: [
     provideFirebaseApp(() => initializeApp(environment.firebase)),
