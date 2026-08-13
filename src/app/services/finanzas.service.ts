@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
-import { AngularFirestore } from '@angular/fire/firestore';
+import { Firestore, collection, doc, setDoc, deleteDoc, query, orderBy, onSnapshot } from '@angular/fire/firestore';
 import { SesionService } from '../services/sesion.service';
+import { Observable } from 'rxjs';
 
 export interface Transaccion {
   id: string;
@@ -16,7 +17,7 @@ export interface Transaccion {
 export class FinanzasService {
 
   constructor(
-    private afs: AngularFirestore,
+    private firestore: Firestore,
     private sesionService: SesionService
   ) { }
 
@@ -26,31 +27,40 @@ export class FinanzasService {
   }
 
   /** 🔹 Obtener lista de transacciones desde Firebase */
-  obtener() {
+  obtener(): Observable<Transaccion[]> {
     const cedula = this.getCedula();
-    return this.afs
-      .collection<Transaccion>(
-        `empresas/${cedula}/finanzas`,
-        ref => ref.orderBy('fecha', 'desc')
-      )
-      .valueChanges({ idField: 'id' });
+    
+    return new Observable(observer => {
+      const q = query(
+        collection(this.firestore, `empresas/${cedula}/finanzas`),
+        orderBy('fecha', 'desc')
+      );
+
+      const unsubscribe = onSnapshot(q, (snap) => {
+        const data = snap.docs.map(d => ({
+          id: d.id,
+          ...d.data()
+        })) as Transaccion[];
+        observer.next(data);
+      }, (error) => {
+        observer.error(error);
+      });
+
+      return () => unsubscribe();
+    });
   }
 
   /** 🔹 Guardar transacción */
   agregar(t: Transaccion) {
     const cedula = this.getCedula();
-    return this.afs
-      .collection(`empresas/${cedula}/finanzas`)
-      .doc(t.id)
-      .set(t);
+    const docRef = doc(this.firestore, `empresas/${cedula}/finanzas/${t.id}`);
+    return setDoc(docRef, t);
   }
 
   /** 🔹 Eliminar transacción */
   eliminar(id: string) {
     const cedula = this.getCedula();
-    return this.afs
-      .collection(`empresas/${cedula}/finanzas`)
-      .doc(id)
-      .delete();
+    const docRef = doc(this.firestore, `empresas/${cedula}/finanzas/${id}`);
+    return deleteDoc(docRef);
   }
 }

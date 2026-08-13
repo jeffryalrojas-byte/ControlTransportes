@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
-import { AngularFirestore } from '@angular/fire/firestore';
+import { Firestore, collection, doc, setDoc, onSnapshot, query, orderBy, addDoc } from '@angular/fire/firestore';
 import { SesionService } from '../services/sesion.service';
 import { v4 as uuid } from 'uuid';
+import { Observable } from 'rxjs';
 
 export interface CargasSociales {
   ccssTrabajador: number;
@@ -14,7 +15,7 @@ export interface CargasSociales {
 export class ConfiguracionService {
 
   constructor(
-    private afs: AngularFirestore,
+    private firestore: Firestore,
     private sesionService: SesionService
   ) { }
 
@@ -26,40 +27,47 @@ export class ConfiguracionService {
   /** 🔹 Guarda cargar sociales en Firebase */
   guardarCargas(cargas: CargasSociales) {
     const cedula = this.getEmpresaCedula();
-
-    return this.afs
-      .collection(`empresas/${cedula}/configuracion`)
-      .doc('cargasSociales')
-      .set(cargas, { merge: true });
-
+    const docRef = doc(this.firestore, `empresas/${cedula}/configuracion/cargasSociales`);
+    return setDoc(docRef, cargas, { merge: true });
   }
 
   /** 🔹 Obtiene cargas desde Firebase */
-  obtenerCargas() {
+  obtenerCargas(): Observable<CargasSociales | undefined> {
     const cedula = this.getEmpresaCedula();
 
-    return this.afs
-      .collection(`empresas/${cedula}/configuracion`)
-      .doc<CargasSociales>('cargasSociales')
-      .valueChanges();
+    return new Observable(observer => {
+      const docRef = doc(this.firestore, `empresas/${cedula}/configuracion/cargasSociales`);
+      
+      const unsubscribe = onSnapshot(docRef, (snap) => {
+        observer.next(snap.data() as CargasSociales | undefined);
+      }, (error) => {
+        observer.error(error);
+      });
+
+      return () => unsubscribe();
+    });
   }
 
   guardarIncentivos(incentivos: { [puesto: string]: number }) {
     const cedula = this.getEmpresaCedula();
-
-    return this.afs
-      .collection(`empresas/${cedula}/configuracion`)
-      .doc('incentivos')
-      .set(incentivos, { merge: true });
+    const docRef = doc(this.firestore, `empresas/${cedula}/configuracion/incentivos`);
+    return setDoc(docRef, incentivos, { merge: true });
   }
 
-  obtenerIncentivos() {
+  obtenerIncentivos(): Observable<{ [puesto: string]: number } | undefined> {
     const cedula = this.getEmpresaCedula();
 
-    return this.afs
-      .collection(`empresas/${cedula}/configuracion`)
-      .doc<{ [puesto: string]: number }>('incentivos')
-      .valueChanges();
+    return new Observable(observer => {
+      const docRef = doc(this.firestore, `empresas/${cedula}/configuracion/incentivos`);
+      
+      const unsubscribe = onSnapshot(docRef, (snap) => {
+        observer.next(snap.data() as { [puesto: string]: number } | undefined);
+      }, (error) => {
+        observer.error(error);
+      });
+
+      return () => unsubscribe();
+    });
   }
 
   /** 🔹 Guarda histórico en Firebase */
@@ -70,28 +78,32 @@ export class ConfiguracionService {
       fecha: new Date().toLocaleString()
     };
 
-    return this.afs
-      .collection(`empresas/${cedula}/configuracion/cargasSociales/historicoCargas`)
-      .add(registro);
+    const colRef = collection(this.firestore, `empresas/${cedula}/configuracion/cargasSociales/historicoCargas`);
+    return addDoc(colRef, registro);
   }
 
   /** 🔹 Obtiene el histórico de Firebase */
-  obtenerHistorico() {
+  obtenerHistorico(): Observable<any[]> {
     const cedula = this.getEmpresaCedula();
 
-    return this.afs
-      .collection<{
-        ccssTrabajador: number;
-        ccssPatrono: number;
-        fecha: string
-      }>(
-        `empresas/${cedula}/configuracion/cargasSociales/historicoCargas`,
-        ref => ref.orderBy('fecha', 'desc')
-      )
-      .valueChanges({ idField: 'id' });
+    return new Observable(observer => {
+      const q = query(
+        collection(this.firestore, `empresas/${cedula}/configuracion/cargasSociales/historicoCargas`),
+        orderBy('fecha', 'desc')
+      );
+
+      const unsubscribe = onSnapshot(q, (snap) => {
+        const data = snap.docs.map(d => ({
+          id: d.id,
+          ...d.data()
+        }));
+        observer.next(data);
+      }, (error) => {
+        observer.error(error);
+      });
+
+      return () => unsubscribe();
+    });
   }
 
 }
-
-
-

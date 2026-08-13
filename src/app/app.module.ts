@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 import { AppRoutingModule } from './app-routing.module';
 
 import { AppComponent } from './app.component';
@@ -14,11 +15,12 @@ import { IncapacidadesComponent } from './incapacidades/incapacidades.component'
 import { LoginComponent } from './login/login.component';
 import { environment } from 'src/environments/environment';
 
-// 🔥 Import correcto de AngularFire
-import { AngularFireModule } from '@angular/fire';
-import { AngularFirestoreModule } from '@angular/fire/firestore';
-import { AngularFireAuthModule } from '@angular/fire/auth';
-import { AngularFireStorageModule } from '@angular/fire/storage';
+// 🔥 Firebase 11 + AngularFire 18 - Functional API imports
+import { initializeApp, provideFirebaseApp } from '@angular/fire/app';
+import { getAuth, provideAuth } from '@angular/fire/auth';
+import { getFirestore, provideFirestore } from '@angular/fire/firestore';
+import { getStorage, provideStorage } from '@angular/fire/storage';
+
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatTabsModule } from '@angular/material/tabs';
 
@@ -35,19 +37,20 @@ import { MatTabsModule } from '@angular/material/tabs';
   ],
   imports: [
     BrowserModule,
+    CommonModule,
     FormsModule,
     AppRoutingModule,
     FinanzasModule,
     MatTabsModule,
-    BrowserAnimationsModule,
-
-    // ✅ Inicialización de Firebase
-    AngularFireModule.initializeApp(environment.firebase),
-    AngularFirestoreModule,
-    AngularFireAuthModule,
-    AngularFireStorageModule
+    BrowserAnimationsModule
   ],
-  providers: [],
+  providers: [
+    // ✅ Firebase 11 + AngularFire 18 Functional Providers
+    provideFirebaseApp(() => initializeApp(environment.firebase)),
+    provideFirestore(() => getFirestore()),
+    provideAuth(() => getAuth()),
+    provideStorage(() => getStorage())
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

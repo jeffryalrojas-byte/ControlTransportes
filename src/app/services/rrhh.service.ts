@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
-import { AngularFirestore } from '@angular/fire/firestore';
+import { Firestore, collection, doc, setDoc, updateDoc, deleteDoc, onSnapshot, query } from '@angular/fire/firestore';
 import { SesionService } from './sesion.service';
 import { v4 as uuid } from 'uuid';
-import { map } from 'rxjs/operators';
+import { map, Observable } from 'rxjs';
 
 export interface Empleado {
   id: string;
@@ -23,7 +23,7 @@ export interface Empleado {
 export class RrhhService {
 
   constructor(
-    private afs: AngularFirestore,
+    private firestore: Firestore,
     private sesionService: SesionService
   ) { }
 
@@ -34,30 +34,40 @@ export class RrhhService {
   // ===========================
   // 📌 OBTENER EMPLEADOS
   // ===========================
-  obtener() {
+  obtener(): Observable<Empleado[]> {
     const cedulaEmpresa = this.obtenerEmpresaCedula();
 
-    return this.afs
-      .collection(`empresas/${cedulaEmpresa}/empleados`)
-      .valueChanges({ idField: 'id' })
-      .pipe(
-        map((items: any[]) =>
-          items.map(item => ({
-            id: item.id,
-            empresaId: item.empresaId ?? '',
-            empresaCedula: item.empresaCedula ?? '',
-            cedula: item.cedula ?? '',
-            nombre: item.nombre ?? '',
-            puesto: item.puesto ?? '',
-            fechaIngreso: item.fechaIngreso ?? '',
-            tipoPago: item.tipoPago ?? 'mensual',
-            salarioMensual: item.salarioMensual ?? 0,
-            salarioDiario: item.salarioDiario ?? 0,
-            tipoContrato: item.tipoContrato ?? 'indefinido',
-            fechaFinContrato: item.fechaFinContrato ?? ''
-          }))
-        )
-      );
+    return new Observable(observer => {
+      const colRef = collection(this.firestore, `empresas/${cedulaEmpresa}/empleados`);
+      
+      const unsubscribe = onSnapshot(colRef, (snap) => {
+        const items = snap.docs.map(d => ({
+          id: d.id,
+          ...d.data()
+        })) as any[];
+
+        const result = items.map(item => ({
+          id: item.id,
+          empresaId: item.empresaId ?? '',
+          empresaCedula: item.empresaCedula ?? '',
+          cedula: item.cedula ?? '',
+          nombre: item.nombre ?? '',
+          puesto: item.puesto ?? '',
+          fechaIngreso: item.fechaIngreso ?? '',
+          tipoPago: item.tipoPago ?? 'mensual',
+          salarioMensual: item.salarioMensual ?? 0,
+          salarioDiario: item.salarioDiario ?? 0,
+          tipoContrato: item.tipoContrato ?? 'indefinido',
+          fechaFinContrato: item.fechaFinContrato ?? ''
+        }));
+
+        observer.next(result);
+      }, (error) => {
+        observer.error(error);
+      });
+
+      return () => unsubscribe();
+    });
   }
 
 
@@ -68,10 +78,8 @@ export class RrhhService {
     const cedulaEmpresa = this.obtenerEmpresaCedula();
     const id = e.id || uuid();
 
-    return this.afs
-      .collection(`empresas/${cedulaEmpresa}/empleados`)
-      .doc(id)
-      .set(e);
+    const docRef = doc(this.firestore, `empresas/${cedulaEmpresa}/empleados/${id}`);
+    return setDoc(docRef, e);
   }
 
   // ===========================
@@ -80,10 +88,8 @@ export class RrhhService {
   actualizar(e: Empleado) {
     const cedulaEmpresa = this.obtenerEmpresaCedula();
 
-    return this.afs
-      .collection(`empresas/${cedulaEmpresa}/empleados`)
-      .doc(e.id)
-      .update(e);
+    const docRef = doc(this.firestore, `empresas/${cedulaEmpresa}/empleados/${e.id}`);
+    return updateDoc(docRef, e as any);
   }
 
   //ESTADO DEL EMPLEADO
@@ -111,9 +117,7 @@ export class RrhhService {
   eliminar(id: string) {
     const cedulaEmpresa = this.obtenerEmpresaCedula();
 
-    return this.afs
-      .collection(`empresas/${cedulaEmpresa}/empleados`)
-      .doc(id)
-      .delete();
+    const docRef = doc(this.firestore, `empresas/${cedulaEmpresa}/empleados/${id}`);
+    return deleteDoc(docRef);
   }
 }

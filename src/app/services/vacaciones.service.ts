@@ -1,8 +1,7 @@
 import { Injectable } from '@angular/core';
-import { AngularFirestore } from '@angular/fire/firestore';
+import { Firestore, collection, doc, setDoc, deleteDoc, query, where, orderBy, onSnapshot, Query } from '@angular/fire/firestore';
 import { v4 as uuid } from 'uuid';
-import { map } from 'rxjs/operators';
-import { combineLatest, Observable, of } from 'rxjs';
+import { map, Observable, of } from 'rxjs';
 import { SesionService } from './sesion.service';
 import { IncapacidadesService } from './incapacidades.service';
 
@@ -22,7 +21,8 @@ export interface SolicitudVacaciones {
 })
 export class VacacionesService {
 
-  constructor(private afs: AngularFirestore,
+  constructor(
+    private firestore: Firestore,
     private sesionService: SesionService,
     private incapacidadesService: IncapacidadesService
   ) { }
@@ -59,34 +59,41 @@ export class VacacionesService {
     solicitud.empresaId = empresaId;
     solicitud.id = solicitud.id || uuid();
 
-    return this.afs
-      .collection(`empresas/${empresaId}/vacaciones`)
-      .doc(solicitud.id)
-      .set(solicitud);
+    const docRef = doc(this.firestore, `empresas/${empresaId}/vacaciones/${solicitud.id}`);
+    return setDoc(docRef, solicitud);
   }
 
   /** Método que nos permite obtener las solicitudes de vacaciones de un empleado*/
-  public obtenerSolicitudesEmpleado(empleadoId: string) {
+  public obtenerSolicitudesEmpleado(empleadoId: string): Observable<SolicitudVacaciones[]> {
     const empresaId = this.obtenerEmpresaCedula();
+    
+    return new Observable(observer => {
+      const q = query(
+        collection(this.firestore, `empresas/${empresaId}/vacaciones`),
+        where('empleadoId', '==', empleadoId),
+        orderBy('periodo', 'desc'),
+        orderBy('fechaInicio', 'desc')
+      );
 
-    return this.afs
-      .collection<SolicitudVacaciones>(
-        `empresas/${empresaId}/vacaciones`,
-        ref => ref
-          .where('empleadoId', '==', empleadoId)
-          .orderBy('periodo', 'desc') //MÁS RECIENTE PRIMERO
-          .orderBy('fechaInicio', 'desc') //MÁS RECIENTE PRIMERO
-      )
-      .valueChanges({ idField: 'id' });
+      const unsubscribe = onSnapshot(q, (snap) => {
+        const data = snap.docs.map(d => ({
+          id: d.id,
+          ...d.data()
+        })) as SolicitudVacaciones[];
+        observer.next(data);
+      }, (error) => {
+        observer.error(error);
+      });
+
+      return () => unsubscribe();
+    });
   }
 
   /** Método que nos permite eliminar la solicitud de un empleado*/
   public eliminarSolicitud(id: string) {
     const empresaId = this.obtenerEmpresaCedula();
-    return this.afs
-      .collection(`empresas/${empresaId}/vacaciones`)
-      .doc(id)
-      .delete();
+    const docRef = doc(this.firestore, `empresas/${empresaId}/vacaciones/${id}`);
+    return deleteDoc(docRef);
   }
 
   /** Método que nos permite obtener los días pendientes de vacaciones de un empleado*/
@@ -145,7 +152,7 @@ export class VacacionesService {
           const diasGanados = Math.min(meses, 12);
 
           const diasTomados = solicitudes
-            .filter(s => s.periodo === periodo)
+            .filter((s) => s.periodo === periodo)
             .reduce((t, x) => t + x.diasSolicitados, 0);
 
           resultado[periodo] = Math.max(diasGanados - diasTomados, 0);
@@ -189,7 +196,7 @@ export class VacacionesService {
   }
 
   /** Método que nos permite obtener los días trabajados de un empleado diario*/
-  public calcularVacacionesDiario(empleadoId: number, fechaIngreso: Date, planillas: any[]): any {
+  public calcularVacacionesDiario(empleadoId: any, fechaIngreso: Date, planillas: any[]): any {
 
     const resultado: any = {};
 
@@ -227,80 +234,77 @@ export class VacacionesService {
 
     const ingreso = new Date(empleado.fechaIngreso);
 
-    return combineLatest([
-      this.obtenerSolicitudesEmpleado(empleado.id),
-      this.incapacidadesService.obtenerPorEmpleado(empleado.id)
-    ]).pipe(
-      map(([solicitudes, incapacidades]) => {
+    return new Observable(observer => {
+      // Subscribe to both solicitudes and incapacidades
+      this.obtenerSolicitudesEmpleado(empleado.id).subscribe(solicitudes => {
+        this.incapacidadesService.obtenerPorEmpleado(empleado.id).subscribe(incapacidades => {
+          let fechaCalculo = new Date();
 
-        let fechaCalculo = new Date();
+          if (
+            empleado.tipoContrato === 'definido' &&
+            empleado.fechaFinContrato
+          ) {
 
-        if (
-          empleado.tipoContrato === 'definido' &&
-          empleado.fechaFinContrato
-        ) {
+            const fechaFin = new Date(empleado.fechaFinContrato);
 
-          const fechaFin = new Date(empleado.fechaFinContrato);
-
-          if (fechaFin < fechaCalculo) {
-            fechaCalculo = fechaFin;
+            if (fechaFin < fechaCalculo) {
+              fechaCalculo = fechaFin;
+            }
           }
-        }
 
-        let inicio = new Date(ingreso);
-        let fin = new Date(inicio);
-        fin.setFullYear(fin.getFullYear() + 1);
-
-        const resultado: any = {};
-
-        while (inicio <= fechaCalculo) {
-
-          const periodo = `${inicio.getFullYear()}-${fin.getFullYear()}`;
-
-          // 🔹 1️⃣ Meses normalmente ganados
-          const mesesTrabajados = this.calcularMesesDentroPeriodo(
-            inicio,
-            fin,
-            fechaCalculo,
-            ingreso
-          );
-
-          let diasGanados = Math.min(mesesTrabajados, 12);
-
-          // 🔹 2️⃣ Días de incapacidad válidos dentro del período
-          const diasIncapacidad = incapacidades
-            .filter(i =>
-              ['enfermedad', 'accidente', 'permisosg'].includes(i.tipo)
-            )
-            .map(i => this.calcularDiasDentroPeriodo(
-              new Date(i.fechaInicio),
-              new Date(i.fechaFin),
-              inicio,
-              fin
-            ))
-            .reduce((a, b) => a + b, 0);
-
-          // 🔹 3️⃣ Convertir incapacidades a meses NO trabajados
-          const mesesNoTrabajados = Math.floor(diasIncapacidad / 30);
-
-          diasGanados = Math.max(diasGanados - mesesNoTrabajados, 0);
-
-          // 🔹 4️⃣ Días ya tomados
-          const diasTomados = solicitudes
-            .filter(s => s.periodo === periodo)
-            .reduce((t, x) => t + x.diasSolicitados, 0);
-
-          resultado[periodo] = Math.max(diasGanados - diasTomados, 0);
-
-          inicio = new Date(fin);
+          let inicio = new Date(ingreso);
+          let fin = new Date(inicio);
           fin.setFullYear(fin.getFullYear() + 1);
-        }
 
-        return resultado;
-      })
-    );
+          const resultado: any = {};
+
+          while (inicio <= fechaCalculo) {
+
+            const periodo = `${inicio.getFullYear()}-${fin.getFullYear()}`;
+
+            // 🔹 1️⃣ Meses normalmente ganados
+            const mesesTrabajados = this.calcularMesesDentroPeriodo(
+              inicio,
+              fin,
+              fechaCalculo,
+              ingreso
+            );
+
+            let diasGanados = Math.min(mesesTrabajados, 12);
+
+            // 🔹 2️⃣ Días de incapacidad válidos dentro del período
+            const diasIncapacidad = incapacidades
+              .filter((i: any) =>
+                ['enfermedad', 'accidente', 'permisosg'].includes(i.tipo)
+              )
+              .map((i: any) => this.calcularDiasDentroPeriodo(
+                new Date(i.fechaInicio),
+                new Date(i.fechaFin),
+                inicio,
+                fin
+              ))
+              .reduce((a: number, b: number) => a + b, 0);
+
+            // 🔹 3️⃣ Convertir incapacidades a meses NO trabajados
+            const mesesNoTrabajados = Math.floor(diasIncapacidad / 30);
+
+            diasGanados = Math.max(diasGanados - mesesNoTrabajados, 0);
+
+            // 🔹 4️⃣ Días ya tomados
+            const diasTomados = solicitudes
+              .filter((s) => s.periodo === periodo)
+              .reduce((t: number, x) => t + x.diasSolicitados, 0);
+
+            resultado[periodo] = Math.max(diasGanados - diasTomados, 0);
+
+            inicio = new Date(fin);
+            fin.setFullYear(fin.getFullYear() + 1);
+          }
+
+          observer.next(resultado);
+        });
+      });
+    });
   }
 
 }
-
-

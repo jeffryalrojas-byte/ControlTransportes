@@ -4,10 +4,10 @@ import { SesionService } from '../services/sesion.service';
 import { IncapacidadesService } from '../services/incapacidades.service';
 import { PlanillasService } from '../services/planillas.service';
 import { v4 as uuid } from 'uuid';
-import { RrhhService } from '../services/rrhh.service';
+import { RrhhService, Empleado as EmpleadoRrhh } from '../services/rrhh.service';
 
 interface Empleado {
-  id: number;
+  id: string | number;
   nombre: string;
   puesto: string;
   tipoPago: 'mensual' | 'diario';
@@ -17,7 +17,7 @@ interface Empleado {
   fechaIngreso?: string | Date;
   fechaFinContrato?: string | Date | null;
   fechaFinContratoDate?: Date | null;
-  extras?: number;   // 
+  extras?: number;
 }
 
 interface Planilla {
@@ -49,7 +49,7 @@ export class PlanillaComponent implements OnInit {
   empleados: Empleado[] = [];
   empleadosOriginal: Empleado[] = [];
 
-  diasTrabajados: { [id: number]: number } = {};
+  diasTrabajados: { [id: string | number]: number } = {};
 
   //Para cargar las planillas
   planillas: Planilla[] = [];
@@ -120,7 +120,7 @@ export class PlanillaComponent implements OnInit {
 
   public CargasSociales(): any {
     // Cargar cargas de CCSS desde Firebase
-    this.configuracionService.obtenerCargas().subscribe(cargas => {
+    this.configuracionService.obtenerCargas().subscribe((cargas: any) => {
       if (cargas) {
         this.ccssTrabajador = cargas.ccssTrabajador;
         this.ccssPatrono = cargas.ccssPatrono;
@@ -140,8 +140,8 @@ export class PlanillaComponent implements OnInit {
       }
     });
     // Cargar empleados desde Firebase
-    this.rrhhService.obtener().subscribe(empList => {
-      const lista = empList.map(e => ({
+    this.rrhhService.obtener().subscribe((empList: EmpleadoRrhh[]) => {
+      const lista = empList.map((e: any) => ({
         id: e.id,
         nombre: e.nombre,
         puesto: e.puesto,
@@ -164,7 +164,7 @@ export class PlanillaComponent implements OnInit {
 
   public CargamosIncapacidades(): any {
     // Cargar incapacidades
-    this.incapacidadesService.obtener().subscribe(data => {
+    this.incapacidadesService.obtener().subscribe((data: any[]) => {
       this.incapacidades = data;
     });
 
@@ -187,7 +187,7 @@ export class PlanillaComponent implements OnInit {
   }
 
   public CargamosIncentivos(): any {
-    this.configuracionService.obtenerIncentivos().subscribe(data => {
+    this.configuracionService.obtenerIncentivos().subscribe((data: any) => {
       this.incentivos = data || {};
     });
   }
@@ -289,13 +289,10 @@ export class PlanillaComponent implements OnInit {
     return this.salarioBrutoBase(e) * this.ccssPatrono;
   }
 
-  actualizarDias(id: number, event: any) {
+  actualizarDias(id: string | number, event: any) {
     const valor = Number(event.target.value) || 0;
     this.diasTrabajados[id] = valor;
 
-    /*     const emp = this.empleados.find(e => e.id === id);
-        if (emp) emp.dias = valor;
-     */
     this.calcularTotales();
   }
 
@@ -323,9 +320,9 @@ export class PlanillaComponent implements OnInit {
     }
 
     // 🔥 VALIDAR SI YA EXISTE PLANILLA DEL MES
-    this.planillasService.existePlanillaMes(this.mesActual).subscribe(snap => {
+    this.planillasService.existePlanillaMes(this.mesActual).then((snap: any) => {
 
-      const planillas = snap.docs.map(d => d.data());
+      const planillas = snap.docs.map((d: any) => d.data());
 
       if (planillas.length > 0) {
         alert(`🚫 No se puede guardar la planilla.\nLa planilla del mes ${this.mesActual} ya fue presentada.\n\n➡️ Si desea modificar información, primero debe eliminarla.`);
@@ -368,11 +365,11 @@ export class PlanillaComponent implements OnInit {
           alert(`✅ Planilla del mes ${this.mesActual} guardada correctamente.`);
           this.mesActual = '';
         })
-        .catch(err => {
+        .catch((err: any) => {
           console.error(err);
           alert('❌ Error al guardar la planilla.');
         });
-    }); // end subscribe
+    }); // end then
   }
 
   // ===============================
@@ -388,7 +385,7 @@ export class PlanillaComponent implements OnInit {
       .then(() => {
         alert('🗑️ Planilla eliminada correctamente.');
       })
-      .catch(err => {
+      .catch((err: any) => {
         console.error(err);
         alert('❌ Error eliminando la planilla.');
       });
@@ -416,7 +413,7 @@ export class PlanillaComponent implements OnInit {
 
     alert('Recuerde antes de presentar la planilla, ingresar cualquier incapacidad o permiso que tenga el empleado para el mes seleccionado.');
 
-    this.incapacidadesService.obtener().subscribe(data => {
+    this.incapacidadesService.obtener().subscribe((data: any[]) => {
       this.incapacidades = data;
 
       if (this.mesActual) {

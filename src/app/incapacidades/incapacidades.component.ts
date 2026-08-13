@@ -121,7 +121,7 @@ export class IncapacidadesComponent implements OnInit {
     const mes = `${inicio.getFullYear()}-${String(inicio.getMonth() + 1).padStart(2, '0')}`;
 
     // 🔥 PRIMER PASO → verificar si la planilla ya está cerrada
-    this.planillasService.existePlanillaMes(mes).subscribe(snap => {
+    this.planillasService.existePlanillaMes(mes).then(snap => {
 
       const planillas = snap.docs.map(d => d.data());
 

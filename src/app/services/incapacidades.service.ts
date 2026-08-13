@@ -1,7 +1,8 @@
 // incapacidades.service.ts
 import { Injectable } from '@angular/core';
-import { AngularFirestore } from '@angular/fire/firestore';
+import { Firestore, collection, doc, setDoc, deleteDoc, query, where, orderBy, onSnapshot } from '@angular/fire/firestore';
 import { SesionService } from '../services/sesion.service';
+import { Observable } from 'rxjs';
 
 export interface Incapacidad {
   id: string;
@@ -18,7 +19,7 @@ export interface Incapacidad {
 export class IncapacidadesService {
 
   constructor(
-    private afs: AngularFirestore,
+    private firestore: Firestore,
     private sesionService: SesionService
   ) { }
 
@@ -27,43 +28,66 @@ export class IncapacidadesService {
   }
 
   /** 🔹 Obtener TODAS las incapacidades de la empresa */
-  obtener() {
+  obtener(): Observable<Incapacidad[]> {
     const cedula = this.getCedula();
-    return this.afs
-      .collection<Incapacidad>(
-        `empresas/${cedula}/incapacidades`,
-        ref => ref.orderBy('fechaInicio', 'desc')
-      )
-      .valueChanges({ idField: 'id' });
+    
+    return new Observable(observer => {
+      const q = query(
+        collection(this.firestore, `empresas/${cedula}/incapacidades`),
+        orderBy('fechaInicio', 'desc')
+      );
+
+      const unsubscribe = onSnapshot(q, (snap) => {
+        const data = snap.docs.map(d => ({
+          id: d.id,
+          ...d.data()
+        })) as Incapacidad[];
+        observer.next(data);
+      }, (error) => {
+        observer.error(error);
+      });
+
+      return () => unsubscribe();
+    });
   }
 
   /** 🔹 Obtener incapacidades por empleado */
-  obtenerPorEmpleado(empleadoId: string) {
+  obtenerPorEmpleado(empleadoId: string): Observable<Incapacidad[]> {
     const cedula = this.getCedula();
-    return this.afs
-      .collection<Incapacidad>(
-        `empresas/${cedula}/incapacidades`,
-        ref => ref.where('empleadoId', '==', empleadoId).orderBy('fechaInicio', 'desc')
-      )
-      .valueChanges({ idField: 'id' });
+    
+    return new Observable(observer => {
+      const q = query(
+        collection(this.firestore, `empresas/${cedula}/incapacidades`),
+        where('empleadoId', '==', empleadoId),
+        orderBy('fechaInicio', 'desc')
+      );
+
+      const unsubscribe = onSnapshot(q, (snap) => {
+        const data = snap.docs.map(d => ({
+          id: d.id,
+          ...d.data()
+        })) as Incapacidad[];
+        observer.next(data);
+      }, (error) => {
+        observer.error(error);
+      });
+
+      return () => unsubscribe();
+    });
   }
 
   /** 🔹 Guardar incapacidad */
   guardar(incapacidad: Incapacidad) {
     const cedula = this.getCedula();
-    return this.afs
-      .collection(`empresas/${cedula}/incapacidades`)
-      .doc(incapacidad.id)
-      .set(incapacidad);
+    const docRef = doc(this.firestore, `empresas/${cedula}/incapacidades/${incapacidad.id}`);
+    return setDoc(docRef, incapacidad);
   }
 
   /** 🔹 Eliminar incapacidad */
   eliminar(id: string) {
     const cedula = this.getCedula();
-    return this.afs
-      .collection(`empresas/${cedula}/incapacidades`)
-      .doc(id)
-      .delete();
+    const docRef = doc(this.firestore, `empresas/${cedula}/incapacidades/${id}`);
+    return deleteDoc(docRef);
   }
 
 
@@ -78,7 +102,7 @@ export class IncapacidadesService {
     };
 
     const todas = incapacidades
-      .filter(i => i.empleadoId === empleadoId)
+      .filter((i) => i.empleadoId === empleadoId)
       .sort((a, b) => a.fechaInicio.localeCompare(b.fechaInicio));
 
     let bloques: { inicio: Date; fin: Date; tipo: string }[] = [];
@@ -155,4 +179,3 @@ export class IncapacidadesService {
   }
 
 }
-
