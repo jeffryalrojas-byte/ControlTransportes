@@ -3,13 +3,10 @@ import { Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { trigger, transition, style, animate, keyframes } from '@angular/animations';
 import { MatSnackBar } from '@angular/material/snack-bar';
-
-interface Usuario {
-  usuario: string;
-  password: string;
-  empresa: string;
-  rol: 'Supervisor' | 'Administrador';
-}
+import { AuthService } from '../services/auth.service';
+import { UserService } from '../services/user.service';
+import { EmpresaService } from '../services/empresa.service';
+import { Empresa } from '../models/usuario.model';
 
 @Component({
   selector: 'app-login',
@@ -52,38 +49,43 @@ export class LoginComponent implements OnInit {
   cargando = false;
   mostrarContrasena = false;
   errorMessage = '';
-  mostrarHint = true; // Cambiar a false en producción
-
-  empresas = [
-    { nombre: 'Transportes D&F', cedula: '3-102-908063' },
-    { nombre: 'Transportes GyA', cedula: '3-102-753174' }
-  ];
-
-  usuarios: Usuario[] = [
-    { usuario: 'admin', password: '1234', empresa: 'Transportes D&F', rol: 'Administrador' },
-    { usuario: 'super', password: '98765', empresa: 'Transportes D&F', rol: 'Supervisor' },
-    { usuario: 'admin', password: '1234', empresa: 'Transportes GyA', rol: 'Administrador' },
-    { usuario: 'super', password: '98765', empresa: 'Transportes GyA', rol: 'Supervisor' }
-  ];
+  mostrarHint = false;
+  empresas: Empresa[] = [];
 
   constructor(
     private router: Router,
     private fb: FormBuilder,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private authService: AuthService,
+    private userService: UserService,
+    private empresaService: EmpresaService
   ) { }
 
   ngOnInit(): void {
     this.inicializarForm();
     this.cargarCredencialesRecordadas();
+    this.cargarEmpresas();
   }
 
   inicializarForm(): void {
     this.loginForm = this.fb.group({
-      usuario: ['', [Validators.required, Validators.minLength(3)]],
-      password: ['', [Validators.required, Validators.minLength(4)]],
-      empresa: [this.empresas[0].nombre, Validators.required],
+      email: ['', [Validators.required, Validators.email]],
+      password: ['', [Validators.required, Validators.minLength(6)]],
+      empresa: ['', Validators.required],
       recordarme: [false]
     });
+  }
+
+  async cargarEmpresas(): Promise<void> {
+    try {
+      this.empresas = await this.empresaService.obtenerTodasEmpresas();
+      if (this.empresas.length > 0) {
+        this.loginForm.patchValue({ empresa: this.empresas[0].id });
+      }
+    } catch (error: any) {
+      console.error('Error al cargar empresas:', error);
+      this.snackBar.open('Error al cargar empresas', 'Cerrar', { duration: 3000 });
+    }
   }
 
   cargarCredencialesRecordadas(): void {
@@ -92,7 +94,7 @@ export class LoginComponent implements OnInit {
       try {
         const datos = JSON.parse(credenciales);
         this.loginForm.patchValue({
-          usuario: datos.usuario,
+          email: datos.email,
           empresa: datos.empresa,
           recordarme: true
         });
@@ -106,7 +108,7 @@ export class LoginComponent implements OnInit {
     this.mostrarContrasena = !this.mostrarContrasena;
   }
 
-  ingresar(): void {
+  async ingresar(): Promise<void> {
     if (this.loginForm.invalid) {
       this.errorMessage = 'Por favor complete todos los campos correctamente';
       return;
@@ -115,42 +117,55 @@ export class LoginComponent implements OnInit {
     this.cargando = true;
     this.errorMessage = '';
 
-    // Simular validación en servidor (delay de 1 segundo)
-    setTimeout(() => {
-      const { usuario, password, empresa, recordarme } = this.loginForm.value;
+    try {
+      const { email, password, empresa, recordarme } = this.loginForm.value;
 
-      const user = this.usuarios.find(
-        u => u.usuario === usuario && u.password === password && u.empresa === empresa
-      );
+      // 1. Login en Firebase Auth
+      const userCredential = await this.authService.login(email, password);
 
-      if (!user) {
-        this.cargando = false;
-        this.errorMessage = 'Usuario, contraseña o empresa incorrectos';
-        this.snackBar.open('❌ ' + this.errorMessage, 'Cerrar', { duration: 5000 });
-        return;
+      // 2. Obtener datos del usuario desde Firestore
+      const usuario = await this.userService.obtenerUsuario(userCredential.uid);
+
+      if (!usuario) {
+        throw new Error('No se encontraron datos del usuario. Contacta al administrador.');
       }
 
-      // Guardar credenciales si está marcado "Recordarme"
+      // 3. Verificar que el usuario pertenece a la empresa seleccionada
+      if (usuario.empresaId !== empresa) {
+        throw new Error('Este usuario no tiene acceso a la empresa seleccionada.');
+      }
+
+      // 4. Verificar estado del usuario
+      if (usuario.estado !== 'activo') {
+        await this.authService.logout();
+        throw new Error('Tu cuenta está inactiva o suspendida. Contacta al administrador.');
+      }
+
+      // 5. Guardar credenciales si está marcado "Recordarme"
       if (recordarme) {
-        localStorage.setItem('credencialesRecordadas', JSON.stringify({
-          usuario,
-          empresa
-        }));
+        localStorage.setItem('credencialesRecordadas', JSON.stringify({ email, empresa }));
       } else {
         localStorage.removeItem('credencialesRecordadas');
       }
 
-      // Guardar sesión
-      localStorage.setItem('usuarioActivo', JSON.stringify(user));
-      
-      // Mostrar mensaje de éxito
-      this.snackBar.open(`✅ Bienvenido ${user.rol}`, 'Cerrar', { duration: 3000 });
+      // 6. Guardar datos en localStorage
+      localStorage.setItem('usuarioActivo', JSON.stringify(usuario));
+      localStorage.setItem('empresaActiva', empresa);
 
-      // Navegar después de un delay pequeño
+      this.snackBar.open(`✅ Bienvenido ${usuario.nombre}`, 'Cerrar', { duration: 3000 });
+
       setTimeout(() => {
         this.cargando = false;
         this.router.navigate(['/rrhh']);
       }, 800);
-    }, 1000);
+    } catch (error: any) {
+      this.cargando = false;
+      this.errorMessage = error.message || 'Error al iniciar sesión';
+      this.snackBar.open('❌ ' + this.errorMessage, 'Cerrar', { duration: 5000 });
+    }
+  }
+
+  irARegistro(): void {
+    this.router.navigate(['/registro']);
   }
 }

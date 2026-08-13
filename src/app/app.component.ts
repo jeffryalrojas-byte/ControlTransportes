@@ -10,6 +10,6 @@ export class AppComponent {
   constructor(private router: Router) { }
 
   esLogin(): boolean {
-    return this.router.url === '/login';
+    return this.router.url === '/login' || this.router.url === '/registro';
   }
 }

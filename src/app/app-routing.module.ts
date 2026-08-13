@@ -3,21 +3,29 @@ import { RouterModule, Routes } from '@angular/router';
 import { RrhhComponent } from './rrhh/rrhh.component';
 import { PlanillaComponent } from './planilla/planilla.component';
 import { ConfiguracionComponent } from './configuracion/configuracion.component';
-import { FinanzasComponent } from './finanzas/finanzas.component'; // 👈 AÑADIR ESTO
+import { FinanzasComponent } from './finanzas/finanzas.component';
 import { VacacionesComponent } from './vacaciones/vacaciones.component';
 import { IncapacidadesComponent } from './incapacidades/incapacidades.component';
 import { LoginComponent } from './login/login.component';
+import { RegistroComponent } from './login/registro/registro.component';
+import { MigracionComponent } from './shared/migracion/migracion.component';
+import { CrearUsuariosPruebaComponent } from './shared/crear-usuarios-prueba/crear-usuarios-prueba.component';
+import { MigracionCompletaComponent } from './shared/migracion-completa/migracion-completa.component';
+import { AuthGuard } from './services/auth.guard';
 
 const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
-  { path: 'rrhh', component: RrhhComponent },
-  { path: 'planilla', component: PlanillaComponent },
-  { path: 'vacaciones', component: VacacionesComponent },
-  { path: 'incapacidades', component: IncapacidadesComponent },
-  { path: 'configuracion', component: ConfiguracionComponent },
-  { path: 'finanzas', loadChildren: () => import('./finanzas/finanzas.module').then(m => m.FinanzasModule) },
-  { path: '', redirectTo: '/finanzas', pathMatch: 'full' },
+  { path: 'registro', component: RegistroComponent },
+  { path: 'migracion', component: MigracionComponent },
+  { path: 'crear-usuarios-prueba', component: CrearUsuariosPruebaComponent },
+  { path: 'migracion-completa', component: MigracionCompletaComponent },
+  { path: 'rrhh', component: RrhhComponent, canActivate: [AuthGuard] },
+  { path: 'planilla', component: PlanillaComponent, canActivate: [AuthGuard] },
+  { path: 'vacaciones', component: VacacionesComponent, canActivate: [AuthGuard] },
+  { path: 'incapacidades', component: IncapacidadesComponent, canActivate: [AuthGuard], data: { roles: ['admin', 'supervisor'] } },
+  { path: 'configuracion', component: ConfiguracionComponent, canActivate: [AuthGuard], data: { roles: ['admin'] } },
+  { path: 'finanzas', loadChildren: () => import('./finanzas/finanzas.module').then(m => m.FinanzasModule), canActivate: [AuthGuard], data: { roles: ['admin', 'supervisor'] } },
   { path: '**', redirectTo: 'rrhh' }
 ];
 

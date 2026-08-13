@@ -23,13 +23,8 @@
             <mat-icon>person</mat-icon>
             Usuario
           </mat-label>
-          <input
-            matInput
-            formControlName="usuario"
-            placeholder="Ingrese su usuario"
-            [@fadeIn]
-          />
-          <mat-error *ngIf="loginForm.get('usuario')?.hasError('required')">
+          <input matInput formControlName="email" placeholder="Ingrese su usuario (correo)" [@fadeIn] />
+          <mat-error *ngIf="loginForm.get('email')?.hasError('required')">
             El usuario es requerido
           </mat-error>
         </mat-form-field>
@@ -40,20 +35,9 @@
             <mat-icon>lock</mat-icon>
             Contraseña
           </mat-label>
-          <input
-            matInput
-            [type]="mostrarContrasena ? 'text' : 'password'"
-            formControlName="password"
-            placeholder="Ingrese su contraseña"
-            [@fadeIn]
-          />
-          <button
-            mat-icon-button
-            matSuffix
-            (click)="toggleMostrarContrasena()"
-            type="button"
-            class="toggle-password"
-          >
+          <input matInput [type]="mostrarContrasena ? 'text' : 'password'" formControlName="password"
+            placeholder="Ingrese su contraseña" [@fadeIn] />
+          <button mat-icon-button matSuffix (click)="toggleMostrarContrasena()" type="button" class="toggle-password">
             <mat-icon>{{ mostrarContrasena ? 'visibility_off' : 'visibility' }}</mat-icon>
           </button>
           <mat-error *ngIf="loginForm.get('password')?.hasError('required')">
@@ -68,7 +52,7 @@
             Empresa
           </mat-label>
           <mat-select formControlName="empresa">
-            <mat-option *ngFor="let e of empresas" [value]="e.nombre">
+            <mat-option *ngFor="let e of empresas" [value]="e.id">
               <span class="empresa-option">{{ e.nombre }}</span>
               <span class="empresa-cedula">({{ e.cedula }})</span>
             </mat-option>
@@ -92,14 +76,8 @@
         </div>
 
         <!-- Submit Button -->
-        <button
-          mat-raised-button
-          color="primary"
-          class="login-button"
-          [disabled]="loginForm.invalid || cargando"
-          [class.loading]="cargando"
-          [@slideUp]
-        >
+        <button mat-raised-button color="primary" class="login-button" [disabled]="loginForm.invalid || cargando"
+          [class.loading]="cargando" [@slideUp]>
           <span *ngIf="!cargando">
             <mat-icon>login</mat-icon>
             Ingresar
@@ -115,6 +93,9 @@
       <div class="login-footer">
         <p class="footer-text">
           © 2024 Sistema de Transportes. Todos los derechos reservados.
+        </p>
+        <p class="registro-link">
+          ¿No tienes cuenta? <a (click)="irARegistro()" style="cursor: pointer;">Regístrate aquí</a>
         </p>
       </div>
     </div>

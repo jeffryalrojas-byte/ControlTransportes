@@ -1,0 +1,220 @@
+<div class="registro-container">
+  <div class="registration-wrapper">
+    <div class="decoration decoration-top"></div>
+    <div class="decoration decoration-bottom"></div>
+
+    <div class="registro-card" [@slideIn]>
+      <!-- Header -->
+      <div class="registro-header">
+        <div class="logo-container">
+          <mat-icon class="logo-icon">person_add</mat-icon>
+        </div>
+        <h1 class="registro-title">Crear Cuenta</h1>
+        <p class="registro-subtitle">Únete al sistema de gestión de transportes</p>
+      </div>
+
+      <!-- Form -->
+      <form (ngSubmit)="registrarse()" [formGroup]="registroForm" class="registro-form">
+        <!-- Nombre Field -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>
+            <mat-icon>person</mat-icon>
+            Nombre Completo
+          </mat-label>
+          <input
+            matInput
+            formControlName="nombre"
+            placeholder="Ej: Juan Pérez"
+            required
+          />
+          <mat-error *ngIf="registroForm.get('nombre')?.hasError('required')">
+            El nombre es requerido
+          </mat-error>
+          <mat-error *ngIf="registroForm.get('nombre')?.hasError('minlength')">
+            Mínimo 3 caracteres
+          </mat-error>
+        </mat-form-field>
+
+        <!-- Email Field -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>
+            <mat-icon>email</mat-icon>
+            Email
+          </mat-label>
+          <input
+            matInput
+            formControlName="email"
+            placeholder="tu@email.com"
+            type="email"
+            required
+          />
+          <mat-error *ngIf="registroForm.get('email')?.hasError('required')">
+            El email es requerido
+          </mat-error>
+          <mat-error *ngIf="registroForm.get('email')?.hasError('email')">
+            Email inválido
+          </mat-error>
+        </mat-form-field>
+
+        <!-- Contraseña Field -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>
+            <mat-icon>lock</mat-icon>
+            Contraseña
+          </mat-label>
+          <input
+            matInput
+            [type]="mostrarContrasena ? 'text' : 'password'"
+            formControlName="password"
+            placeholder="Mínimo 6 caracteres"
+            required
+          />
+          <button
+            mat-icon-button
+            matSuffix
+            (click)="toggleMostrarContrasena()"
+            type="button"
+            class="toggle-password"
+          >
+            <mat-icon>{{ mostrarContrasena ? 'visibility_off' : 'visibility' }}</mat-icon>
+          </button>
+          <mat-error *ngIf="registroForm.get('password')?.hasError('required')">
+            La contraseña es requerida
+          </mat-error>
+          <mat-error *ngIf="registroForm.get('password')?.hasError('minlength')">
+            Mínimo 6 caracteres
+          </mat-error>
+        </mat-form-field>
+
+        <!-- Confirmar Contraseña Field -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>
+            <mat-icon>lock_outline</mat-icon>
+            Confirmar Contraseña
+          </mat-label>
+          <input
+            matInput
+            [type]="mostrarConfirmar ? 'text' : 'password'"
+            formControlName="confirmarPassword"
+            placeholder="Confirma tu contraseña"
+            required
+          />
+          <button
+            mat-icon-button
+            matSuffix
+            (click)="toggleMostrarConfirmar()"
+            type="button"
+            class="toggle-password"
+          >
+            <mat-icon>{{ mostrarConfirmar ? 'visibility_off' : 'visibility' }}</mat-icon>
+          </button>
+          <mat-error *ngIf="registroForm.get('confirmarPassword')?.hasError('required')">
+            Confirma tu contraseña
+          </mat-error>
+          <mat-error *ngIf="registroForm.hasError('passwordMismatch') && registroForm.get('confirmarPassword')?.touched">
+            Las contraseñas no coinciden
+          </mat-error>
+        </mat-form-field>
+
+        <!-- Nombre Empresa Field -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>
+            <mat-icon>business</mat-icon>
+            Nombre de la Empresa
+          </mat-label>
+          <input
+            matInput
+            formControlName="nombreEmpresa"
+            placeholder="Ej: Transportes D&F"
+            required
+          />
+          <mat-error *ngIf="registroForm.get('nombreEmpresa')?.hasError('required')">
+            El nombre de la empresa es requerido
+          </mat-error>
+        </mat-form-field>
+
+        <!-- Cédula/RUC Field -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>
+            <mat-icon>badge</mat-icon>
+            Cédula Jurídica / RUC
+          </mat-label>
+          <input
+            matInput
+            formControlName="cedula"
+            placeholder="Ej: 3-102-908063"
+            required
+          />
+          <mat-error *ngIf="registroForm.get('cedula')?.hasError('required')">
+            La cédula es requerida
+          </mat-error>
+        </mat-form-field>
+
+        <!-- Plan Selector -->
+        <div class="plan-selector">
+          <label>Plan Inicial</label>
+          <div class="plans-grid">
+            <div 
+              *ngFor="let plan of planes"
+              class="plan-card"
+              [class.selected]="registroForm.get('plan')?.value === plan.id"
+              (click)="seleccionarPlan(plan.id)"
+            >
+              <div class="plan-name">{{ plan.nombre }}</div>
+              <div class="plan-price">
+                {{ plan.precio === 0 ? 'Gratis' : '$' + plan.precio + '/mes' }}
+              </div>
+              <ul class="plan-features">
+                <li>
+                  <mat-icon>check</mat-icon>
+                  {{ plan.limite_empleados }} empleados
+                </li>
+                <li>
+                  <mat-icon>check</mat-icon>
+                  {{ plan.limite_empresas }} empresa(s)
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Terms & Conditions -->
+        <mat-checkbox formControlName="aceptaTerminos" class="full-width">
+          Acepto los <a href="#" target="_blank">términos y condiciones</a>
+        </mat-checkbox>
+        <mat-error *ngIf="registroForm.get('aceptaTerminos')?.hasError('required')" class="checkbox-error">
+          Debes aceptar los términos
+        </mat-error>
+
+        <!-- Error Message -->
+        <div *ngIf="errorMessage" class="error-message" [@shake]>
+          <mat-icon>error</mat-icon>
+          <span>{{ errorMessage }}</span>
+        </div>
+
+        <!-- Submit Button -->
+        <button
+          mat-raised-button
+          color="primary"
+          class="registro-button"
+          [disabled]="registroForm.invalid || cargando"
+          [class.loading]="cargando"
+        >
+          <span *ngIf="!cargando">
+            <mat-icon>person_add</mat-icon>
+            Crear Cuenta
+          </span>
+          <span *ngIf="cargando" class="loading-content">
+            <mat-spinner diameter="20"></mat-spinner>
+            Registrando...
+          </span>
+        </button>
+      </form>
+
+      <!-- Login Link -->
+      <div class="login-link">
+        <p>¿Ya tienes cuenta? <a routerLink="/login">Inicia sesión aquí</a></p>
+      </div>
+    </div>
+  </div>
+</div>

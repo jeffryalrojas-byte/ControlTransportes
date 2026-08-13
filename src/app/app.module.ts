@@ -13,6 +13,10 @@ import { FinanzasModule } from './finanzas/finanzas.module';
 import { VacacionesComponent } from './vacaciones/vacaciones.component';
 import { IncapacidadesComponent } from './incapacidades/incapacidades.component';
 import { LoginComponent } from './login/login.component';
+import { RegistroComponent } from './login/registro/registro.component';
+import { MigracionComponent } from './shared/migracion/migracion.component';
+import { CrearUsuariosPruebaComponent } from './shared/crear-usuarios-prueba/crear-usuarios-prueba.component';
+import { MigracionCompletaComponent } from './shared/migracion-completa/migracion-completa.component';
 import { environment } from 'src/environments/environment';
 
 // 🔥 Firebase 11 + AngularFire 18 - Functional API imports
@@ -32,6 +36,11 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatExpansionModule } from '@angular/material/expansion';
+import { MatTableModule } from '@angular/material/table';
+import { MatCardModule } from '@angular/material/card';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatDialogModule } from '@angular/material/dialog';
 
 @NgModule({
   declarations: [
@@ -42,7 +51,11 @@ import { MatExpansionModule } from '@angular/material/expansion';
     NavbarComponent,
     VacacionesComponent,
     IncapacidadesComponent,
-    LoginComponent
+    LoginComponent,
+    RegistroComponent,
+    MigracionComponent,
+    CrearUsuariosPruebaComponent,
+    MigracionCompletaComponent
   ],
   imports: [
     BrowserModule,
@@ -61,7 +74,12 @@ import { MatExpansionModule } from '@angular/material/expansion';
     MatCheckboxModule,
     MatSnackBarModule,
     MatProgressSpinnerModule,
-    MatExpansionModule
+    MatExpansionModule,
+    MatTableModule,
+    MatCardModule,
+    MatChipsModule,
+    MatTooltipModule,
+    MatDialogModule
   ],
   providers: [
     // ✅ Firebase 11 + AngularFire 18 Functional Providers
