@@ -3,7 +3,6 @@ import { v4 as uuid } from 'uuid';
 import { VacacionesService } from '../services/vacaciones.service';
 import { RrhhService, Empleado } from '../services/rrhh.service';
 import { SesionService } from '../services/sesion.service';
-
 import { KeyValue } from '@angular/common';
 import { PlanillasService } from '../services/planillas.service';
 import { IncapacidadesService } from '../services/incapacidades.service';
@@ -17,18 +16,11 @@ import { Empresa } from '../models/usuario.model';
 })
 export class RrhhComponent implements OnInit {
   empleados: Empleado[] = [];
+  displayedColumns: string[] = ['cedula', 'nombre', 'puesto', 'fechaIngreso', 'tipoPago', 'salario', 'tipoContrato', 'vacaciones', 'incapacidades', 'aguinaldo', 'estado', 'acciones'];
   planillas: any[] = [];
   aguinaldos: { [id: string]: number } = {};
   diasVacaciones: { [id: string]: any } = {};
-
-  //Lista de puestos dispobibles
-  puestosDisponibles: string[] = [
-    'Administrador',
-    'Chofer',
-    'Asistente'
-  ];
-
-  // Campos del formulario
+  puestosDisponibles: string[] = ['Administrador', 'Chofer', 'Asistente'];
   cedula = '';
   nombre = '';
   puesto = '';
@@ -38,14 +30,10 @@ export class RrhhComponent implements OnInit {
   salarioDiario = 0;
   tipoContrato: 'indefinido' | 'definido' = 'indefinido';
   fechaFinContrato = '';
-
   editando = false;
   idEditando: string | null = null;
   usuarioActivo: any;
-
   incapacidades: any[] = [];
-
-  //Para los datos de la sociedad
   empresa: Empresa | null = null;
   logoBase64: string | null = null;
 
@@ -61,44 +49,29 @@ export class RrhhComponent implements OnInit {
   async ngOnInit() {
     const userData = localStorage.getItem('usuarioActivo');
     if (userData) this.usuarioActivo = JSON.parse(userData);
-
-    //Datos de la Sociedad
     this.empresa = await this.sesionService.obtenerEmpresaActual();
-
-    //Cargamos Planillas
     this.CargarPlanillas();
-
-    //Cargamos Empleados
     this.CargarEmpleados();
-
-    //Cargamos Incapacidades
-    this.CargarIncapacidades()
-
-    // Cargar logo personalizado
+    this.CargarIncapacidades();
     this.CargarLogo();
-
-
   }
-
 
   public CargarEmpleados(): any {
     this.rrhhService.obtener().subscribe(data => {
       this.empleados = data;
       this.actualizarDiasVacaciones();
-      this.intentarCalcularAguinaldos(); // 👈 clave
+      this.intentarCalcularAguinaldos();
     });
   }
 
   public CargarPlanillas(): any {
     this.planillasService.obtener().subscribe((data: any[]) => {
       this.planillas = data || [];
-      // recalcular aguinaldos luego de que lleguen las planillas 
-      this.intentarCalcularAguinaldos(); // 👈 clave
+      this.intentarCalcularAguinaldos();
     });
   }
 
   public CargarIncapacidades(): any {
-    // 🔥 Cargar incapacidades
     this.incapacidadesService.obtener().subscribe(data => {
       this.incapacidades = data;
     });
@@ -120,13 +93,8 @@ export class RrhhComponent implements OnInit {
 
   public agregar() {
     if (!this.cedula || !this.nombre || !this.puesto || !this.fechaIngreso) return;
-
     const empresaId = this.usuarioActivo?.empresa?.id || this.usuarioActivo?.empresa || 'desconocida';
-
-    // Validar si ya existe en la empresa
-    const existe = this.empleados.some(
-      e => e.cedula === this.cedula && e.empresaId === empresaId && e.id !== this.idEditando
-    );
+    const existe = this.empleados.some(e => e.cedula === this.cedula && e.empresaId === empresaId && e.id !== this.idEditando);
     if (existe) {
       alert('Ya existe un funcionario con esta cédula en esta empresa.');
       return;
@@ -152,9 +120,7 @@ export class RrhhComponent implements OnInit {
       this.editando = false;
       this.idEditando = null;
     } else {
-      const empresaId = this.usuarioActivo?.empresa?.id || this.usuarioActivo?.empresa || 'desconocida';
       const empresaCedula = this.sesionService.getCedulaEmpresaActual() || 'sin_cedula';
-
       const nuevo: Empleado = {
         id: uuid(),
         empresaId,
@@ -169,10 +135,8 @@ export class RrhhComponent implements OnInit {
         tipoContrato: this.tipoContrato,
         fechaFinContrato: this.tipoContrato === 'definido' ? this.fechaFinContrato : ''
       };
-      this.rrhhService.agregar(nuevo).then(() => {
-      });
+      this.rrhhService.agregar(nuevo);
     }
-
     this.limpiarFormulario();
     this.actualizarDiasVacaciones();
     this.calcularAguinaldos();
@@ -182,7 +146,6 @@ export class RrhhComponent implements OnInit {
     const empleado = this.empleados.find(e => e.id === id);
     const nombre = empleado ? empleado.nombre : 'este empleado';
     if (!confirm(`¿Seguro que deseas eliminar a ${nombre}?`)) return;
-
     this.rrhhService.eliminar(id);
     this.empleados = this.empleados.filter(e => e.id !== id);
     alert(`✅ ${nombre} ha sido eliminado correctamente.`);
@@ -219,14 +182,10 @@ export class RrhhComponent implements OnInit {
     const hoy = new Date();
     const añoActual = hoy.getFullYear();
     const añoAnterior = añoActual - 1;
-
-    // Periodo general del aguinaldo, el mes Enero = 0 por eso los datos
     const inicioPeriodo = new Date(añoAnterior, 11, 1);
     inicioPeriodo.setHours(0, 0, 0, 0);
-
     const finPeriodo = new Date(añoActual, 10, 30);
     finPeriodo.setHours(0, 0, 0, 0);
-
     this.aguinaldos = {};
 
     if (!this.empleados?.length || !this.planillas?.length) {
@@ -237,19 +196,13 @@ export class RrhhComponent implements OnInit {
     this.empleados.forEach(e => {
       const empIdStr = String(e.id);
       let totalPeriodo = 0;
-
-      // 📌 FECHA REAL DE INICIO considering fechaIngreso
       let fechaIngreso = new Date(e.fechaIngreso);
       fechaIngreso = new Date(fechaIngreso.getFullYear(), fechaIngreso.getMonth(), 1);
       fechaIngreso.setHours(0, 0, 0, 0);
-
-      // Usar el máximo entre ingreso y 1 noviembre
       const inicioReal = fechaIngreso > inicioPeriodo ? fechaIngreso : inicioPeriodo;
 
       this.planillas.forEach(p => {
         if (!p?.mes) return;
-
-        // Convierte el campo mes ('YYYY-MM' o 'YYYY-MM-DD') a Date
         let fechaMes: Date;
         try {
           let [yyyy, mm] = p.mes.split('-');
@@ -259,17 +212,10 @@ export class RrhhComponent implements OnInit {
           return;
         }
 
-        // 📌 Solo sumar planillas dentro del rango válido
         if (fechaMes >= inicioReal && fechaMes <= finPeriodo) {
-          const detalle = (p.detalleEmpleados || [])
-            .find((d: any) => String(d.id) === empIdStr);
-
+          const detalle = (p.detalleEmpleados || []).find((d: any) => String(d.id) === empIdStr);
           if (detalle) {
-            const bruto =
-              typeof detalle.salarioBruto === 'number'
-                ? detalle.salarioBruto
-                : detalle.salarioNeto; // fallback para planillas viejas
-
+            const bruto = typeof detalle.salarioBruto === 'number' ? detalle.salarioBruto : detalle.salarioNeto;
             if (typeof bruto === 'number') {
               totalPeriodo += bruto;
             }
@@ -277,41 +223,23 @@ export class RrhhComponent implements OnInit {
         }
       });
 
-      // 🟢 Fórmula oficial: total devengado / 12
       this.aguinaldos[empIdStr] = totalPeriodo / 12;
     });
   }
 
-
-
   actualizarDiasVacaciones() {
     this.empleados.forEach(e => {
-      //OBTENER ESTADO DEL EMPLEADO, INACTIVO NO MOSTRAR VACACIONES
-      /* if (this.obtenerEstadoEmpleado(e) === 'inactivo') {
-        this.diasVacaciones[e.id] = {};
-        return;
-      } */
-      // 🟢 EMPLEADO DIARIO → usa planillas
       if (e.tipoPago === 'diario') {
-        this.vacacionesService
-          .calcularDiasPendientes(e, this.planillas)
-          .subscribe(dias => {
-            this.diasVacaciones[e.id] = dias;
-          });
+        this.vacacionesService.calcularDiasPendientes(e, this.planillas).subscribe(dias => {
+          this.diasVacaciones[e.id] = dias;
+        });
+      } else {
+        this.vacacionesService.calcularDiasPendientesSinPlanillas(e).subscribe(dias => {
+          this.diasVacaciones[e.id] = dias;
+        });
       }
-
-      // 🟢 EMPLEADO MENSUAL → usa incapacidades
-      else {
-        this.vacacionesService
-          .calcularDiasPendientesSinPlanillas(e)
-          .subscribe(dias => {
-            this.diasVacaciones[e.id] = dias;
-          });
-      }
-
     });
   }
-
 
   tieneVacacionesPendientes(id: string): boolean {
     const vac = this.diasVacaciones[id];
@@ -319,38 +247,29 @@ export class RrhhComponent implements OnInit {
     return Object.values(vac).some((dias: any) => dias > 0);
   }
 
-
   getDiasPendientesIncapacidad(empleadoId: string): number {
     const hoy = new Date();
     hoy.setHours(0, 0, 0, 0);
-
-    // Filtrar incapacidades del empleado que NO han terminado
     const futurasYActivas = this.incapacidades.filter(i => {
       if (i.empleadoId !== empleadoId) return false;
-
       const fin = new Date(i.fechaFin);
       fin.setHours(0, 0, 0, 0);
-
-      return fin >= hoy; // aún no termina (incluye las futuras)
+      return fin >= hoy;
     });
 
     if (futurasYActivas.length === 0) return 0;
-
     let totalPendiente = 0;
 
     futurasYActivas.forEach(inc => {
       const inicio = new Date(inc.fechaInicio);
       const fin = new Date(inc.fechaFin);
-
       inicio.setHours(0, 0, 0, 0);
       fin.setHours(0, 0, 0, 0);
 
       if (hoy < inicio) {
-        // incapacidad FUTURA → contar todos los días completos
         const diff = (fin.getTime() - inicio.getTime()) / (1000 * 60 * 60 * 24) + 1;
         totalPendiente += diff;
       } else {
-        // incapacidad ACTIVA → contar desde hoy hasta fin
         const diff = (fin.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24) + 1;
         totalPendiente += diff;
       }
@@ -359,15 +278,13 @@ export class RrhhComponent implements OnInit {
     return totalPendiente;
   }
 
-
   vacacionKeyValueFn = (a: KeyValue<string, number>, b: KeyValue<string, number>): number => {
-    return 0; // no importa el orden, solo lo usamos para tipar correctamente
+    return 0;
   };
 
   obtenerEstadoEmpleado(e: Empleado) {
-    return this.rrhhService.obtenerEstadoEmpleado(e)
+    return this.rrhhService.obtenerEstadoEmpleado(e);
   }
-
 
   puedeEliminar(): boolean {
     return this.usuarioActivo?.rol === 'Supervisor';
@@ -377,17 +294,11 @@ export class RrhhComponent implements OnInit {
     return this.usuarioActivo?.rol === 'Administrador';
   }
 
-
-  //ESTO ES PARA EL TEMA DEL CONTRATO
-
   imprimirContrato(e: any) {
     const hoy = new Date().toLocaleDateString('es-CR');
-
-    let logoURL = this.logoBase64
-    // Datos de la empresa desde sesión
+    const logoURL = this.logoBase64;
     const empresa = this.empresa?.nombre || 'Empresa desconocida';
     const cedula = this.empresa?.cedula || 'Sin cédula';
-
 
     const contrato = `
     <html>
@@ -587,13 +498,6 @@ export class RrhhComponent implements OnInit {
     const newWindow = window.open('', '_blank');
     newWindow!.document.write(contrato);
     newWindow!.document.close();
-
-    setTimeout(() => {
-      newWindow!.print();
-    }, 700);
+    setTimeout(() => { newWindow!.print(); }, 700);
   }
-
-
 }
-
-

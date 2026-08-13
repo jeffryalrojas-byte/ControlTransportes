@@ -1,126 +1,246 @@
-<h2>Gestión de Recursos Humanos</h2>
+<div class="rrhh-container">
+  <!-- Header Section -->
+  <mat-card class="header-card">
+    <mat-card-header>
+      <div mat-card-avatar class="header-icon">
+        <mat-icon>people</mat-icon>
+      </div>
+      <mat-card-title>Gestión de Recursos Humanos</mat-card-title>
+      <mat-card-subtitle>Administra tu equipo de trabajo</mat-card-subtitle>
+    </mat-card-header>
+  </mat-card>
 
-<div class="form">
-  <input placeholder="Cédula" [(ngModel)]="cedula">
-  <input placeholder="Nombre" [(ngModel)]="nombre">
-  <label>Puesto:</label>
-  <select [(ngModel)]="puesto">
-    <option value="">Seleccione un puesto</option>
-    <option *ngFor="let p of puestosDisponibles" [value]="p">
-      {{ p }}
-    </option>
-  </select>
-  <label>Fecha de ingreso:</label>
-  <input type="date" [(ngModel)]="fechaIngreso">
+  <!-- Form Section -->
+  <mat-card class="form-card">
+    <mat-card-title>
+      <mat-icon>{{ editando ? 'edit' : 'person_add' }}</mat-icon>
+      {{ editando ? 'Editar empleado' : 'Agregar nuevo empleado' }}
+    </mat-card-title>
+    <mat-card-content>
+      <form>
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Cédula</mat-label>
+            <input matInput placeholder="Ej: 3-102-908063" [(ngModel)]="cedula" name="cedula">
+            <mat-icon matPrefix>assignment_ind</mat-icon>
+          </mat-form-field>
 
-  <label>Tipo de pago:</label>
-  <select [(ngModel)]="tipoPago">
-    <option value="mensual">Mensual</option>
-    <option value="diario">Por día</option>
-  </select>
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Nombre completo</mat-label>
+            <input matInput placeholder="Nombre del empleado" [(ngModel)]="nombre" name="nombre">
+            <mat-icon matPrefix>person</mat-icon>
+          </mat-form-field>
 
-  <div *ngIf="tipoPago === 'mensual'">
-    <label>Salario Mensual:</label>
-    <input type="number" placeholder="Salario mensual" [(ngModel)]="salarioMensual">
-  </div>
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Puesto</mat-label>
+            <mat-select [(ngModel)]="puesto" name="puesto">
+              <mat-option>Seleccione un puesto</mat-option>
+              <mat-option *ngFor="let p of puestosDisponibles" [value]="p">{{ p }}</mat-option>
+            </mat-select>
+            <mat-icon matPrefix>work</mat-icon>
+          </mat-form-field>
 
-  <div *ngIf="tipoPago === 'diario'">
-    <label>Salario por día:</label>
-    <input type="number" placeholder="Salario por día" [(ngModel)]="salarioDiario">
-  </div>
-
-  <label>Tipo de contrato:</label>
-  <select [(ngModel)]="tipoContrato">
-    <option value="indefinido">Indefinido</option>
-    <option value="definido">Definido</option>
-  </select>
-
-  <div *ngIf="tipoContrato === 'definido'">
-    <label>Fecha fin de contrato:</label>
-    <input type="date" [(ngModel)]="fechaFinContrato">
-  </div>
-
-  <button (click)="agregar()">{{ editando ? 'Guardar cambios' : 'Agregar empleado' }}</button>
-  <button *ngIf="editando" (click)="limpiarFormulario()">Cancelar</button>
-</div>
-
-<hr>
-
-<h3>Lista de empleados</h3>
-
-<table border="1" cellpadding="6" *ngIf="empleados.length > 0">
-  <thead>
-    <tr>
-      <th>Cédula</th>
-      <th>Nombre</th>
-      <th>Puesto</th>
-      <th>Fecha Ingreso</th>
-      <th>Tipo Pago</th>
-      <th>Salario</th>
-      <th>Tipo Contrato</th>
-      <th>Fecha Fin</th>
-      <th>Vacaciones Pendientes</th>
-      <th>Incapacidades</th>
-      <th>Aguinaldo aprox.</th>
-      <th>Estado</th>
-      <th>Acciones</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr *ngFor="let e of empleados">
-      <td>{{ e.cedula }}</td>
-      <td>{{ e.nombre }}</td>
-      <td>{{ e.puesto }}</td>
-      <td>{{ e.fechaIngreso }}</td>
-      <td>{{ e.tipoPago }}</td>
-      <td>
-        {{ e.tipoPago === 'mensual' ? (e.salarioMensual | currency:'CRC') : (e.salarioDiario | currency:'CRC') }}
-      </td>
-      <td>{{ e.tipoContrato }}</td>
-      <td>{{ e.tipoContrato === 'definido' ? e.fechaFinContrato : '-' }}</td>
-      <td>
-        <div *ngIf="diasVacaciones[e.id]">
-          <ng-container *ngFor="let periodo of (diasVacaciones[e.id] | keyvalue : vacacionKeyValueFn)">
-            <div *ngIf="periodo.value > 0">
-              {{ periodo.key }}: {{ periodo.value }} días
-            </div>
-          </ng-container>
-          <!-- Si no hay ningún periodo con días > 0 -->
-          <div *ngIf="!tieneVacacionesPendientes(e.id)">
-            Sin vacaciones pendientes
-          </div>
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Fecha de ingreso</mat-label>
+            <input matInput type="date" [(ngModel)]="fechaIngreso" name="fechaIngreso">
+            <mat-icon matPrefix>calendar_today</mat-icon>
+          </mat-form-field>
         </div>
-      </td>
-      <td>
-        <ng-container *ngIf="getDiasPendientesIncapacidad(e.id) > 0; else noIncapacidad">
-          Días pendientes:
-          {{ getDiasPendientesIncapacidad(e.id) }}
-        </ng-container>
 
-        <ng-template #noIncapacidad>
-          No activas
-        </ng-template>
-      </td>
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Tipo de pago</mat-label>
+            <mat-select [(ngModel)]="tipoPago" name="tipoPago">
+              <mat-option value="mensual">Mensual</mat-option>
+              <mat-option value="diario">Por día</mat-option>
+            </mat-select>
+            <mat-icon matPrefix>payment</mat-icon>
+          </mat-form-field>
 
-      <td>{{ aguinaldos[e.id] | currency:'CRC' }}</td>
-      <td>
-        <ng-container [ngSwitch]="obtenerEstadoEmpleado(e)">
-          <span *ngSwitchCase="'activo'" style="color: green; font-weight: bold;">
-            Activo
-          </span>
-          <span *ngSwitchCase="'inactivo'" style="color: red; font-weight: bold;">
-            Inactivo
-          </span>
-        </ng-container>
-      </td>
+          <mat-form-field appearance="outline" class="form-field" *ngIf="tipoPago === 'mensual'">
+            <mat-label>Salario Mensual (₡)</mat-label>
+            <input matInput type="number" placeholder="0.00" [(ngModel)]="salarioMensual" name="salarioMensual">
+            <mat-icon matPrefix>attach_money</mat-icon>
+          </mat-form-field>
 
-      <td>
-        <button (click)="imprimirContrato(e)">📄 Imprimir contrato</button>
-        <button (click)="editar(e)">✏️</button>
-        <button *ngIf="puedeEliminar()" (click)="eliminar(e.id)">🗑 Eliminar</button>
-      </td>
-    </tr>
-  </tbody>
-</table>
+          <mat-form-field appearance="outline" class="form-field" *ngIf="tipoPago === 'diario'">
+            <mat-label>Salario por día (₡)</mat-label>
+            <input matInput type="number" placeholder="0.00" [(ngModel)]="salarioDiario" name="salarioDiario">
+            <mat-icon matPrefix>attach_money</mat-icon>
+          </mat-form-field>
 
-<p *ngIf="empleados.length === 0">No hay empleados registrados.</p>
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Tipo de contrato</mat-label>
+            <mat-select [(ngModel)]="tipoContrato" name="tipoContrato">
+              <mat-option value="indefinido">Indefinido</mat-option>
+              <mat-option value="definido">Definido</mat-option>
+            </mat-select>
+            <mat-icon matPrefix>description</mat-icon>
+          </mat-form-field>
+        </div>
+
+        <div class="form-row" *ngIf="tipoContrato === 'definido'">
+          <mat-form-field appearance="outline" class="form-field full-width">
+            <mat-label>Fecha fin de contrato</mat-label>
+            <input matInput type="date" [(ngModel)]="fechaFinContrato" name="fechaFinContrato">
+            <mat-icon matPrefix>event_available</mat-icon>
+          </mat-form-field>
+        </div>
+
+        <div class="form-actions">
+          <button mat-raised-button color="primary" (click)="agregar()">
+            <mat-icon>{{ editando ? 'save' : 'add_circle' }}</mat-icon>
+            {{ editando ? 'Guardar cambios' : 'Agregar empleado' }}
+          </button>
+          <button *ngIf="editando" mat-raised-button color="warn" (click)="limpiarFormulario()">
+            <mat-icon>cancel</mat-icon>
+            Cancelar
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Table Section -->
+  <mat-card class="table-card" *ngIf="empleados.length > 0">
+    <mat-card-title>
+      <mat-icon>list</mat-icon>
+      Lista de empleados ({{ empleados.length }})
+    </mat-card-title>
+    <mat-card-content>
+      <div class="table-responsive">
+        <table mat-table [dataSource]="empleados" class="empleados-table">
+          
+          <!-- Cédula -->
+          <ng-container matColumnDef="cedula">
+            <th mat-header-cell *matHeaderCellDef>Cédula</th>
+            <td mat-cell *matCellDef="let e">{{ e.cedula }}</td>
+          </ng-container>
+
+          <!-- Nombre -->
+          <ng-container matColumnDef="nombre">
+            <th mat-header-cell *matHeaderCellDef>Nombre</th>
+            <td mat-cell *matCellDef="let e"><strong>{{ e.nombre }}</strong></td>
+          </ng-container>
+
+          <!-- Puesto -->
+          <ng-container matColumnDef="puesto">
+            <th mat-header-cell *matHeaderCellDef>Puesto</th>
+            <td mat-cell *matCellDef="let e">
+              <mat-chip>{{ e.puesto }}</mat-chip>
+            </td>
+          </ng-container>
+
+          <!-- Fecha Ingreso -->
+          <ng-container matColumnDef="fechaIngreso">
+            <th mat-header-cell *matHeaderCellDef>Ingreso</th>
+            <td mat-cell *matCellDef="let e">{{ e.fechaIngreso }}</td>
+          </ng-container>
+
+          <!-- Tipo Pago -->
+          <ng-container matColumnDef="tipoPago">
+            <th mat-header-cell *matHeaderCellDef>Pago</th>
+            <td mat-cell *matCellDef="let e">
+              <span class="badge badge-pago">{{ e.tipoPago }}</span>
+            </td>
+          </ng-container>
+
+          <!-- Salario -->
+          <ng-container matColumnDef="salario">
+            <th mat-header-cell *matHeaderCellDef>Salario</th>
+            <td mat-cell *matCellDef="let e">
+              {{ e.tipoPago === 'mensual' ? (e.salarioMensual | currency:'CRC') : (e.salarioDiario | currency:'CRC') }}
+            </td>
+          </ng-container>
+
+          <!-- Contrato -->
+          <ng-container matColumnDef="tipoContrato">
+            <th mat-header-cell *matHeaderCellDef>Contrato</th>
+            <td mat-cell *matCellDef="let e">
+              <span [ngClass]="e.tipoContrato === 'indefinido' ? 'badge-indefinido' : 'badge-definido'">
+                {{ e.tipoContrato }}
+              </span>
+            </td>
+          </ng-container>
+
+          <!-- Vacaciones -->
+          <ng-container matColumnDef="vacaciones">
+            <th mat-header-cell *matHeaderCellDef>Vacaciones</th>
+            <td mat-cell *matCellDef="let e">
+              <ng-container *ngIf="diasVacaciones[e.id]; else noVac">
+                <div *ngFor="let periodo of (diasVacaciones[e.id] | keyvalue : vacacionKeyValueFn)">
+                  <span *ngIf="periodo.value > 0" class="badge badge-vac">
+                    {{ periodo.key }}: {{ periodo.value }}d
+                  </span>
+                </div>
+                <span *ngIf="!tieneVacacionesPendientes(e.id)" class="text-muted">Sin pendientes</span>
+              </ng-container>
+              <ng-template #noVac>
+                <span class="text-muted">-</span>
+              </ng-template>
+            </td>
+          </ng-container>
+
+          <!-- Incapacidades -->
+          <ng-container matColumnDef="incapacidades">
+            <th mat-header-cell *matHeaderCellDef>Incapacidades</th>
+            <td mat-cell *matCellDef="let e">
+              <ng-container *ngIf="getDiasPendientesIncapacidad(e.id) > 0; else noInc">
+                <span class="badge badge-danger">{{ getDiasPendientesIncapacidad(e.id) }}d</span>
+              </ng-container>
+              <ng-template #noInc>
+                <span class="text-muted">No activas</span>
+              </ng-template>
+            </td>
+          </ng-container>
+
+          <!-- Aguinaldo -->
+          <ng-container matColumnDef="aguinaldo">
+            <th mat-header-cell *matHeaderCellDef>Aguinaldo</th>
+            <td mat-cell *matCellDef="let e">{{ aguinaldos[e.id] | currency:'CRC' }}</td>
+          </ng-container>
+
+          <!-- Estado -->
+          <ng-container matColumnDef="estado">
+            <th mat-header-cell *matHeaderCellDef>Estado</th>
+            <td mat-cell *matCellDef="let e">
+              <ng-container [ngSwitch]="obtenerEstadoEmpleado(e)">
+                <mat-chip *ngSwitchCase="'activo'" color="primary" selected>Activo</mat-chip>
+                <mat-chip *ngSwitchCase="'inactivo'" color="warn" selected>Inactivo</mat-chip>
+              </ng-container>
+            </td>
+          </ng-container>
+
+          <!-- Acciones -->
+          <ng-container matColumnDef="acciones">
+            <th mat-header-cell *matHeaderCellDef>Acciones</th>
+            <td mat-cell *matCellDef="let e">
+              <button mat-icon-button matTooltip="Ver contrato" color="primary" (click)="imprimirContrato(e)">
+                <mat-icon>description</mat-icon>
+              </button>
+              <button mat-icon-button matTooltip="Editar" color="accent" (click)="editar(e)">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button *ngIf="puedeEliminar()" mat-icon-button matTooltip="Eliminar" color="warn" (click)="eliminar(e.id)">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Empty State -->
+  <mat-card class="empty-state" *ngIf="empleados.length === 0">
+    <mat-card-content>
+      <mat-icon class="empty-icon">people_outline</mat-icon>
+      <p>No hay empleados registrados aún</p>
+      <p class="text-muted">Agrega tu primer empleado usando el formulario arriba</p>
+    </mat-card-content>
+  </mat-card>
+
+</div>
