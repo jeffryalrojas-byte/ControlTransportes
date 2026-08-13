@@ -1,22 +1,136 @@
-<div class="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-  <div class="bg-white p-6 rounded-xl shadow-md w-96">
-    <h2 class="text-2xl font-bold mb-4 text-center">🔐 Iniciar Sesión</h2>
+<div class="login-container">
+  <div class="login-wrapper">
+    <!-- Decorative background elements -->
+    <div class="decoration decoration-top"></div>
+    <div class="decoration decoration-bottom"></div>
 
-    <label>👤 Usuario:</label>
-    <input type="text" [(ngModel)]="usuario" class="border rounded p-2 w-full mb-3" />
+    <!-- Login Card -->
+    <div class="login-card" [@slideIn]>
+      <!-- Header -->
+      <div class="login-header">
+        <div class="logo-container">
+          <mat-icon class="logo-icon">lock_open</mat-icon>
+        </div>
+        <h1 class="login-title">Portal de Transportes</h1>
+        <p class="login-subtitle">Gestión de Recursos Humanos</p>
+      </div>
 
-    <label>🔑 Contraseña:</label>
-    <input type="password" [(ngModel)]="password" class="border rounded p-2 w-full mb-3" />
+      <!-- Form -->
+      <form (ngSubmit)="ingresar()" [formGroup]="loginForm" class="login-form">
+        <!-- Usuario Field -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>
+            <mat-icon>person</mat-icon>
+            Usuario
+          </mat-label>
+          <input
+            matInput
+            formControlName="usuario"
+            placeholder="Ingrese su usuario"
+            [@fadeIn]
+          />
+          <mat-error *ngIf="loginForm.get('usuario')?.hasError('required')">
+            El usuario es requerido
+          </mat-error>
+        </mat-form-field>
 
-    <label>🏢 Empresa:</label>
-    <select [(ngModel)]="empresa" class="border rounded p-2 w-full mb-4">
-      <option *ngFor="let e of empresas" [value]="e.nombre">
-        {{ e.nombre }} ({{ e.cedula }})
-      </option>
-    </select>
+        <!-- Contraseña Field -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>
+            <mat-icon>lock</mat-icon>
+            Contraseña
+          </mat-label>
+          <input
+            matInput
+            [type]="mostrarContrasena ? 'text' : 'password'"
+            formControlName="password"
+            placeholder="Ingrese su contraseña"
+            [@fadeIn]
+          />
+          <button
+            mat-icon-button
+            matSuffix
+            (click)="toggleMostrarContrasena()"
+            type="button"
+            class="toggle-password"
+          >
+            <mat-icon>{{ mostrarContrasena ? 'visibility_off' : 'visibility' }}</mat-icon>
+          </button>
+          <mat-error *ngIf="loginForm.get('password')?.hasError('required')">
+            La contraseña es requerida
+          </mat-error>
+        </mat-form-field>
 
-    <button (click)="ingresar()" class="bg-blue-600 text-white rounded p-2 w-full hover:bg-blue-700">
-      Ingresar
-    </button>
+        <!-- Empresa Dropdown -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>
+            <mat-icon>business</mat-icon>
+            Empresa
+          </mat-label>
+          <mat-select formControlName="empresa">
+            <mat-option *ngFor="let e of empresas" [value]="e.nombre">
+              <span class="empresa-option">{{ e.nombre }}</span>
+              <span class="empresa-cedula">({{ e.cedula }})</span>
+            </mat-option>
+          </mat-select>
+          <mat-error *ngIf="loginForm.get('empresa')?.hasError('required')">
+            La empresa es requerida
+          </mat-error>
+        </mat-form-field>
+
+        <!-- Remember Me & Forgot Password -->
+        <div class="form-extras">
+          <mat-checkbox formControlName="recordarme" class="remember-me">
+            Recordarme
+          </mat-checkbox>
+        </div>
+
+        <!-- Error Message -->
+        <div *ngIf="errorMessage" class="error-message" [@shake]>
+          <mat-icon>error</mat-icon>
+          <span>{{ errorMessage }}</span>
+        </div>
+
+        <!-- Submit Button -->
+        <button
+          mat-raised-button
+          color="primary"
+          class="login-button"
+          [disabled]="loginForm.invalid || cargando"
+          [class.loading]="cargando"
+          [@slideUp]
+        >
+          <span *ngIf="!cargando">
+            <mat-icon>login</mat-icon>
+            Ingresar
+          </span>
+          <span *ngIf="cargando" class="loading-content">
+            <mat-spinner diameter="20"></mat-spinner>
+            Verificando...
+          </span>
+        </button>
+      </form>
+
+      <!-- Footer -->
+      <div class="login-footer">
+        <p class="footer-text">
+          © 2024 Sistema de Transportes. Todos los derechos reservados.
+        </p>
+      </div>
+    </div>
+
+    <!-- Credentials Hint (solo en desarrollo) -->
+    <div class="credentials-hint" *ngIf="mostrarHint">
+      <mat-expansion-panel>
+        <mat-expansion-panel-header>
+          <mat-icon>info</mat-icon>
+          <span>Credenciales de Prueba</span>
+        </mat-expansion-panel-header>
+        <div class="hint-content">
+          <p><strong>Administrador:</strong> admin / 1234</p>
+          <p><strong>Supervisor:</strong> super / 98765</p>
+        </div>
+      </mat-expansion-panel>
+    </div>
   </div>
 </div>
