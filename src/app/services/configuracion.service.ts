@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { Firestore, collection, doc, setDoc, onSnapshot, query, orderBy, addDoc } from '@angular/fire/firestore';
-import { SesionService } from '../services/sesion.service';
 import { v4 as uuid } from 'uuid';
 import { Observable } from 'rxjs';
+import { obtenerEmpresaId } from './empresa-utils';
 
 export interface CargasSociales {
   ccssTrabajador: number;
@@ -14,29 +14,24 @@ export interface CargasSociales {
 })
 export class ConfiguracionService {
 
-  constructor(
-    private firestore: Firestore,
-    private sesionService: SesionService
-  ) { }
+  constructor(private firestore: Firestore) { }
 
-  /** 🔹 Obtiene cédula de empresa */
-  private getEmpresaCedula(): string {
-    return this.sesionService.getCedulaEmpresaActual() || 'sin_cedula';
+  private getEmpresaId(): string {
+    return obtenerEmpresaId();
   }
 
-  /** 🔹 Guarda cargar sociales en Firebase */
+  // ==================== CARGAS SOCIALES ====================
   guardarCargas(cargas: CargasSociales) {
-    const cedula = this.getEmpresaCedula();
-    const docRef = doc(this.firestore, `empresas/${cedula}/configuracion/cargasSociales`);
+    const empresaId = this.getEmpresaId();
+    const docRef = doc(this.firestore, `empresas/${empresaId}/configuracion/cargasSociales`);
     return setDoc(docRef, cargas, { merge: true });
   }
 
-  /** 🔹 Obtiene cargas desde Firebase */
   obtenerCargas(): Observable<CargasSociales | undefined> {
-    const cedula = this.getEmpresaCedula();
+    const empresaId = this.getEmpresaId();
 
     return new Observable(observer => {
-      const docRef = doc(this.firestore, `empresas/${cedula}/configuracion/cargasSociales`);
+      const docRef = doc(this.firestore, `empresas/${empresaId}/configuracion/cargasSociales`);
       
       const unsubscribe = onSnapshot(docRef, (snap) => {
         observer.next(snap.data() as CargasSociales | undefined);
@@ -48,17 +43,18 @@ export class ConfiguracionService {
     });
   }
 
+  // ==================== INCENTIVOS ====================
   guardarIncentivos(incentivos: { [puesto: string]: number }) {
-    const cedula = this.getEmpresaCedula();
-    const docRef = doc(this.firestore, `empresas/${cedula}/configuracion/incentivos`);
+    const empresaId = this.getEmpresaId();
+    const docRef = doc(this.firestore, `empresas/${empresaId}/configuracion/incentivos`);
     return setDoc(docRef, incentivos, { merge: true });
   }
 
   obtenerIncentivos(): Observable<{ [puesto: string]: number } | undefined> {
-    const cedula = this.getEmpresaCedula();
+    const empresaId = this.getEmpresaId();
 
     return new Observable(observer => {
-      const docRef = doc(this.firestore, `empresas/${cedula}/configuracion/incentivos`);
+      const docRef = doc(this.firestore, `empresas/${empresaId}/configuracion/incentivos`);
       
       const unsubscribe = onSnapshot(docRef, (snap) => {
         observer.next(snap.data() as { [puesto: string]: number } | undefined);
@@ -70,25 +66,24 @@ export class ConfiguracionService {
     });
   }
 
-  /** 🔹 Guarda histórico en Firebase */
+  // ==================== HISTÓRICO ====================
   guardarHistorico(cargas: CargasSociales) {
-    const cedula = this.getEmpresaCedula();
+    const empresaId = this.getEmpresaId();
     const registro = {
       ...cargas,
       fecha: new Date().toLocaleString()
     };
 
-    const colRef = collection(this.firestore, `empresas/${cedula}/configuracion/cargasSociales/historicoCargas`);
+    const colRef = collection(this.firestore, `empresas/${empresaId}/configuracion_historico`);
     return addDoc(colRef, registro);
   }
 
-  /** 🔹 Obtiene el histórico de Firebase */
   obtenerHistorico(): Observable<any[]> {
-    const cedula = this.getEmpresaCedula();
+    const empresaId = this.getEmpresaId();
 
     return new Observable(observer => {
       const q = query(
-        collection(this.firestore, `empresas/${cedula}/configuracion/cargasSociales/historicoCargas`),
+        collection(this.firestore, `empresas/${empresaId}/configuracion_historico`),
         orderBy('fecha', 'desc')
       );
 
@@ -106,4 +101,61 @@ export class ConfiguracionService {
     });
   }
 
+  // ==================== LOGO PERSONALIZADO (BASE64 EN FIRESTORE) ====================
+  
+  /**
+   * Convierte archivo a Base64 y guarda en Firestore
+   * ✅ Sin CORS, funciona en plan Spark
+   */
+  async subirLogo(archivo: File): Promise<string> {
+    const empresaId = this.getEmpresaId();
+    
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      
+      reader.onload = async (e: any) => {
+        try {
+          const base64 = e.target.result;
+          
+          // Guardar en Firestore
+          const docRef = doc(this.firestore, `empresas/${empresaId}/configuracion/logo`);
+          await setDoc(docRef, { 
+            base64,
+            fechaSubida: new Date().toLocaleString(),
+            tipo: archivo.type,
+            nombre: archivo.name
+          }, { merge: true });
+          
+          resolve(base64);
+        } catch (error) {
+          reject(new Error(`Error al guardar logo: ${error}`));
+        }
+      };
+      
+      reader.onerror = () => {
+        reject(new Error('Error al leer el archivo'));
+      };
+      
+      reader.readAsDataURL(archivo);
+    });
+  }
+
+  /**
+   * Obtiene logo en base64 desde Firestore
+   */
+  obtenerLogo(): Observable<{ base64: string; fechaSubida: string; tipo: string } | undefined> {
+    const empresaId = this.getEmpresaId();
+
+    return new Observable(observer => {
+      const docRef = doc(this.firestore, `empresas/${empresaId}/configuracion/logo`);
+      
+      const unsubscribe = onSnapshot(docRef, (snap) => {
+        observer.next(snap.data() as { base64: string; fechaSubida: string; tipo: string } | undefined);
+      }, (error) => {
+        observer.error(error);
+      });
+
+      return () => unsubscribe();
+    });
+  }
 }

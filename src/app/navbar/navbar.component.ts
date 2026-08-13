@@ -1,52 +1,84 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
-import { SesionService } from '../services/sesion.service'; // 👈 importa el servicio
+import { SesionService } from '../services/sesion.service';
+import { ConfiguracionService } from '../services/configuracion.service';
+import { AuthService } from '../services/auth.service';
+import { Empresa } from '../models/usuario.model';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-navbar',
   templateUrl: './navbar.component.html',
   styleUrls: ['./navbar.component.scss']
 })
-export class NavbarComponent implements OnInit {
+export class NavbarComponent implements OnInit, OnDestroy {
 
   usuarioActivo: any;
-  nombreEmpresa: string = '';
-  cedulaEmpresa: string = '';
-  logoURL: string = '';
+  empresa: Empresa | null = null;
+  cargando = true;
+  logoBase64: string | null = null;
+
+  private destroy$ = new Subject<void>();
 
   constructor(
     private router: Router,
-    private sesionService: SesionService
+    private sesionService: SesionService,
+    private configuracionService: ConfiguracionService,
+    private authService: AuthService
   ) { }
 
-  ngOnInit(): void {
-    // Obtenemos el usuario desde el servicio
+  async ngOnInit(): Promise<void> {
     this.usuarioActivo = this.sesionService.getUsuarioActivo();
 
-    // Si hay usuario activo, traemos la empresa y la cédula desde el servicio
     if (this.usuarioActivo) {
-      this.nombreEmpresa = this.sesionService.getEmpresaActual() || 'Empresa desconocida';
-      this.cedulaEmpresa = this.sesionService.getCedulaEmpresaActual() || 'Sin cédula';
+      this.empresa = await this.sesionService.obtenerEmpresaActual();
     }
 
-    //Logo
-    if (this.cedulaEmpresa == '3-102-908063') {
-      this.logoURL = 'assets/LogoDyF.jpg'; // ruta del logo
+    // Cargar logo personalizado
+    this.cargarLogo();
 
-    } else {
-      this.logoURL = 'assets/LogoGyA.jpg'; // ruta del logo
-    }
+    this.cargando = false;
   }
 
-  logout() {
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  private cargarLogo(): void {
+    this.configuracionService.obtenerLogo()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(data => {
+        if (data?.base64) {
+          this.logoBase64 = data.base64;
+        }
+      });
+  }
+
+  get nombreEmpresa(): string {
+    return this.empresa?.nombre || 'Empresa desconocida';
+  }
+
+  get cedulaEmpresa(): string {
+    return this.empresa?.cedula || 'Sin cédula';
+  }
+
+  get logoDisplay(): string {
+    if (this.logoBase64) {
+      return this.logoBase64;
+    }
+    return 'assets/LogoDefault.jpg';
+  }
+
+  async logout(): Promise<void> {
+    await this.authService.logout();
     localStorage.removeItem('usuarioActivo');
+    localStorage.removeItem('empresaActiva');
     this.router.navigate(['/login']);
   }
 
   puedeEditar(): boolean {
-    return this.usuarioActivo?.rol === 'Supervisor';
+    return this.usuarioActivo?.rol === 'admin' || this.usuarioActivo?.rol === 'supervisor';
   }
-
 }
-
-

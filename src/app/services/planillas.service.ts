@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { Firestore, collection, doc, setDoc, deleteDoc, query, where, onSnapshot, getDocs } from '@angular/fire/firestore';
-import { SesionService } from './sesion.service';
 import { v4 as uuid } from 'uuid';
 import { Observable } from 'rxjs';
+import { obtenerEmpresaId } from './empresa-utils';
 
 export interface Planilla {
   id?: string;
@@ -17,20 +17,17 @@ export interface Planilla {
 @Injectable({ providedIn: 'root' })
 export class PlanillasService {
 
-  constructor(
-    private firestore: Firestore,
-    private sesionService: SesionService
-  ) { }
+  constructor(private firestore: Firestore) { }
 
-  private obtenerEmpresaCedula() {
-    return this.sesionService.getCedulaEmpresaActual() || 'sin_cedula';
+  private obtenerEmpresaId() {
+    return obtenerEmpresaId();
   }
 
   obtener(): Observable<any[]> {
-    const cedulaEmpresa = this.obtenerEmpresaCedula();
+    const empresaId = this.obtenerEmpresaId();
     
     return new Observable(observer => {
-      const colRef = collection(this.firestore, `empresas/${cedulaEmpresa}/planillas`);
+      const colRef = collection(this.firestore, `empresas/${empresaId}/planillas`);
       
       const unsubscribe = onSnapshot(colRef, (snap) => {
         const data = snap.docs.map(d => ({
@@ -47,7 +44,7 @@ export class PlanillasService {
   }
 
   agregar(planilla: Planilla) {
-    const cedulaEmpresa = this.obtenerEmpresaCedula();
+    const empresaId = this.obtenerEmpresaId();
     const id = planilla.id ?? uuid();
 
     const data: Planilla = {
@@ -55,30 +52,28 @@ export class PlanillasService {
       id
     };
 
-    const docRef = doc(this.firestore, `empresas/${cedulaEmpresa}/planillas/${id}`);
+    const docRef = doc(this.firestore, `empresas/${empresaId}/planillas/${id}`);
     return setDoc(docRef, data);
   }
 
   eliminar(id: string) {
-    const cedulaEmpresa = this.obtenerEmpresaCedula();
-    const docRef = doc(this.firestore, `empresas/${cedulaEmpresa}/planillas/${id}`);
+    const empresaId = this.obtenerEmpresaId();
+    const docRef = doc(this.firestore, `empresas/${empresaId}/planillas/${id}`);
     return deleteDoc(docRef);
   }
 
-  /** Verifica si ya existe una planilla registrada para el mes */
   async existePlanillaMes(mes: string) {
-    const cedula = this.obtenerEmpresaCedula();
+    const empresaId = this.obtenerEmpresaId();
     const q = query(
-      collection(this.firestore, `empresas/${cedula}/planillas`),
+      collection(this.firestore, `empresas/${empresaId}/planillas`),
       where('mes', '==', mes)
     );
     
     return getDocs(q);
   }
 
-  /** Método que nos permite obtener los días trabajados de un empleado*/
   obtenerDiasTrabajadosPorEmpleado(empleadoId: number): Observable<any[]> {
-    const empresaId = this.sesionService.getCedulaEmpresaActual();
+    const empresaId = this.obtenerEmpresaId();
 
     return new Observable(observer => {
       const q = query(
@@ -99,5 +94,4 @@ export class PlanillasService {
       return () => unsubscribe();
     });
   }
-
 }

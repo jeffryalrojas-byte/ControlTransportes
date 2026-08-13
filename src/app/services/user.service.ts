@@ -58,6 +58,27 @@ export class UserService {
     }
   }
 
+  async obtenerUsuarioPorEmail(email: string): Promise<Usuario | null> {
+    try {
+      const q = query(collection(this.firestore, this.usersCollection), where('email', '==', email));
+      const querySnapshot = await getDocs(q);
+
+      if (querySnapshot.empty) {
+        return null;
+      }
+
+      const doc = querySnapshot.docs[0];
+      const data = doc.data();
+      return {
+        ...data as Usuario,
+        createdAt: data['createdAt']?.toDate() || new Date(),
+        lastLogin: data['lastLogin']?.toDate()
+      };
+    } catch (error) {
+      throw new Error(`Error al obtener usuario por email: ${error}`);
+    }
+  }
+
   async obtenerUsuariosEmpresa(empresaId: string): Promise<Usuario[]> {
     try {
       const q = query(collection(this.firestore, this.usersCollection), where('empresaId', '==', empresaId));

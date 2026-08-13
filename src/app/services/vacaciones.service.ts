@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
-import { Firestore, collection, doc, setDoc, deleteDoc, query, where, orderBy, onSnapshot, Query } from '@angular/fire/firestore';
+import { Firestore, collection, doc, setDoc, deleteDoc, query, where, orderBy, onSnapshot } from '@angular/fire/firestore';
 import { v4 as uuid } from 'uuid';
 import { map, Observable, of } from 'rxjs';
-import { SesionService } from './sesion.service';
 import { IncapacidadesService } from './incapacidades.service';
+import { obtenerEmpresaId } from './empresa-utils';
 
 export interface SolicitudVacaciones {
   id: string;
@@ -23,16 +23,13 @@ export class VacacionesService {
 
   constructor(
     private firestore: Firestore,
-    private sesionService: SesionService,
     private incapacidadesService: IncapacidadesService
   ) { }
 
-  /** Método que nos permite obtener la empresa Actual*/
-  private obtenerEmpresaCedula(): string {
-    return this.sesionService.getCedulaEmpresaActual() || 'sin_cedula';
+  private obtenerEmpresaId(): string {
+    return obtenerEmpresaId();
   }
 
-  /** Método que nos calcula el periodo de vacaciones, por ejemplo "2023-2024"*/
   public calcularPeriodo(fechaIngreso: Date, fechaSolicitud: Date): string {
     let inicio = new Date(fechaIngreso);
     let fin = new Date(inicio);
@@ -46,16 +43,14 @@ export class VacacionesService {
     return `${inicio.getFullYear()}-${fin.getFullYear()}`;
   }
 
-  /** Método que nos permite registrar las vacaciones*/
   public registrarSolicitud(solicitud: SolicitudVacaciones, empleado: any) {
-    const empresaId = this.obtenerEmpresaCedula();
+    const empresaId = this.obtenerEmpresaId();
     const ingreso = new Date(empleado.fechaIngreso);
     const fechaSolicitud = new Date(solicitud.fechaInicio);
 
-    // ✔ Solo calcular el período si NO viene desde el componente
     if (!solicitud.periodo) {
       solicitud.periodo = this.calcularPeriodo(ingreso, fechaSolicitud);
-    };
+    }
     solicitud.empresaId = empresaId;
     solicitud.id = solicitud.id || uuid();
 
@@ -63,9 +58,8 @@ export class VacacionesService {
     return setDoc(docRef, solicitud);
   }
 
-  /** Método que nos permite obtener las solicitudes de vacaciones de un empleado*/
   public obtenerSolicitudesEmpleado(empleadoId: string): Observable<SolicitudVacaciones[]> {
-    const empresaId = this.obtenerEmpresaCedula();
+    const empresaId = this.obtenerEmpresaId();
     
     return new Observable(observer => {
       const q = query(
@@ -89,19 +83,13 @@ export class VacacionesService {
     });
   }
 
-  /** Método que nos permite eliminar la solicitud de un empleado*/
   public eliminarSolicitud(id: string) {
-    const empresaId = this.obtenerEmpresaCedula();
+    const empresaId = this.obtenerEmpresaId();
     const docRef = doc(this.firestore, `empresas/${empresaId}/vacaciones/${id}`);
     return deleteDoc(docRef);
   }
 
-  /** Método que nos permite obtener los días pendientes de vacaciones de un empleado*/
   public calcularDiasPendientes(empleado: any, planillas: any[]): Observable<any> {
-
-    // ==================================================================
-    // 🔹 EMPLEADO DIARIO CADA 22 DÍAS TIENE 1 DÍA DE VACACIONES
-    // ==================================================================
     if (empleado.tipoPago === 'diario') {
       return of(
         this.calcularVacacionesDiario(
@@ -112,9 +100,6 @@ export class VacacionesService {
       );
     }
 
-    // ====================================================
-    // 🔹 EMPLEADO MENSUAL ( LÓGICA ACTUAL) 1 DÍA POR MES
-    // ====================================================
     const ingreso = new Date(empleado.fechaIngreso);
 
     return this.obtenerSolicitudesEmpleado(empleado.id).pipe(
@@ -125,9 +110,7 @@ export class VacacionesService {
           empleado.tipoContrato === 'definido' &&
           empleado.fechaFinContrato
         ) {
-
           const fechaFin = new Date(empleado.fechaFinContrato);
-
           if (fechaFin < fechaCalculo) {
             fechaCalculo = fechaFin;
           }
@@ -166,8 +149,6 @@ export class VacacionesService {
     );
   }
 
-
-  /** Método que nos permite obtener los meses dentro de un periodo*/
   private calcularMesesDentroPeriodo(inicio: Date, fin: Date, hoy: Date, ingresoReal: Date): number {
     const desde = inicio < ingresoReal ? ingresoReal : inicio;
     const hasta = hoy < fin ? hoy : fin;
@@ -181,9 +162,7 @@ export class VacacionesService {
     return Math.max(meses, 0);
   }
 
-  /** Método que nos permite obtener los días dentro de un periodo*/
   private calcularDiasDentroPeriodo(inicioInc: Date, finInc: Date, inicioPeriodo: Date, finPeriodo: Date): number {
-
     const desde = inicioInc > inicioPeriodo ? inicioInc : inicioPeriodo;
     const hasta = finInc < finPeriodo ? finInc : finPeriodo;
 
@@ -195,12 +174,8 @@ export class VacacionesService {
     return Math.max(Math.floor(diff), 0);
   }
 
-  /** Método que nos permite obtener los días trabajados de un empleado diario*/
   public calcularVacacionesDiario(empleadoId: any, fechaIngreso: Date, planillas: any[]): any {
-
     const resultado: any = {};
-
-    // Agrupar días trabajados por periodo
     const diasPorPeriodo: { [periodo: string]: number } = {};
 
     for (const p of planillas) {
@@ -216,7 +191,6 @@ export class VacacionesService {
       diasPorPeriodo[periodo] = (diasPorPeriodo[periodo] || 0) + dias;
     }
 
-    // Convertir días trabajados a días de vacaciones
     Object.keys(diasPorPeriodo).forEach(periodo => {
       resultado[periodo] = Math.floor(diasPorPeriodo[periodo] / 22);
     });
@@ -224,10 +198,7 @@ export class VacacionesService {
     return resultado;
   }
 
-  /** Método que nos permite calcular los días al empleado mensual ordinario*/
   public calcularDiasPendientesSinPlanillas(empleado: any): Observable<any> {
-
-    // 🔹 SOLO EMPLEADOS MENSUALES
     if (empleado.tipoPago === 'diario') {
       return of({});
     }
@@ -235,7 +206,6 @@ export class VacacionesService {
     const ingreso = new Date(empleado.fechaIngreso);
 
     return new Observable(observer => {
-      // Subscribe to both solicitudes and incapacidades
       this.obtenerSolicitudesEmpleado(empleado.id).subscribe(solicitudes => {
         this.incapacidadesService.obtenerPorEmpleado(empleado.id).subscribe(incapacidades => {
           let fechaCalculo = new Date();
@@ -244,9 +214,7 @@ export class VacacionesService {
             empleado.tipoContrato === 'definido' &&
             empleado.fechaFinContrato
           ) {
-
             const fechaFin = new Date(empleado.fechaFinContrato);
-
             if (fechaFin < fechaCalculo) {
               fechaCalculo = fechaFin;
             }
@@ -259,10 +227,8 @@ export class VacacionesService {
           const resultado: any = {};
 
           while (inicio <= fechaCalculo) {
-
             const periodo = `${inicio.getFullYear()}-${fin.getFullYear()}`;
 
-            // 🔹 1️⃣ Meses normalmente ganados
             const mesesTrabajados = this.calcularMesesDentroPeriodo(
               inicio,
               fin,
@@ -272,7 +238,6 @@ export class VacacionesService {
 
             let diasGanados = Math.min(mesesTrabajados, 12);
 
-            // 🔹 2️⃣ Días de incapacidad válidos dentro del período
             const diasIncapacidad = incapacidades
               .filter((i: any) =>
                 ['enfermedad', 'accidente', 'permisosg'].includes(i.tipo)
@@ -285,12 +250,10 @@ export class VacacionesService {
               ))
               .reduce((a: number, b: number) => a + b, 0);
 
-            // 🔹 3️⃣ Convertir incapacidades a meses NO trabajados
             const mesesNoTrabajados = Math.floor(diasIncapacidad / 30);
 
             diasGanados = Math.max(diasGanados - mesesNoTrabajados, 0);
 
-            // 🔹 4️⃣ Días ya tomados
             const diasTomados = solicitudes
               .filter((s) => s.periodo === periodo)
               .reduce((t: number, x) => t + x.diasSolicitados, 0);
@@ -306,5 +269,4 @@ export class VacacionesService {
       });
     });
   }
-
 }

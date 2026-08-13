@@ -7,6 +7,8 @@ import { SesionService } from '../services/sesion.service';
 import { KeyValue } from '@angular/common';
 import { PlanillasService } from '../services/planillas.service';
 import { IncapacidadesService } from '../services/incapacidades.service';
+import { ConfiguracionService } from '../services/configuracion.service';
+import { Empresa } from '../models/usuario.model';
 
 @Component({
   selector: 'app-rrhh',
@@ -44,24 +46,24 @@ export class RrhhComponent implements OnInit {
   incapacidades: any[] = [];
 
   //Para los datos de la sociedad
-  nombreEmpresa: string = '';
-  cedulaEmpresa: string = '';
+  empresa: Empresa | null = null;
+  logoBase64: string | null = null;
 
   constructor(
     private vacacionesService: VacacionesService,
     private rrhhService: RrhhService,
     private sesionService: SesionService,
     private planillasService: PlanillasService,
-    private incapacidadesService: IncapacidadesService
+    private incapacidadesService: IncapacidadesService,
+    private configuracionService: ConfiguracionService,
   ) { }
 
-  ngOnInit() {
+  async ngOnInit() {
     const userData = localStorage.getItem('usuarioActivo');
     if (userData) this.usuarioActivo = JSON.parse(userData);
 
     //Datos de la Sociedad
-    this.nombreEmpresa = this.sesionService.getEmpresaActual() || 'Empresa desconocida';
-    this.cedulaEmpresa = this.sesionService.getCedulaEmpresaActual() || 'Sin cédula';
+    this.empresa = await this.sesionService.obtenerEmpresaActual();
 
     //Cargamos Planillas
     this.CargarPlanillas();
@@ -71,6 +73,9 @@ export class RrhhComponent implements OnInit {
 
     //Cargamos Incapacidades
     this.CargarIncapacidades()
+
+    // Cargar logo personalizado
+    this.CargarLogo();
 
 
   }
@@ -99,6 +104,13 @@ export class RrhhComponent implements OnInit {
     });
   }
 
+  private CargarLogo(): void {
+    this.configuracionService.obtenerLogo().subscribe(data => {
+      if (data?.base64) {
+        this.logoBase64 = data.base64;
+      }
+    });
+  }
 
   private intentarCalcularAguinaldos() {
     if (this.empleados?.length && this.planillas?.length) {
@@ -371,17 +383,11 @@ export class RrhhComponent implements OnInit {
   imprimirContrato(e: any) {
     const hoy = new Date().toLocaleDateString('es-CR');
 
-    let logoURL = ''
+    let logoURL = this.logoBase64
     // Datos de la empresa desde sesión
-    const empresa = this.nombreEmpresa;
-    const cedula = this.cedulaEmpresa;
+    const empresa = this.empresa?.nombre || 'Empresa desconocida';
+    const cedula = this.empresa?.cedula || 'Sin cédula';
 
-    if (cedula == '3-102-908063') {
-      logoURL = 'assets/LogoDyF.jpg'; // ruta del logo
-
-    } else {
-      logoURL = 'assets/LogoGyA.png'; // ruta del logo
-    }
 
     const contrato = `
     <html>
@@ -430,7 +436,7 @@ export class RrhhComponent implements OnInit {
 
     <h1>CONTRATO INDIVIDUAL DE TRABAJO</h1>
 
-    <p>En Buenos Aires, Puntarenas, a los <b>${hoy}</b>, entre 
+    <p>En Buenos Aires, Puntarenas, el día <b>${hoy}</b>, entre 
     <b>${empresa}</b>, Cédula Jurídica <b>${cedula}</b>, representada por su administrador,
     en adelante como “EL EMPLEADOR”, y 
     <b>${e.nombre}</b>, portador(a) de la cédula de identidad <b>${e.cedula}</b>,

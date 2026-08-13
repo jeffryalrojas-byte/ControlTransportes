@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Firestore, collection, doc, setDoc, deleteDoc, query, orderBy, onSnapshot } from '@angular/fire/firestore';
-import { SesionService } from '../services/sesion.service';
 import { Observable } from 'rxjs';
+import { obtenerEmpresaId } from './empresa-utils';
 
 export interface Transaccion {
   id: string;
@@ -16,23 +16,18 @@ export interface Transaccion {
 @Injectable({ providedIn: 'root' })
 export class FinanzasService {
 
-  constructor(
-    private firestore: Firestore,
-    private sesionService: SesionService
-  ) { }
+  constructor(private firestore: Firestore) { }
 
-  /** 🔹 Obtener cédula activa */
-  private getCedula(): string {
-    return this.sesionService.getCedulaEmpresaActual() || 'sin_cedula';
+  private getEmpresaId(): string {
+    return obtenerEmpresaId();
   }
 
-  /** 🔹 Obtener lista de transacciones desde Firebase */
   obtener(): Observable<Transaccion[]> {
-    const cedula = this.getCedula();
+    const empresaId = this.getEmpresaId();
     
     return new Observable(observer => {
       const q = query(
-        collection(this.firestore, `empresas/${cedula}/finanzas`),
+        collection(this.firestore, `empresas/${empresaId}/finanzas`),
         orderBy('fecha', 'desc')
       );
 
@@ -50,17 +45,15 @@ export class FinanzasService {
     });
   }
 
-  /** 🔹 Guardar transacción */
   agregar(t: Transaccion) {
-    const cedula = this.getCedula();
-    const docRef = doc(this.firestore, `empresas/${cedula}/finanzas/${t.id}`);
+    const empresaId = this.getEmpresaId();
+    const docRef = doc(this.firestore, `empresas/${empresaId}/finanzas/${t.id}`);
     return setDoc(docRef, t);
   }
 
-  /** 🔹 Eliminar transacción */
   eliminar(id: string) {
-    const cedula = this.getCedula();
-    const docRef = doc(this.firestore, `empresas/${cedula}/finanzas/${id}`);
+    const empresaId = this.getEmpresaId();
+    const docRef = doc(this.firestore, `empresas/${empresaId}/finanzas/${id}`);
     return deleteDoc(docRef);
   }
 }

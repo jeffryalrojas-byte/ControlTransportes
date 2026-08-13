@@ -64,7 +64,7 @@ export class LoginComponent implements OnInit {
   ngOnInit(): void {
     this.inicializarForm();
     this.cargarCredencialesRecordadas();
-    this.cargarEmpresas();
+    //this.cargarEmpresas();
   }
 
   inicializarForm(): void {
@@ -106,6 +106,45 @@ export class LoginComponent implements OnInit {
 
   toggleMostrarContrasena(): void {
     this.mostrarContrasena = !this.mostrarContrasena;
+  }
+
+  // Filtrar empresas cuando el usuario cambia el email
+  async onEmailChange(): Promise<void> {
+    const email = this.loginForm.get('email')?.value;
+
+    if (!email) {
+      this.empresas = [];
+      this.loginForm.patchValue({ empresa: '' });
+      return;
+    }
+
+    try {
+      // Obtener todas las empresas
+      const todasLasEmpresas = await this.empresaService.obtenerTodasEmpresas();
+
+      // Obtener datos del usuario por email (sin login)
+      const usuariosCoincidentes = await this.userService.obtenerUsuarioPorEmail(email);
+
+      if (usuariosCoincidentes && usuariosCoincidentes.empresaId) {
+        // Filtrar solo la empresa del usuario
+        this.empresas = todasLasEmpresas.filter(
+          e => e.id === usuariosCoincidentes.empresaId
+        );
+
+        // Auto-seleccionar la empresa
+        if (this.empresas.length > 0) {
+          this.loginForm.patchValue({ empresa: this.empresas[0].id });
+        }
+      } else {
+        // Si el usuario no existe o no tiene empresa, no mostrar nada
+        this.empresas = [];
+        this.loginForm.patchValue({ empresa: this.empresas.length > 0 ? this.empresas[0].id : '' });
+      }
+    } catch (error: any) {
+      console.error('Error al filtrar empresas:', error);
+      // Si hay error, mostrar todas las empresas
+      this.empresas = await this.empresaService.obtenerTodasEmpresas();
+    }
   }
 
   async ingresar(): Promise<void> {

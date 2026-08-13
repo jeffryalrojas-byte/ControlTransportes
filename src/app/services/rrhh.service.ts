@@ -1,8 +1,7 @@
 import { Injectable } from '@angular/core';
-import { Firestore, collection, doc, setDoc, updateDoc, deleteDoc, onSnapshot, query } from '@angular/fire/firestore';
-import { SesionService } from './sesion.service';
+import { Firestore, collection, doc, setDoc, updateDoc, deleteDoc, onSnapshot } from '@angular/fire/firestore';
 import { v4 as uuid } from 'uuid';
-import { map, Observable } from 'rxjs';
+import { Observable } from 'rxjs';
 
 export interface Empleado {
   id: string;
@@ -22,23 +21,17 @@ export interface Empleado {
 @Injectable({ providedIn: 'root' })
 export class RrhhService {
 
-  constructor(
-    private firestore: Firestore,
-    private sesionService: SesionService
-  ) { }
+  constructor(private firestore: Firestore) { }
 
-  private obtenerEmpresaCedula() {
-    return this.sesionService.getCedulaEmpresaActual() || 'sin_cedula';
+  private obtenerEmpresaId() {
+    return localStorage.getItem('empresaActiva') || 'sin_id';
   }
 
-  // ===========================
-  // 📌 OBTENER EMPLEADOS
-  // ===========================
   obtener(): Observable<Empleado[]> {
-    const cedulaEmpresa = this.obtenerEmpresaCedula();
+    const empresaId = this.obtenerEmpresaId();
 
     return new Observable(observer => {
-      const colRef = collection(this.firestore, `empresas/${cedulaEmpresa}/empleados`);
+      const colRef = collection(this.firestore, `empresas/${empresaId}/empleados`);
       
       const unsubscribe = onSnapshot(colRef, (snap) => {
         const items = snap.docs.map(d => ({
@@ -70,35 +63,26 @@ export class RrhhService {
     });
   }
 
-
-  // ===========================
-  // 📌 AGREGAR EMPLEADO
-  // ===========================
   agregar(e: Empleado) {
-    const cedulaEmpresa = this.obtenerEmpresaCedula();
+    const empresaId = this.obtenerEmpresaId();
     const id = e.id || uuid();
 
-    const docRef = doc(this.firestore, `empresas/${cedulaEmpresa}/empleados/${id}`);
+    const docRef = doc(this.firestore, `empresas/${empresaId}/empleados/${id}`);
     return setDoc(docRef, e);
   }
 
-  // ===========================
-  // 📌 ACTUALIZAR EMPLEADO
-  // ===========================
   actualizar(e: Empleado) {
-    const cedulaEmpresa = this.obtenerEmpresaCedula();
+    const empresaId = this.obtenerEmpresaId();
 
-    const docRef = doc(this.firestore, `empresas/${cedulaEmpresa}/empleados/${e.id}`);
+    const docRef = doc(this.firestore, `empresas/${empresaId}/empleados/${e.id}`);
     return updateDoc(docRef, e as any);
   }
 
-  //ESTADO DEL EMPLEADO
   public obtenerEstadoEmpleado(e: Empleado): 'activo' | 'inactivo' {
     if (e.tipoContrato === 'indefinido') {
       return 'activo';
     }
 
-    // Contrato definido
     if (!e.fechaFinContrato) return 'activo';
 
     const hoy = new Date();
@@ -110,14 +94,10 @@ export class RrhhService {
     return fin >= hoy ? 'activo' : 'inactivo';
   }
 
-
-  // ===========================
-  // 📌 ELIMINAR EMPLEADO
-  // ===========================
   eliminar(id: string) {
-    const cedulaEmpresa = this.obtenerEmpresaCedula();
+    const empresaId = this.obtenerEmpresaId();
 
-    const docRef = doc(this.firestore, `empresas/${cedulaEmpresa}/empleados/${id}`);
+    const docRef = doc(this.firestore, `empresas/${empresaId}/empleados/${id}`);
     return deleteDoc(docRef);
   }
 }

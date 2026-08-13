@@ -90,30 +90,19 @@ export class PlanillaComponent implements OnInit {
   ) { }
 
   ngOnInit() {
-    // Obtenemos el usuario desde el servicio
     this.usuarioActivo = this.sesionService.getUsuarioActivo();
 
-    this.empresaCedulaActual = this.sesionService.getCedulaEmpresaActual();
-    if (!this.empresaCedulaActual) {
+    const empresaId = localStorage.getItem('empresaActiva');
+    if (!empresaId) {
       alert('⚠️ No se encontró una empresa activa. Inicia sesión nuevamente.');
       return;
     }
 
-    //Cargamos las configuración de las cargas sociales
     this.CargasSociales();
-
-    //Cargamos los empleados
     this.CargamosEmpleados();
-
-    //Cargamos incapacidades
     this.CargamosIncapacidades();
-
-    //Cargamos Planillas
     this.CargamosPlanillas();
-
-    //Cargamos Incentivos
     this.CargamosIncentivos();
-
     this.calcularTotales();
   }
 
@@ -314,14 +303,13 @@ export class PlanillaComponent implements OnInit {
       return;
     }
 
-    if (!this.empresaCedulaActual) {
+    const empresaId = localStorage.getItem('empresaActiva');
+    if (!empresaId) {
       alert('No hay empresa activa.');
       return;
     }
 
-    // 🔥 VALIDAR SI YA EXISTE PLANILLA DEL MES
     this.planillasService.existePlanillaMes(this.mesActual).then((snap: any) => {
-
       const planillas = snap.docs.map((d: any) => d.data());
 
       if (planillas.length > 0) {
@@ -338,7 +326,6 @@ export class PlanillaComponent implements OnInit {
         totalNeto: this.totalNeto,
         totalCargas: this.totalCargas,
         detalleEmpleados: this.empleados.map(e => {
-
           const { diasIncap, dias50 } =
             this.incapacidadesService.calcularIncapacidadesMes(
               this.incapacidades,
@@ -357,7 +344,7 @@ export class PlanillaComponent implements OnInit {
             salarioNeto: this.salarioNeto(e)
           };
         }),
-        empresaCedula: this.empresaCedulaActual!
+        empresaCedula: empresaId
       };
 
       this.planillasService.agregar(nuevaPlanilla)
@@ -369,7 +356,7 @@ export class PlanillaComponent implements OnInit {
           console.error(err);
           alert('❌ Error al guardar la planilla.');
         });
-    }); // end then
+    });
   }
 
   // ===============================

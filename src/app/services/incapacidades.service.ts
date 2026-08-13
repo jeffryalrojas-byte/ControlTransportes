@@ -1,8 +1,7 @@
-// incapacidades.service.ts
 import { Injectable } from '@angular/core';
 import { Firestore, collection, doc, setDoc, deleteDoc, query, where, orderBy, onSnapshot } from '@angular/fire/firestore';
-import { SesionService } from '../services/sesion.service';
 import { Observable } from 'rxjs';
+import { obtenerEmpresaId } from './empresa-utils';
 
 export interface Incapacidad {
   id: string;
@@ -18,22 +17,18 @@ export interface Incapacidad {
 @Injectable({ providedIn: 'root' })
 export class IncapacidadesService {
 
-  constructor(
-    private firestore: Firestore,
-    private sesionService: SesionService
-  ) { }
+  constructor(private firestore: Firestore) { }
 
-  private getCedula(): string {
-    return this.sesionService.getCedulaEmpresaActual() || 'sin_cedula';
+  private getEmpresaId(): string {
+    return obtenerEmpresaId();
   }
 
-  /** 🔹 Obtener TODAS las incapacidades de la empresa */
   obtener(): Observable<Incapacidad[]> {
-    const cedula = this.getCedula();
+    const empresaId = this.getEmpresaId();
     
     return new Observable(observer => {
       const q = query(
-        collection(this.firestore, `empresas/${cedula}/incapacidades`),
+        collection(this.firestore, `empresas/${empresaId}/incapacidades`),
         orderBy('fechaInicio', 'desc')
       );
 
@@ -51,13 +46,12 @@ export class IncapacidadesService {
     });
   }
 
-  /** 🔹 Obtener incapacidades por empleado */
   obtenerPorEmpleado(empleadoId: string): Observable<Incapacidad[]> {
-    const cedula = this.getCedula();
+    const empresaId = this.getEmpresaId();
     
     return new Observable(observer => {
       const q = query(
-        collection(this.firestore, `empresas/${cedula}/incapacidades`),
+        collection(this.firestore, `empresas/${empresaId}/incapacidades`),
         where('empleadoId', '==', empleadoId),
         orderBy('fechaInicio', 'desc')
       );
@@ -76,20 +70,17 @@ export class IncapacidadesService {
     });
   }
 
-  /** 🔹 Guardar incapacidad */
   guardar(incapacidad: Incapacidad) {
-    const cedula = this.getCedula();
-    const docRef = doc(this.firestore, `empresas/${cedula}/incapacidades/${incapacidad.id}`);
+    const empresaId = this.getEmpresaId();
+    const docRef = doc(this.firestore, `empresas/${empresaId}/incapacidades/${incapacidad.id}`);
     return setDoc(docRef, incapacidad);
   }
 
-  /** 🔹 Eliminar incapacidad */
   eliminar(id: string) {
-    const cedula = this.getCedula();
-    const docRef = doc(this.firestore, `empresas/${cedula}/incapacidades/${id}`);
+    const empresaId = this.getEmpresaId();
+    const docRef = doc(this.firestore, `empresas/${empresaId}/incapacidades/${id}`);
     return deleteDoc(docRef);
   }
-
 
   public calcularIncapacidadesMes(incapacidades: Incapacidad[], empleadoId: string | number, mes: string) {
     const [anio, mesNum] = mes.split('-');
@@ -142,8 +133,6 @@ export class IncapacidadesService {
         Math.floor((fi.getTime() - ini.getTime()) / 86400000) + 1;
 
       if (b.tipo === 'enfermedad') {
-
-        // 🔥 días consumidos antes del mes actual
         let diasPrevios = 0;
 
         if (b.inicio < inicioMes) {
@@ -177,5 +166,4 @@ export class IncapacidadesService {
       dias50
     };
   }
-
 }
