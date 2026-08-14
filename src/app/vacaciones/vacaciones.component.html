@@ -1,105 +1,190 @@
-<h2>🌴 Control de Vacaciones</h2>
+<div class="vacaciones-container">
+  <!-- Header Section -->
+  <mat-card class="header-card">
+    <mat-card-header>
+      <div mat-card-avatar class="header-icon">
+        <mat-icon>beach_access</mat-icon>
+      </div>
+      <mat-card-title>Control de Vacaciones</mat-card-title>
+      <mat-card-subtitle>Gestiona las solicitudes de vacaciones de empleados</mat-card-subtitle>
+    </mat-card-header>
+  </mat-card>
 
-<div class="form">
+  <!-- Formulario de Solicitud -->
+  <mat-card class="form-card">
+    <mat-card-title>
+      <mat-icon>assignment</mat-icon>
+      Registrar Solicitud de Vacaciones
+    </mat-card-title>
+    <mat-card-content>
+      <div class="form-grid">
+        <!-- Seleccionar Empleado -->
+        <mat-form-field appearance="outline" class="form-field full-width">
+          <mat-label>Empleado</mat-label>
+          <mat-select [(ngModel)]="empleadoId" (selectionChange)="seleccionarEmpleado(empleadoId)">
+            <mat-option value="">-- Seleccione un empleado --</mat-option>
+            <mat-option *ngFor="let e of empleados" [value]="e.id">
+              {{ e.nombre }} ({{ e.cedula }})
+            </mat-option>
+          </mat-select>
+          <mat-icon matPrefix>person</mat-icon>
+        </mat-form-field>
 
-  <!-- EMPLEADO -->
-  <label>Empleado:</label>
-  <select [(ngModel)]="empleadoId" (change)="seleccionarEmpleado(empleadoId)">
-    <option value="" disabled selected>Seleccione un empleado</option>
-    <option *ngFor="let e of empleados" [value]="e.id">
-      {{ e.nombre }} ({{ e.cedula }})
-    </option>
-  </select>
+        <!-- Fecha Inicio -->
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Desde</mat-label>
+          <input matInput type="date" [(ngModel)]="fechaInicio" [disabled]="estadoBotones">
+          <mat-icon matPrefix>event_available</mat-icon>
+        </mat-form-field>
 
-  <!-- FECHAS -->
-  <label>Desde:</label>
-  <input type="date" [(ngModel)]="fechaInicio" [disabled]="estadoBotones">
+        <!-- Fecha Fin -->
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Hasta</mat-label>
+          <input matInput type="date" [(ngModel)]="fechaFin" [disabled]="estadoBotones">
+          <mat-icon matPrefix>event</mat-icon>
+        </mat-form-field>
 
-  <label>Hasta:</label>
-  <input type="date" [(ngModel)]="fechaFin" [disabled]="estadoBotones">
+        <!-- Días Solicitados -->
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Cantidad de días</mat-label>
+          <input matInput type="number" [(ngModel)]="diasSolicitados" min="1" [disabled]="estadoBotones" placeholder="0">
+          <mat-icon matPrefix>calendar_month</mat-icon>
+        </mat-form-field>
 
-  <!-- DIAS -->
-  <label>Cantidad de días:</label>
-  <input type="number" [(ngModel)]="diasSolicitados" min="1" [disabled]="estadoBotones">
+        <!-- Observación -->
+        <mat-form-field appearance="outline" class="form-field full-width">
+          <mat-label>Observación</mat-label>
+          <textarea matInput [(ngModel)]="observacion" [disabled]="estadoBotones" rows="3" placeholder="Ej: Vacaciones por salud familiar"></textarea>
+          <mat-icon matPrefix>notes</mat-icon>
+        </mat-form-field>
+      </div>
 
-  <!-- OBSERVACION -->
-  <label>Observación:</label>
-  <textarea [(ngModel)]="observacion"></textarea>
+      <div class="form-actions">
+        <button mat-raised-button color="primary" (click)="registrar()" 
+          [disabled]="!diasSolicitados || diasSolicitados <= 0 || estadoBotones">
+          <mat-icon>save</mat-icon>
+          Registrar Solicitud
+        </button>
+        <button mat-stroked-button (click)="limpiar()" [disabled]="estadoBotones">
+          <mat-icon>clear</mat-icon>
+          Limpiar
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
 
-  <button class="btn-guardar" (click)="registrar()" [disabled]="!diasSolicitados || diasSolicitados <= 0 ">
-    💾 Guardar
-  </button>
+  <!-- Botón Toggle para Panel Informativo -->
+  <div class="info-toggle-section">
+    <button mat-button (click)="mostrarInfo = !mostrarInfo" class="info-toggle-btn">
+      <mat-icon>{{ mostrarInfo ? 'expand_less' : 'expand_more' }}</mat-icon>
+      {{ mostrarInfo ? 'Ocultar' : 'Ver' }} Información sobre Vacaciones
+    </button>
+  </div>
+
+  <!-- Panel Informativo (Collapsible) -->
+  <mat-card class="info-card" *ngIf="mostrarInfo">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>info</mat-icon>
+        Reglamento de Vacaciones
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="info-content">
+        <div class="info-item">
+          <h5>🔹 Derecho a Vacaciones</h5>
+          <ul>
+            <li><strong>12 días hábiles:</strong> Por cada 50-52 semanas trabajadas (1 año de servicio, 1 día por mes laborado)</li>
+            <li><strong>Empleados diarios:</strong> 1 día de vacaciones por cada 22 días trabajados según planilla</li>
+          </ul>
+        </div>
+
+        <div class="info-item">
+          <h5>🔹 Política de Acumulación</h5>
+          <ul>
+            <li><strong>No acumulables (regla general):</strong> Deben disfrutarse, no se compensan en dinero</li>
+            <li><strong>Excepciones:</strong> Fin de contrato, trabajo ocasional, o acuerdo previo de compensación</li>
+            <li><strong>Fraccionamiento:</strong> Pueden dividirse según acuerdo con jefatura</li>
+          </ul>
+        </div>
+
+        <div class="info-item">
+          <h5>⏱️ Plazo</h5>
+          <p>El patrono debe conceder las vacaciones dentro de los <strong>5 meses</strong> posteriores al cumplimiento del año de servicio.</p>
+        </div>
+
+        <div class="info-item warning">
+          <h5>⚠️ Importante</h5>
+          <p>Las <strong>incapacidades</strong> y <strong>permisos sin goce salarial</strong> afectan la continuidad laboral, impactando el cálculo de vacaciones que se basa en semanas efectivas laboradas.</p>
+        </div>
+
+        <div class="info-item legal">
+          <h5>⚖️ Base Legal</h5>
+          <ul>
+            <li>Reglamento Interno de la Empresa</li>
+            <li>Código de Trabajo (Artículos 153, 155, 156, 157)</li>
+          </ul>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Solicitudes del Empleado -->
+  <mat-card class="table-card" *ngIf="empleadoSeleccionado && solicitudes.length > 0">
+    <mat-card-title>
+      <mat-icon>list</mat-icon>
+      Solicitudes de {{ empleadoSeleccionado.nombre }} ({{ solicitudes.length }})
+    </mat-card-title>
+    <mat-card-content>
+      <div class="table-responsive">
+        <table class="solicitudes-table">
+          <thead>
+            <tr>
+              <th>Período</th>
+              <th>Desde</th>
+              <th>Hasta</th>
+              <th>Días</th>
+              <th>Observación</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let s of solicitudes">
+              <td><strong>{{ s.periodo }}</strong></td>
+              <td>{{ s.fechaInicio }}</td>
+              <td>{{ s.fechaFin }}</td>
+              <td><span class="badge badge-days">{{ s.diasSolicitados }}d</span></td>
+              <td>{{ s.observacion || '-' }}</td>
+              <td>
+                <button mat-icon-button matTooltip="Eliminar" color="warn" *ngIf="!puedeEliminar(s)" 
+                  (click)="eliminarSolicitud(s.id)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+                <span *ngIf="puedeEliminar(s)" class="text-muted">No disponible</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Empty State para Solicitudes -->
+  <mat-card class="empty-state" *ngIf="empleadoSeleccionado && solicitudes.length === 0">
+    <mat-card-content>
+      <mat-icon class="empty-icon">assignment_turned_in</mat-icon>
+      <p>No hay solicitudes registradas para este empleado</p>
+      <p class="text-muted">Complete el formulario arriba para registrar una nueva solicitud</p>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Seleccionar Empleado State -->
+  <mat-card class="empty-state" *ngIf="!empleadoSeleccionado">
+    <mat-card-content>
+      <mat-icon class="empty-icon">person_outline</mat-icon>
+      <p>Selecciona un empleado para ver sus solicitudes de vacaciones</p>
+      <p class="text-muted">Usa el selector arriba para elegir un empleado</p>
+    </mat-card-content>
+  </mat-card>
 
 </div>
-<hr>
-<button class="info-btn" (click)="mostrarInfo = !mostrarInfo">
-  📘 Información de reglamento
-</button>
-<!-- Panel informativo -->
-<div class="info-panel" *ngIf="mostrarInfo">
-  <h3>📋 Reglamento sobre Vacaciones</h3>
-  <p>🔹 <strong>12 días hábiles:</strong> Por cada 50-52 semanas trabajadas. Un año de servicio. Un día (1) por mes
-    laborado.</p>
-  <p>🔹 <strong>Empleados con contratos diarios:</strong> Por cada <strong>22 días</strong> trabajados, según datos de
-    la planilla, tiene derecho a 1 día de
-    vacaciones.
-  </p>
-  <p>🔹 <strong>No Acumulables (Regla General):</strong> Deben disfrutarse. No se pueden compensar en dinero, salvo
-    excepciones muy calificadas.</p>
-  <p>🔹 <strong>Excepciones a la Compensación:</strong> Fin de contrato, trabajo ocasional/a destajo, o si el exceso de
-    2 semanas se acuerda compensar (máximo 3 períodos acumulados, sin haberlo recibido antes).</p>
-  <p>🔹 <strong>Fraccionamiento:</strong> Pueden dividirse según acuerdo previo con su Jefatura directa.
-  <p>🔹 <strong>Plazo para Disfrutar:</strong> El patrono debe concederlos dentro de los 5 meses siguientes al
-    cumplimiento del año de servicio, señalando la fecha.
-  </p>
-  <p>🔹 <strong>Nota Importante! Cálculo de vacaciones:</strong> Las <strong>incapacidades</strong> o los
-    <strong>permisos sin goce
-      salarial</strong> afectan la continuidad para las vacaciones, ya que el calculo es sobre semanas efectivas
-    laboradas.
-  </p>
-
-
-  <h4>⚖️ Base legal</h4>
-  <ul>
-    <li><strong>Interno:</strong> Reglamento Interno de la empresa</li>
-    <li><strong>Código de Trabajo:</strong> (Artículos 153, 155, 156, 157).</li>
-  </ul>
-</div>
-
-<hr>
-
-<!-- RESULTADOS -->
-<h3>Solicitudes del empleado</h3>
-
-<div *ngIf="!empleadoSeleccionado">
-  <p>Seleccione un empleado para ver las solicitudes.</p>
-</div>
-
-<table border="1" *ngIf="empleadoSeleccionado && solicitudes.length > 0">
-  <thead>
-    <tr>
-      <th>Periodo</th>
-      <th>Desde</th>
-      <th>Hasta</th>
-      <th>Días</th>
-      <th>Observación</th>
-      <th>Acciones</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr *ngFor="let s of solicitudes">
-      <td>{{ s.periodo }}</td>
-      <td>{{ s.fechaInicio }}</td>
-      <td>{{ s.fechaFin }}</td>
-      <td>{{ s.diasSolicitados }}</td>
-      <td>{{ s.observacion }}</td>
-      <td>
-        <button *ngIf="!puedeEliminar(s)" (click)="eliminarSolicitud(s.id)">🗑️ Eliminar</button>
-      </td>
-    </tr>
-  </tbody>
-</table>
-
-<p *ngIf="empleadoSeleccionado && solicitudes.length === 0">
-  No hay solicitudes registradas.
-</p>
