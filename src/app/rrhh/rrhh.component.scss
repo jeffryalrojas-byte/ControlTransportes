@@ -1,219 +1,147 @@
+@import '../../styles/variables';
+@import '../../styles/mixins';
+
+// ==================== CONTENEDOR PRINCIPAL ====================
 .rrhh-container {
-  padding: 20px;
-  max-width: 1400px;
-  margin: 0 auto;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  min-height: 100vh;
+  @include page-container;
 
   mat-card {
-    margin-bottom: 20px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    border-radius: 12px;
-    transition: all 0.3s ease;
-
-    &:hover {
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
-      transform: translateY(-2px);
-    }
+    @include card;
+    margin-bottom: $spacing-lg;
   }
 }
 
+// ==================== HEADER ====================
 .header-card {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: white;
+  color: $text-primary !important;
+  margin-bottom: $spacing-2xl;
 
   mat-card-header {
-    display: flex;
-    align-items: center;
-    gap: 20px;
+    @include card-header;
+    background: linear-gradient(135deg, $primary 0%, $primary-dark 100%) !important;
+    color: white !important;
   }
 
   .header-icon {
-    width: 60px !important;
-    height: 60px !important;
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 !important;
-
-    mat-icon {
-      font-size: 32px;
-      width: 32px;
-      height: 32px;
-    }
+    @include card-icon;
   }
 
   mat-card-title {
     margin: 0;
-    color: white;
+    color: white !important;
   }
 
   mat-card-subtitle {
-    color: rgba(255, 255, 255, 0.8);
+    color: rgba(255, 255, 255, 0.9) !important;
   }
 }
 
+// ==================== FORMULARIO ====================
 .form-card {
   background: white;
 
   mat-card-title {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 20px;
-    margin-bottom: 20px;
-    color: #333;
-
-    mat-icon {
-      color: #667eea;
-    }
+    @include section-title;
+    margin-bottom: $spacing-lg;
   }
 
   form {
     .form-row {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 16px;
-      margin-bottom: 16px;
+      @include form-grid;
     }
 
     .form-field {
-      width: 100%;
+      @include form-field;
 
       &.full-width {
         grid-column: 1 / -1;
       }
     }
-
-    mat-form-field {
-      ::ng-deep .mat-form-field-outline {
-        color: #ddd;
-      }
-
-      ::ng-deep .mat-form-field-infix {
-        padding: 12px 0;
-      }
-    }
   }
 
   .form-actions {
-    display: flex;
-    gap: 12px;
-    margin-top: 24px;
-    justify-content: flex-start;
+    @include flex-center;
+    gap: $spacing-sm;
+    margin-top: $spacing-xl;
 
     button {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 20px;
-      font-weight: 600;
-      border-radius: 8px;
-      transition: all 0.3s ease;
-
-      &[color="primary"] {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-
-        &:hover:not(:disabled) {
-          transform: translateY(-2px);
-          box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-        }
-      }
-
-      &[color="warn"] {
-        background: #ff6b6b;
-
-        &:hover:not(:disabled) {
-          background: #ff5252;
-          box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
-        }
-      }
-
-      mat-icon {
-        font-size: 20px;
-        width: 20px;
-        height: 20px;
-      }
+      @include btn-primary;
     }
   }
 }
 
+// ==================== TABLA ====================
 .table-card {
   background: white;
 
   mat-card-title {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 20px;
-    margin-bottom: 20px;
-    color: #333;
+    @include section-title;
+    margin-bottom: $spacing-lg;
+  }
+}
 
-    mat-icon {
-      color: #667eea;
+.table-responsive {
+  overflow-x: auto;
+  border-radius: $border-radius-md;
+  border: 1px solid $border-color;
+}
+
+.empleados-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+
+  thead {
+    background: $bg-light;
+    border-bottom: 2px solid $border-color;
+  }
+
+  th {
+    padding: $spacing-md;
+    text-align: left;
+    font-weight: $font-weight-semibold;
+    color: $text-secondary;
+    border-right: 1px solid $border-color;
+    font-size: $font-size-sm;
+
+    &:last-child {
+      border-right: none;
     }
   }
 
-  .table-responsive {
-    overflow-x: auto;
-    border-radius: 8px;
-    border: 1px solid #eee;
+  td {
+    padding: $spacing-md;
+    text-align: left;
+    font-size: $font-size-sm;
+    border-right: 1px solid $border-color;
+    border-bottom: 1px solid $border-color;
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
+    &:last-child {
+      border-right: none;
+    }
+  }
 
-      th {
-        background: #f8f9fa;
-        padding: 12px;
-        text-align: left;
-        font-weight: 600;
-        color: #666;
-        border-bottom: 2px solid #eee;
-        font-size: 13px;
-      }
+  tbody tr {
+    transition: background $transition-fast;
 
-      td {
-        padding: 12px;
-        border-bottom: 1px solid #eee;
-        font-size: 13px;
-
-        &:last-child {
-          display: flex;
-          gap: 4px;
-        }
-      }
-
-      tbody tr {
-        transition: background 0.2s ease;
-
-        &:hover {
-          background: #f8f9fa;
-        }
-
-        &:last-child td {
-          border-bottom: none;
-        }
-      }
+    &:hover {
+      background: $bg-light;
     }
 
-    mat-icon {
-      font-size: 18px;
-      width: 18px;
-      height: 18px;
+    &:last-child td {
+      border-bottom: none;
     }
   }
 }
 
-// Badges y etiquetas
+// ==================== BADGES ====================
 .badge {
   display: inline-block;
   padding: 4px 12px;
   border-radius: 20px;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
   white-space: nowrap;
 
   &-pago {
@@ -243,49 +171,49 @@
 }
 
 .text-muted {
-  color: #999;
+  color: $text-light;
   font-style: italic;
 }
 
+// ==================== ESTADO VACÍO ====================
 .empty-state {
-  text-align: center;
-  padding: 60px 20px;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  @include empty-state;
 
   .empty-icon {
     font-size: 80px;
     width: 80px;
     height: 80px;
     color: #ccc;
-    margin: 0 auto 20px;
+    margin: 0 auto $spacing-lg;
   }
 
   p {
-    margin: 10px 0;
-    color: #666;
+    margin: $spacing-sm 0;
+    color: $text-secondary;
 
     &.text-muted {
-      color: #aaa;
-      font-size: 14px;
+      color: $text-light;
+      font-size: $font-size-sm;
     }
   }
 }
 
-// Responsive
-@media (max-width: 768px) {
+// ==================== RESPONSIVE ====================
+@include respond-to('md') {
   .rrhh-container {
-    padding: 12px;
+    padding: $spacing-sm;
   }
 
-  .form-card form .form-row {
+  form .form-row {
     grid-template-columns: 1fr;
   }
 
-  .table-responsive {
-    font-size: 12px;
+  .empleados-table {
+    font-size: $font-size-xs;
 
-    th, td {
-      padding: 8px;
+    th,
+    td {
+      padding: $spacing-sm;
     }
   }
 

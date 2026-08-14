@@ -1,20 +1,294 @@
-.config-form {
-    margin-top: 15px;
+@import '../../styles/variables';
+@import '../../styles/mixins';
+
+// ==================== CONTENEDOR PRINCIPAL ====================
+.configuracion-container {
+  @include page-container;
+
+  mat-card {
+    @include card;
+    margin-bottom: $spacing-lg;
+  }
 }
 
-.campo {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 14px;
+// ==================== HEADER ====================
+.header-card {
+  background: white;
+  color: $text-primary !important;
+  margin-bottom: $spacing-2xl;
+
+  mat-card-header {
+    @include card-header;
+    background: linear-gradient(135deg, $primary 0%, $primary-dark 100%) !important;
+    color: white !important;
+  }
+
+  .header-icon {
+    @include card-icon;
+  }
+
+  mat-card-title {
+    margin: 0;
+    color: white !important;
+  }
+
+  mat-card-subtitle {
+    color: rgba(255, 255, 255, 0.9) !important;
+  }
 }
 
-.campo label {
-    min-width: 160px;
-    font-weight: 600;
+// ==================== TABS ====================
+.config-tabs {
+  ::ng-deep {
+    .mat-tab-labels {
+      background: white;
+      box-shadow: $shadow-sm;
+      border-radius: $border-radius-md $border-radius-md 0 0;
+
+      .mat-tab-label {
+        font-weight: $font-weight-semibold;
+        color: $text-secondary;
+        min-width: 120px;
+        @include flex-center;
+        gap: $spacing-sm;
+
+        &:hover {
+          background: rgba($primary, 0.05);
+        }
+
+        &.mat-tab-label-active {
+          color: $primary;
+        }
+
+        .tab-icon {
+          font-size: 18px;
+          width: 18px;
+          height: 18px;
+        }
+
+        span {
+          @include respond-to('md') {
+            display: none;
+          }
+        }
+      }
+    }
+
+    .mat-tab-body-wrapper {
+      background: white;
+      border-radius: 0 0 $border-radius-md $border-radius-md;
+    }
+  }
 }
 
-.campo input {
-    width: 120px;
-    padding: 4px 6px;
+.tab-content {
+  @include card-content;
+
+  mat-card-header {
+    margin-bottom: $spacing-xl;
+
+    mat-card-title {
+      @include section-title;
+    }
+  }
+}
+
+// ==================== LOGO ====================
+.logo-preview-section {
+  margin-bottom: $spacing-xl;
+  text-align: center;
+
+  .section-label {
+    @include section-label;
+  }
+}
+
+.logo-preview {
+  @include flex-center;
+  padding: $spacing-lg;
+  background: $bg-light;
+  border-radius: $border-radius-md;
+  border: 2px solid $border-color;
+  transition: all $transition-normal;
+
+  &:hover {
+    border-color: $primary;
+    background: rgba($primary, 0.02);
+  }
+
+  img {
+    max-width: 180px;
+    max-height: 180px;
+    border-radius: $border-radius-sm;
+    box-shadow: $shadow-md;
+  }
+}
+
+.upload-section {
+  background: $bg-light;
+  padding: $spacing-lg;
+  border-radius: $border-radius-md;
+  border-left: 4px solid $primary;
+
+  .section-label {
+    @include section-label;
+  }
+}
+
+.upload-area {
+  @include flex-col;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-md;
+
+  .upload-btn {
+    @include btn-stroked;
+  }
+
+  .file-info {
+    @include flex-center;
+    gap: $spacing-sm;
+    padding: $spacing-sm;
+    background: white;
+    border-radius: $border-radius-sm;
+    border-left: 3px solid #2ecc71;
+    color: #27ae60;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+
+    mat-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+    }
+  }
+}
+
+.save-btn {
+  @include btn-primary;
+  margin-top: $spacing-sm;
+}
+
+.upload-info {
+  @include flex-center;
+  gap: $spacing-sm;
+  font-size: $font-size-xs;
+  color: $text-light;
+  margin-top: $spacing-sm;
+
+  mat-icon {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+  }
+}
+
+// ==================== FORMULARIOS ====================
+.form-section {
+  margin-bottom: $spacing-lg;
+
+  .form-row {
+    @include form-grid;
+  }
+
+  .form-field {
+    @include form-field;
+  }
+
+  .actions {
+    @include flex-center;
+    gap: $spacing-sm;
+    margin-top: $spacing-lg;
+
+    button {
+      @include btn-primary;
+    }
+  }
+}
+
+.form-grid {
+  @include form-grid;
+
+  .incentivo-field {
+    @include form-field;
+  }
+}
+
+// ==================== HISTORIAL ====================
+.section-divider {
+  margin: $spacing-xl 0;
+}
+
+.history-section {
+  margin-top: $spacing-lg;
+
+  .section-title {
+    @include section-title;
+  }
+}
+
+.table-responsive {
+
+  .percentage {
+    @include badge-primary;
+  }
+}
+
+.history-table {
+  // Estilos personalizados adicionales si es necesario
+}
+
+.empty-state {
+  @include empty-state;
+}
+
+// ==================== ACCIONES ====================
+.actions {
+  @include flex-center;
+  gap: $spacing-sm;
+  margin-top: $spacing-xl;
+
+  button {
+    @include btn-primary;
+  }
+}
+
+// ==================== RESPONSIVE ====================
+@include respond-to('md') {
+  .configuracion-container {
+    padding: $spacing-sm;
+  }
+
+  .tab-content {
+    padding: $spacing-md;
+  }
+
+  .form-section .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .table-responsive {
+    font-size: $font-size-xs;
+
+    th,
+    td {
+      padding: $spacing-sm;
+    }
+  }
+
+  .logo-preview img {
+    max-width: 120px;
+    max-height: 120px;
+  }
+
+  .actions {
+    flex-direction: column;
+
+    button {
+      width: 100%;
+    }
+  }
 }

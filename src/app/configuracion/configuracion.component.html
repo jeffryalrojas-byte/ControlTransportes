@@ -1,108 +1,221 @@
-<h2>⚙️ Configuración</h2>
-
-<mat-tab-group>
-
-  <!-- 🔹 TAB 0: Logo Empresa -->
-  <mat-tab label="Logo de Empresa">
-    <div class="config-form">
-      <h3>🎨 Logo Personalizado</h3>
-
-      <!-- Logo actual -->
-      <div *ngIf="logoBase64" style="margin-bottom: 20px;">
-        <p><strong>Logo actual:</strong></p>
-        <img [src]="logoBase64" alt="Logo de la empresa" style="max-width: 200px; max-height: 200px; border: 1px solid #ddd; padding: 5px; border-radius: 5px;" />
+<div class="configuracion-container">
+  <!-- Header Card -->
+  <mat-card class="header-card">
+    <mat-card-header>
+      <div mat-card-avatar class="header-icon">
+        <mat-icon>settings</mat-icon>
       </div>
+      <mat-card-title>Configuración de Empresa</mat-card-title>
+      <mat-card-subtitle>Personaliza los parámetros de tu organización</mat-card-subtitle>
+    </mat-card-header>
+  </mat-card>
 
-      <!-- Selector de archivo -->
-      <div class="campo">
-        <label>Seleccionar nueva imagen:</label>
-        <input 
-          type="file" 
-          #logoInput 
-          accept="image/jpeg,image/png,image/jpg"
-          (change)="onArchivoSeleccionado($event)"
-          style="display: none;"
-        />
-        
-        <button (click)="logoInput.click()" [disabled]="subiendo">
-          📁 Seleccionar archivo
-        </button>
+  <!-- Tabs Section -->
+  <mat-tab-group class="config-tabs" animationDuration="300">
 
-        <span *ngIf="archivoSeleccionado" style="margin-left: 10px; color: #666;">
-          {{ archivoSeleccionado.name }}
-        </span>
-      </div>
+    <!-- TAB 1: Logo -->
+    <mat-tab label="Logo Personalizado" class="tab-logo">
+      <ng-template mat-tab-label>
+        <mat-icon class="tab-icon">image</mat-icon>
+        <span>Logo</span>
+      </ng-template>
 
-      <!-- Botón subir -->
-      <button 
-        (click)="subirLogo()" 
-        [disabled]="!archivoSeleccionado || subiendo"
-        style="margin-top: 10px;"
-      >
-        {{ subiendo ? '⏳ Guardando...' : '💾 Guardar Logo' }}
-      </button>
+      <mat-card class="tab-content">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>palette</mat-icon>
+            Logo de Empresa
+          </mat-card-title>
+        </mat-card-header>
 
-      <p style="font-size: 12px; color: #999; margin-top: 15px;">
-        📋 Formatos soportados: JPG, PNG | Tamaño máximo: 2MB
-      </p>
-    </div>
-  </mat-tab>
+        <mat-card-content>
+          <!-- Logo Preview -->
+          <div class="logo-preview-section" *ngIf="logoBase64">
+            <p class="section-label">Logo Actual:</p>
+            <div class="logo-preview">
+              <img [src]="logoBase64" alt="Logo de la empresa" [matTooltip]="'Logo actual de la empresa'">
+            </div>
+          </div>
 
-  <!-- 🔹 TAB 1: Cargas Sociales -->
-  <mat-tab label="Cargas Sociales">
-    <div class="config-form">
+          <!-- Upload Section -->
+          <div class="upload-section">
+            <p class="section-label">Cargar Nuevo Logo:</p>
 
-      <div class="campo">
-        <label>🧾 CCSS Trabajador:</label>
-        <input type="number" step="0.01" [(ngModel)]="cargas.ccssTrabajador" /> %
-      </div>
+            <input type="file" #logoInput accept="image/jpeg,image/png,image/jpg"
+              (change)="onArchivoSeleccionado($event)" style="display: none;" />
 
-      <div class="campo">
-        <label>🏢 CCSS Patrono:</label>
-        <input type="number" step="0.01" [(ngModel)]="cargas.ccssPatrono" /> %
-      </div>
+            <div class="upload-area">
+              <button mat-stroked-button (click)="logoInput.click()" [disabled]="subiendo" class="upload-btn">
+                <mat-icon>cloud_upload</mat-icon>
+                <span>Seleccionar Archivo</span>
+              </button>
 
-      <br />
-      <button (click)="guardarCambios()">💾 Guardar Cambios</button>
+              <div *ngIf="archivoSeleccionado" class="file-info">
+                <mat-icon>check_circle</mat-icon>
+                <span>{{ archivoSeleccionado.name }}</span>
+              </div>
 
-      <hr>
+              <mat-error *ngIf="!archivoSeleccionado && subiendo">
+                Por favor selecciona un archivo
+              </mat-error>
+            </div>
 
-      <h3>📜 Historial</h3>
-      <table border="1" cellpadding="6" *ngIf="historico.length > 0">
-        <thead>
-          <tr>
-            <th>Fecha</th>
-            <th>CCSS Trabajador</th>
-            <th>CCSS Patrono</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let h of historico">
-            <td>{{ h.fecha }}</td>
-            <td>{{ (h.ccssTrabajador * 100) | number:'1.2-2' }} %</td>
-            <td>{{ (h.ccssPatrono * 100) | number:'1.2-2' }} %</td>
-          </tr>
-        </tbody>
-      </table>
+            <!-- Save Button -->
+            <button mat-raised-button color="primary" (click)="subirLogo()"
+              [disabled]="!archivoSeleccionado || subiendo" class="save-btn">
+              <mat-icon>{{ subiendo ? 'hourglass_empty' : 'save' }}</mat-icon>
+              <span>{{ subiendo ? 'Guardando...' : 'Guardar Logo' }}</span>
+            </button>
 
-      <p *ngIf="historico.length === 0">
-        No hay configuraciones guardadas aún.
-      </p>
+            <!-- Info -->
+            <mat-hint class="upload-info">
+              <mat-icon>info</mat-icon>
+              Formatos soportados: JPG, PNG | Tamaño máximo: 2MB
+            </mat-hint>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </mat-tab>
 
-    </div>
-  </mat-tab>
+    <!-- TAB 2: Cargas Sociales -->
+    <mat-tab label="Cargas Sociales" class="tab-cargas">
+      <ng-template mat-tab-label>
+        <mat-icon class="tab-icon">account_balance</mat-icon>
+        <span>Cargas</span>
+      </ng-template>
 
-  <!-- 🔹 TAB 2: Incentivos -->
-  <mat-tab label="Incentivos por Puesto">
-    <h3>🎁 Incentivos</h3>
+      <mat-card class="tab-content">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>payment</mat-icon>
+            Configuración de Cargas Sociales
+          </mat-card-title>
+        </mat-card-header>
 
-    <div class="campo" *ngFor="let p of puestos">
-      <label>{{ p }}:</label>
-      <input type="number" min="0" [(ngModel)]="incentivos[p]" />
-    </div>
+        <mat-card-content>
+          <!-- Form Section -->
+          <div class="form-section">
+            <div class="form-row">
+              <mat-form-field appearance="outline" class="form-field">
+                <mat-label>CCSS Trabajador (%)</mat-label>
+                <input matInput type="number" step="0.01" [(ngModel)]="cargas.ccssTrabajador" placeholder="0.00">
+                <mat-icon matPrefix>person</mat-icon>
+                <mat-hint>Porcentaje aportado por el trabajador</mat-hint>
+              </mat-form-field>
 
-    <br>
-    <button (click)="guardarIncentivos()">💾 Guardar Incentivos</button>
-  </mat-tab>
+              <mat-form-field appearance="outline" class="form-field">
+                <mat-label>CCSS Patrono (%)</mat-label>
+                <input matInput type="number" step="0.01" [(ngModel)]="cargas.ccssPatrono" placeholder="0.00">
+                <mat-icon matPrefix>business</mat-icon>
+                <mat-hint>Porcentaje aportado por la empresa</mat-hint>
+              </mat-form-field>
+            </div>
 
-</mat-tab-group>
+            <div class="actions">
+              <button mat-raised-button color="primary" (click)="guardarCambios()">
+                <mat-icon>save</mat-icon>
+                <span>Guardar Cambios</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- History Section -->
+          <mat-divider class="section-divider"></mat-divider>
+
+          <div class="history-section">
+            <h3 class="section-title">
+              <mat-icon>history</mat-icon>
+              Historial de Cambios
+            </h3>
+
+            <!-- History Table -->
+            <div class="table-responsive" *ngIf="historico.length > 0">
+              <table mat-table [dataSource]="historico" class="history-table">
+
+                <!-- Fecha Column -->
+                <ng-container matColumnDef="fecha">
+                  <th mat-header-cell *matHeaderCellDef>
+                    <mat-icon>calendar_today</mat-icon>
+                    Fecha
+                  </th>
+                  <td mat-cell *matCellDef="let element">
+                    {{ element.fecha }}
+                  </td>
+                </ng-container>
+
+                <!-- CCSS Trabajador Column -->
+                <ng-container matColumnDef="ccssTrabajador">
+                  <th mat-header-cell *matHeaderCellDef>
+                    <mat-icon>person</mat-icon>
+                    CCSS Trabajador
+                  </th>
+                  <td mat-cell *matCellDef="let element">
+                    <span class="percentage">{{ (element.ccssTrabajador * 100) | number:'1.2-2' }}%</span>
+                  </td>
+                </ng-container>
+
+                <!-- CCSS Patrono Column -->
+                <ng-container matColumnDef="ccssPatrono">
+                  <th mat-header-cell *matHeaderCellDef>
+                    <mat-icon>business</mat-icon>
+                    CCSS Patrono
+                  </th>
+                  <td mat-cell *matCellDef="let element">
+                    <span class="percentage">{{ (element.ccssPatrono * 100) | number:'1.2-2' }}%</span>
+                  </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="historyColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: historyColumns;"></tr>
+              </table>
+            </div>
+
+            <!-- Empty State -->
+            <div *ngIf="historico.length === 0" class="empty-state">
+              <mat-icon>event_note</mat-icon>
+              <p>No hay cambios registrados aún</p>
+              <small>Los cambios aparecerán aquí</small>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </mat-tab>
+
+    <!-- TAB 3: Incentivos -->
+    <mat-tab label="Incentivos" class="tab-incentivos">
+      <ng-template mat-tab-label>
+        <mat-icon class="tab-icon">card_giftcard</mat-icon>
+        <span>Incentivos</span>
+      </ng-template>
+
+      <mat-card class="tab-content">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>monetization_on</mat-icon>
+            Incentivos por Puesto
+          </mat-card-title>
+        </mat-card-header>
+
+        <mat-card-content>
+          <!-- Incentivos Form -->
+          <div class="form-grid">
+            <mat-form-field appearance="outline" *ngFor="let p of puestos" class="incentivo-field">
+              <mat-label>{{ p }} (₡)</mat-label>
+              <input matInput type="number" min="0" [(ngModel)]="incentivos[p]" placeholder="0.00">
+            </mat-form-field>
+          </div>
+
+          <!-- Save Button -->
+          <div class="actions">
+            <button mat-raised-button color="primary" (click)="guardarIncentivos()">
+              <mat-icon>save</mat-icon>
+              <span>Guardar Incentivos</span>
+            </button>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </mat-tab>
+
+  </mat-tab-group>
+
+</div>

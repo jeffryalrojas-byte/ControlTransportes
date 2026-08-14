@@ -109,127 +109,120 @@
     </mat-card-title>
     <mat-card-content>
       <div class="table-responsive">
-        <table mat-table [dataSource]="empleados" class="empleados-table">
+        <table class="empleados-table">
+          <thead>
+            <tr>
+              <th>Cédula</th>
+              <th>Nombre</th>
+              <th>Puesto</th>
+              <th>Ingreso</th>
+              <th>Pago</th>
+              <th>Salario</th>
+              <th>Contrato</th>
+              <th>Vacaciones</th>
+              <th>Incapacidades</th>
+              <th>Aguinaldo</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
 
-          <!-- Cédula -->
-          <ng-container matColumnDef="cedula">
-            <th mat-header-cell *matHeaderCellDef>Cédula</th>
-            <td mat-cell *matCellDef="let e">{{ e.cedula }}</td>
-          </ng-container>
+          <tbody>
+            <tr *ngFor="let e of empleados">
+              <td>{{ e.cedula }}</td>
 
-          <!-- Nombre -->
-          <ng-container matColumnDef="nombre">
-            <th mat-header-cell *matHeaderCellDef>Nombre</th>
-            <td mat-cell *matCellDef="let e"><strong>{{ e.nombre }}</strong></td>
-          </ng-container>
+              <td>
+                <strong>{{ e.nombre }}</strong>
+              </td>
 
-          <!-- Puesto -->
-          <ng-container matColumnDef="puesto">
-            <th mat-header-cell *matHeaderCellDef>Puesto</th>
-            <td mat-cell *matCellDef="let e">
-              <mat-chip>{{ e.puesto }}</mat-chip>
-            </td>
-          </ng-container>
+              <td>
+                <mat-chip>{{ e.puesto }}</mat-chip>
+              </td>
 
-          <!-- Fecha Ingreso -->
-          <ng-container matColumnDef="fechaIngreso">
-            <th mat-header-cell *matHeaderCellDef>Ingreso</th>
-            <td mat-cell *matCellDef="let e">{{ e.fechaIngreso }}</td>
-          </ng-container>
+              <td>{{ e.fechaIngreso }}</td>
 
-          <!-- Tipo Pago -->
-          <ng-container matColumnDef="tipoPago">
-            <th mat-header-cell *matHeaderCellDef>Pago</th>
-            <td mat-cell *matCellDef="let e">
-              <span class="badge badge-pago">{{ e.tipoPago }}</span>
-            </td>
-          </ng-container>
+              <td>
+                <span class="badge badge-pago">
+                  {{ e.tipoPago }}
+                </span>
+              </td>
 
-          <!-- Salario -->
-          <ng-container matColumnDef="salario">
-            <th mat-header-cell *matHeaderCellDef>Salario</th>
-            <td mat-cell *matCellDef="let e">
-              {{ e.tipoPago === 'mensual' ? (e.salarioMensual | currency:'CRC') : (e.salarioDiario | currency:'CRC') }}
-            </td>
-          </ng-container>
+              <td>
+                {{ e.tipoPago === 'mensual'
+                ? (e.salarioMensual | currency:'CRC')
+                : (e.salarioDiario | currency:'CRC') }}
+              </td>
 
-          <!-- Contrato -->
-          <ng-container matColumnDef="tipoContrato">
-            <th mat-header-cell *matHeaderCellDef>Contrato</th>
-            <td mat-cell *matCellDef="let e">
-              <span [ngClass]="e.tipoContrato === 'indefinido' ? 'badge-indefinido' : 'badge-definido'">
-                {{ e.tipoContrato }}
-              </span>
-            </td>
-          </ng-container>
+              <td>
+                <span [ngClass]="e.tipoContrato === 'indefinido'
+              ? 'badge badge-indefinido'
+              : 'badge badge-definido'">
+                  {{ e.tipoContrato }}
+                </span>
+              </td>
 
-          <!-- Vacaciones -->
-          <ng-container matColumnDef="vacaciones">
-            <th mat-header-cell *matHeaderCellDef>Vacaciones</th>
-            <td mat-cell *matCellDef="let e">
-              <ng-container *ngIf="diasVacaciones[e.id]; else noVac">
-                <div *ngFor="let periodo of (diasVacaciones[e.id] | keyvalue : vacacionKeyValueFn)">
-                  <span *ngIf="periodo.value > 0" class="badge badge-vac">
-                    {{ periodo.key }}: {{ periodo.value }}d
+              <td>
+                <ng-container *ngIf="diasVacaciones[e.id]; else noVac">
+                  <div *ngFor="let periodo of (diasVacaciones[e.id] | keyvalue : vacacionKeyValueFn)">
+                    <span *ngIf="periodo.value > 0" class="badge badge-vac">
+                      {{ periodo.key }}: {{ periodo.value }}d
+                    </span>
+                  </div>
+
+                  <span *ngIf="!tieneVacacionesPendientes(e.id)" class="text-muted">
+                    Sin pendientes
                   </span>
-                </div>
-                <span *ngIf="!tieneVacacionesPendientes(e.id)" class="text-muted">Sin pendientes</span>
-              </ng-container>
-              <ng-template #noVac>
-                <span class="text-muted">-</span>
-              </ng-template>
-            </td>
-          </ng-container>
+                </ng-container>
 
-          <!-- Incapacidades -->
-          <ng-container matColumnDef="incapacidades">
-            <th mat-header-cell *matHeaderCellDef>Incapacidades</th>
-            <td mat-cell *matCellDef="let e">
-              <ng-container *ngIf="getDiasPendientesIncapacidad(e.id) > 0; else noInc">
-                <span class="badge badge-danger">{{ getDiasPendientesIncapacidad(e.id) }}d</span>
-              </ng-container>
-              <ng-template #noInc>
-                <span class="text-muted">No activas</span>
-              </ng-template>
-            </td>
-          </ng-container>
+                <ng-template #noVac>
+                  <span class="text-muted">-</span>
+                </ng-template>
+              </td>
 
-          <!-- Aguinaldo -->
-          <ng-container matColumnDef="aguinaldo">
-            <th mat-header-cell *matHeaderCellDef>Aguinaldo</th>
-            <td mat-cell *matCellDef="let e">{{ aguinaldos[e.id] | currency:'CRC' }}</td>
-          </ng-container>
+              <td>
+                <ng-container *ngIf="getDiasPendientesIncapacidad(e.id) > 0; else noInc">
+                  <span class="badge badge-danger">
+                    {{ getDiasPendientesIncapacidad(e.id) }}d
+                  </span>
+                </ng-container>
 
-          <!-- Estado -->
-          <ng-container matColumnDef="estado">
-            <th mat-header-cell *matHeaderCellDef>Estado</th>
-            <td mat-cell *matCellDef="let e">
-              <ng-container [ngSwitch]="obtenerEstadoEmpleado(e)">
-                <mat-chip *ngSwitchCase="'activo'" color="primary" selected>Activo</mat-chip>
-                <mat-chip *ngSwitchCase="'inactivo'" color="warn" selected>Inactivo</mat-chip>
-              </ng-container>
-            </td>
-          </ng-container>
+                <ng-template #noInc>
+                  <span class="text-muted">No activas</span>
+                </ng-template>
+              </td>
 
-          <!-- Acciones -->
-          <ng-container matColumnDef="acciones">
-            <th mat-header-cell *matHeaderCellDef>Acciones</th>
-            <td mat-cell *matCellDef="let e">
-              <button mat-icon-button matTooltip="Ver contrato" color="primary" (click)="imprimirContrato(e)">
-                <mat-icon>description</mat-icon>
-              </button>
-              <button mat-icon-button matTooltip="Editar" color="accent" (click)="editar(e)">
-                <mat-icon>edit</mat-icon>
-              </button>
-              <button *ngIf="puedeEliminar()" mat-icon-button matTooltip="Eliminar" color="warn"
-                (click)="eliminar(e.id)">
-                <mat-icon>delete</mat-icon>
-              </button>
-            </td>
-          </ng-container>
+              <td>
+                {{ aguinaldos[e.id] | currency:'CRC' }}
+              </td>
 
-          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+              <td>
+                <ng-container [ngSwitch]="obtenerEstadoEmpleado(e)">
+                  <mat-chip *ngSwitchCase="'activo'" color="primary" selected>
+                    Activo
+                  </mat-chip>
+
+                  <mat-chip *ngSwitchCase="'inactivo'" color="warn" selected>
+                    Inactivo
+                  </mat-chip>
+                </ng-container>
+              </td>
+
+              <td class="acciones-cell">
+                <button mat-icon-button matTooltip="Ver contrato" color="primary" (click)="imprimirContrato(e)">
+                  <mat-icon>description</mat-icon>
+                </button>
+
+                <button mat-icon-button matTooltip="Editar" color="accent" (click)="editar(e)">
+                  <mat-icon>edit</mat-icon>
+                </button>
+
+                <button *ngIf="puedeEliminar()" mat-icon-button matTooltip="Eliminar" color="warn"
+                  (click)="eliminar(e.id)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </td>
+            </tr>
+          </tbody>
         </table>
       </div>
     </mat-card-content>

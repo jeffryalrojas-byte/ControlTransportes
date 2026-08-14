@@ -15,6 +15,7 @@ export class ConfiguracionComponent implements OnInit {
 
   puestos: string[] = ['Administrador', 'Chofer', 'Asistente'];
   incentivos: { [puesto: string]: number } = {};
+  historyColumns: string[] = ['fecha', 'ccssTrabajador', 'ccssPatrono'];
 
   historico: {
     id: string;
@@ -66,13 +67,11 @@ export class ConfiguracionComponent implements OnInit {
   onArchivoSeleccionado(event: any): void {
     const archivo = event.target.files[0];
     if (archivo) {
-      // Validar que sea imagen
       if (!archivo.type.startsWith('image/')) {
         this.snackBar.open('❌ Por favor selecciona una imagen válida', 'Cerrar', { duration: 3000 });
         return;
       }
 
-      // Validar tamaño (máximo 2MB para Base64)
       if (archivo.size > 2 * 1024 * 1024) {
         this.snackBar.open('❌ La imagen no debe superar 2MB', 'Cerrar', { duration: 3000 });
         return;
@@ -100,7 +99,6 @@ export class ConfiguracionComponent implements OnInit {
     }
   }
 
-  // ==================== CARGAS SOCIALES ====================
   guardarCambios() {
     const cargasConvertidas: CargasSociales = {
       ccssTrabajador: this.cargas.ccssTrabajador / 100,
@@ -113,7 +111,6 @@ export class ConfiguracionComponent implements OnInit {
     this.snackBar.open('✅ Cargas sociales actualizadas', 'Cerrar', { duration: 3000 });
   }
 
-  // ==================== INCENTIVOS ====================
   guardarIncentivos() {
     this.configuracionService.guardarIncentivos(this.incentivos);
     this.snackBar.open('✅ Incentivos guardados', 'Cerrar', { duration: 3000 });
