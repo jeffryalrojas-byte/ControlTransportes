@@ -1,132 +1,207 @@
-<h2>📊 Control Financiero</h2>
+<div class="finanzas-container">
+  <!-- Header Section -->
+  <mat-card class="header-card">
+    <mat-card-header>
+      <div mat-card-avatar class="header-icon">
+        <mat-icon>trending_up</mat-icon>
+      </div>
+      <mat-card-title>Control Financiero</mat-card-title>
+      <mat-card-subtitle>Gestiona ingresos, gastos y balances</mat-card-subtitle>
+    </mat-card-header>
+  </mat-card>
 
-<!-- 🔥 SELECCIONAR EL MES A TRABAJAR -->
-<div class="mes-selector">
-  <label>Seleccionar mes:</label>
-  <input type="month" [(ngModel)]="mesActivo" (change)="filtrarPorMes()">
-</div>
+  <!-- Controles y Filtros -->
+  <mat-card class="controls-card">
+    <mat-card-title>
+      <mat-icon>filter_list</mat-icon>
+      Filtros y Búsqueda
+    </mat-card-title>
+    <mat-card-content>
+      <div class="filters-grid">
+        <!-- Selector de Mes -->
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Mes</mat-label>
+          <input matInput type="month" [(ngModel)]="mesActivo" (change)="filtrarPorMes()">
+          <mat-icon matPrefix>calendar_today</mat-icon>
+        </mat-form-field>
 
-<hr>
+        <!-- Selector de Año -->
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Año</mat-label>
+          <mat-select [(ngModel)]="anioActivo" (selectionChange)="filtrarPorAnio()">
+            <mat-option value="">Todos los años</mat-option>
+            <mat-option *ngFor="let anio of aniosDisponibles" [value]="anio">{{ anio }}</mat-option>
+          </mat-select>
+          <mat-icon matPrefix>date_range</mat-icon>
+        </mat-form-field>
 
-<!-- 🔎 FILTRO POR CATEGORÍAS -->
-<div class="filtros">
-  <strong>Filtrar por categoría:</strong><br><br>
+        <!-- Botones de Acción -->
+        <div class="action-buttons">
+          <button mat-stroked-button (click)="movimientosFiltrados = movimientos">
+            <mat-icon>list</mat-icon>
+            Mostrar Todos
+          </button>
+        </div>
+      </div>
 
-  <!-- Selección de AÑO -->
-  <label><strong>Seleccionar Año:</strong></label>
-  <select [(ngModel)]="anioActivo" (change)="filtrarPorAnio()">
-    <option *ngFor="let a of aniosDisponibles" [value]="a">
-      {{ a }}
-    </option>
-  </select>
-  <hr>
-  <button *ngFor="let c of categorias" (click)="filtrarPorCategoria(c)">
-    {{ c }}
-  </button>
+      <!-- Filtro por Categorías -->
+      <div class="categories-section">
+        <h3 class="section-label">Filtrar por Categoría:</h3>
+        <div class="categories-grid">
+          <button mat-stroked-button *ngFor="let c of categorias" (click)="filtrarPorCategoria(c)" class="category-btn">
+            {{ c }}
+          </button>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
 
-  <button (click)="filtrarPorAnio()">Mostrar año seleccionado</button>
-  <button (click)="filtrarPorMes()">Mostrar mes seleccionado</button>
-  <button (click)="movimientosFiltrados = movimientos">Mostrar todas</button>
+  <!-- Formulario de Agregar Movimiento -->
+  <mat-card class="form-card">
+    <mat-card-title>
+      <mat-icon>add_circle</mat-icon>
+      Registrar Movimiento Financiero
+    </mat-card-title>
+    <mat-card-content>
+      <div class="form-grid">
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Descripción</mat-label>
+          <input matInput [(ngModel)]="descripcion" placeholder="Ej: Pago de CCSS">
+          <mat-icon matPrefix>description</mat-icon>
+        </mat-form-field>
 
-  <hr>
-</div>
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Monto (₡)</mat-label>
+          <input matInput type="number" [(ngModel)]="monto" placeholder="0.00" min="0">
+          <mat-icon matPrefix>attach_money</mat-icon>
+        </mat-form-field>
 
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Categoría</mat-label>
+          <mat-select [(ngModel)]="categoriaSeleccionada">
+            <mat-option value="">-- Seleccionar --</mat-option>
+            <mat-option *ngFor="let c of categorias" [value]="c">{{ c }}</mat-option>
+          </mat-select>
+          <mat-icon matPrefix>category</mat-icon>
+        </mat-form-field>
 
-<hr>
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Tipo</mat-label>
+          <mat-select [(ngModel)]="tipo">
+            <mat-option value="ingreso">Ingreso</mat-option>
+            <mat-option value="gasto">Gasto</mat-option>
+          </mat-select>
+          <mat-icon matPrefix>trending_up</mat-icon>
+        </mat-form-field>
+      </div>
 
-<!-- Input para agregar nueva categoría -->
-<div class="add-category">
-  <input placeholder="Nueva categoría" [(ngModel)]="nuevaCategoria">
-  <button class="btn-agregar-categoria" (click)="agregarCategoria()">➕ Agregar categoría</button>
-</div>
+      <div class="form-actions">
+        <button mat-raised-button color="primary" (click)="agregar()">
+          <mat-icon>add</mat-icon>
+          Agregar Movimiento
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
 
-<hr>
+  <!-- Tabla de Movimientos -->
+  <mat-card class="table-card" *ngIf="movimientosFiltrados.length > 0">
+    <mat-card-title>
+      <mat-icon>receipt</mat-icon>
+      Movimientos ({{ movimientosFiltrados.length }})
+    </mat-card-title>
+    <mat-card-content>
+      <div class="table-responsive">
+        <table class="movimientos-table">
+          <thead>
+            <tr>
+              <th>Mes</th>
+              <th>Descripción</th>
+              <th>Categoría</th>
+              <th>Tipo</th>
+              <th>Monto</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let m of movimientosFiltrados">
+              <td>{{ m.mes }}</td>
+              <td>{{ m.descripcion }}</td>
+              <td><mat-chip>{{ m.categoria }}</mat-chip></td>
+              <td>
+                <span [ngClass]="'badge badge-' + m.tipo">
+                  {{ m.tipo | uppercase }}
+                </span>
+              </td>
+              <td [ngClass]="'monto ' + m.tipo">
+                {{ m.monto | currency:'CRC' }}
+              </td>
+              <td>
+                <button mat-icon-button matTooltip="Eliminar" color="warn" (click)="eliminar(m.id)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </mat-card-content>
+  </mat-card>
 
-<div class="form">
-  <input placeholder="Descripción" [(ngModel)]="descripcion">
+  <!-- Empty State -->
+  <mat-card class="empty-state" *ngIf="movimientosFiltrados.length === 0">
+    <mat-card-content>
+      <mat-icon class="empty-icon">trending_flat</mat-icon>
+      <p>No hay movimientos para este período</p>
+      <p class="text-muted">Selecciona un filtro o agrega un nuevo movimiento</p>
+    </mat-card-content>
+  </mat-card>
 
-  <input type="number" placeholder="Monto" [ngModel]="monto" (ngModelChange)="monto = +$event">
+  <!-- Resumen Financiero -->
+  <div class="resumen-grid">
+    <!-- Resumen del Período Seleccionado -->
+    <mat-card class="resumen-card">
+      <mat-card-title>
+        <mat-icon>assessment</mat-icon>
+        Resumen del Período
+      </mat-card-title>
+      <mat-card-content>
+        <div class="resumen-item ingreso">
+          <span class="label">Ingresos:</span>
+          <span class="value">{{ totalIngresos() | currency:'CRC' }}</span>
+        </div>
+        <div class="resumen-item gasto">
+          <span class="label">Gastos:</span>
+          <span class="value">{{ totalGastos() | currency:'CRC' }}</span>
+        </div>
+        <div class="resumen-item balance" [ngClass]="balance() >= 0 ? 'positive' : 'negative'">
+          <span class="label">Balance:</span>
+          <span class="value">{{ balance() | currency:'CRC' }}</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
 
-  <!-- SELECT de categorías -->
-  <select [(ngModel)]="categoriaSeleccionada">
-    <option value="">-- Seleccionar categoría --</option>
-
-    <option *ngFor="let c of categorias" [value]="c">
-      {{ c }}
-    </option>
-  </select>
-
-  <select [(ngModel)]="tipo">
-    <option value="gasto">Gasto</option>
-    <option value="ingreso">Ingreso</option>
-  </select>
-
-  <button (click)="agregar()">Agregar</button>
-</div>
-
-<hr>
-
-<table border="1" cellpadding="4" width="100%">
-  <thead>
-    <tr>
-      <th>Mes</th>
-      <th>Descripción</th>
-      <th>Categoría</th>
-      <th>Tipo</th>
-      <th>Monto</th>
-      <th>Acciones</th>
-    </tr>
-  </thead>
-
-  <tbody>
-    <tr *ngFor="let m of movimientosFiltrados">
-      <td>{{ m.mes }}</td>
-      <td>{{ m.descripcion }}</td>
-      <td>{{ m.categoria }}</td>
-
-      <td [ngStyle]="{'color': m.tipo === 'ingreso' ? 'green' : 'red'}">
-        {{ m.tipo | uppercase }}
-      </td>
-
-      <td [ngStyle]="{'color': m.tipo === 'ingreso' ? 'green' : 'red'}">
-        {{ m.monto | currency:'CRC' }}
-      </td>
-
-      <td><button (click)="eliminar(m.id)">❌</button></td>
-    </tr>
-  </tbody>
-</table>
-
-<hr>
-
-<div class="resumen-container" style="display: flex; justify-content: space-between; gap: 30px;">
-
-  <!-- 🔹 RESUMEN DEL MES -->
-  <div class="resumen">
-    <h3>📅 Resumen del mes ({{ mesActivo }})</h3>
-    <p>💵 Total Ingresos: <strong>{{ totalIngresos() | currency:'CRC' }}</strong></p>
-    <p>💸 Total Gastos: <strong>{{ totalGastos() | currency:'CRC' }}</strong></p>
-    <p>🧾 Balance Final:
-      <strong [ngStyle]="{'color': balance() >= 0 ? 'green' : 'red'}">
-        {{ balance() | currency:'CRC' }}
-      </strong>
-    </p>
-  </div>
-
-  <!-- 🔹 RESUMEN GLOBAL -->
-  <div class="resumen" *ngIf="puedeVisualizarGeneral()">
-    <h3>🌎 Balance General</h3>
-    <p>💵 Ingresos Totales:
-      <strong>{{ totalIngresosGlobal() | currency:'CRC' }}</strong>
-    </p>
-    <p>💸 Gastos Totales:
-      <strong>{{ totalGastosGlobal() | currency:'CRC' }}</strong>
-    </p>
-    <p>🧾 Balance General:
-      <strong [ngStyle]="{'color': balanceGlobal() >= 0 ? 'green' : 'red'}">
-        {{ balanceGlobal() | currency:'CRC' }}
-      </strong>
-    </p>
+    <!-- Resumen General (Solo Supervisor) -->
+    <mat-card class="resumen-card" *ngIf="puedeVisualizarGeneral()">
+      <mat-card-title>
+        <mat-icon>public</mat-icon>
+        Balance General
+      </mat-card-title>
+      <mat-card-content>
+        <div class="resumen-item ingreso">
+          <span class="label">Ingresos Totales:</span>
+          <span class="value">{{ totalIngresosGlobal() | currency:'CRC' }}</span>
+        </div>
+        <div class="resumen-item gasto">
+          <span class="label">Gastos Totales:</span>
+          <span class="value">{{ totalGastosGlobal() | currency:'CRC' }}</span>
+        </div>
+        <div class="resumen-item balance" [ngClass]="balanceGlobal() >= 0 ? 'positive' : 'negative'">
+          <span class="label">Balance General:</span>
+          <span class="value">{{ balanceGlobal() | currency:'CRC' }}</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
   </div>
 
 </div>

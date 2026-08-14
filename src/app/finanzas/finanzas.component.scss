@@ -1,50 +1,353 @@
-.form {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 12px;
+@import '../../styles/variables';
+@import '../../styles/mixins';
 
-    input,
-    select,
-    button {
-        padding: 6px;
-        border-radius: 5px;
-        border: 1px solid #ccc;
-    }
+// ==================== CONTENEDOR PRINCIPAL ====================
+.finanzas-container {
+  @include page-container;
 
-    button {
-        background-color: #2ecc71;
-        color: white;
-        font-weight: bold;
-        border: none;
-        cursor: pointer;
-        transition: 0.3s;
-    }
-
-    button:hover {
-        background-color: #27ae60;
-    }
+  mat-card {
+    @include card;
+    margin-bottom: $spacing-lg;
+  }
 }
 
-.resumen {
-    margin-top: 15px;
-    font-size: 1.1em;
+// ==================== HEADER ====================
+.header-card {
+  background: white;
+  color: $text-primary !important;
+  margin-bottom: $spacing-2xl;
 
-    p {
-        margin: 5px 0;
+  mat-card-header {
+    @include card-header;
+    background: linear-gradient(135deg, $primary 0%, $primary-dark 100%) !important;
+    color: white !important;
+  }
+
+  .header-icon {
+    @include card-icon;
+  }
+
+  mat-card-title {
+    margin: 0;
+    color: white !important;
+  }
+
+  mat-card-subtitle {
+    color: rgba(255, 255, 255, 0.9) !important;
+  }
+}
+
+// ==================== CONTROLES ====================
+.controls-card {
+  background: white;
+
+  mat-card-title {
+    @include section-title;
+    margin-bottom: $spacing-lg;
+  }
+}
+
+.filters-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: $spacing-md;
+  margin-bottom: $spacing-lg;
+  align-items: flex-end;
+
+  @include respond-to('md') {
+    grid-template-columns: 1fr;
+  }
+}
+
+.form-field {
+  @include form-field;
+}
+
+.action-buttons {
+  @include flex-center;
+  gap: $spacing-sm;
+
+  button {
+    @include btn-stroked;
+  }
+}
+
+// ==================== CATEGORÍAS ====================
+.categories-section {
+  padding-top: $spacing-lg;
+  border-top: 1px solid $border-color;
+}
+
+.section-label {
+  @include section-label;
+  margin-bottom: $spacing-md;
+}
+
+.categories-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: $spacing-sm;
+
+  @include respond-to('md') {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  }
+}
+
+.category-btn {
+  @include btn-stroked;
+  font-size: $font-size-sm;
+  padding: 8px 12px !important;
+  height: auto;
+}
+
+// ==================== FORMULARIO ====================
+.form-card {
+  background: white;
+
+  mat-card-title {
+    @include section-title;
+    margin-bottom: $spacing-lg;
+  }
+}
+
+.form-grid {
+  @include form-grid;
+}
+
+.form-actions {
+  @include flex-center;
+  gap: $spacing-sm;
+  margin-top: $spacing-xl;
+
+  button {
+    @include btn-primary;
+  }
+}
+
+// ==================== TABLA ====================
+.table-card {
+  background: white;
+
+  mat-card-title {
+    @include section-title;
+    margin-bottom: $spacing-lg;
+  }
+}
+
+.table-responsive {
+  overflow-x: auto;
+  border-radius: $border-radius-md;
+  border: 1px solid $border-color;
+}
+
+.movimientos-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+
+  thead {
+    background: $bg-light;
+    border-bottom: 2px solid $border-color;
+  }
+
+  th {
+    padding: $spacing-md;
+    text-align: left;
+    font-weight: $font-weight-semibold;
+    color: $text-secondary;
+    border-right: 1px solid $border-color;
+    font-size: $font-size-sm;
+
+    &:last-child {
+      border-right: none;
     }
+  }
+
+  td {
+    padding: $spacing-md;
+    text-align: left;
+    font-size: $font-size-sm;
+    border-right: 1px solid $border-color;
+    border-bottom: 1px solid $border-color;
+
+    &:last-child {
+      border-right: none;
+    }
+  }
+
+  tbody tr {
+    transition: background $transition-fast;
+
+    &:hover {
+      background: $bg-light;
+    }
+
+    &:last-child td {
+      border-bottom: none;
+    }
+  }
 }
 
-.btn-agregar-categoria {
-    background-color: #4fd86f;
-    color: white;
-    padding: 5px 12px;
-    border-radius: 6px;
-    margin-left: 10px;
-    border: none;
-    cursor: pointer;
+// ==================== MONTO ====================
+.monto {
+  font-weight: $font-weight-semibold;
+
+  &.ingreso {
+    color: #2ecc71;
+  }
+
+  &.gasto {
+    color: #e74c3c;
+  }
 }
 
-.btn-agregar-categoria:hover {
-    background-color: #218838;
+// ==================== BADGES ====================
+.badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  white-space: nowrap;
+
+  &-ingreso {
+    background: #e8f5e9;
+    color: #2ecc71;
+  }
+
+  &-gasto {
+    background: #ffebee;
+    color: #e74c3c;
+  }
+}
+
+// ==================== ESTADO VACÍO ====================
+.empty-state {
+  @include empty-state;
+
+  .empty-icon {
+    font-size: 80px;
+    width: 80px;
+    height: 80px;
+    color: #ccc;
+    margin: 0 auto $spacing-lg;
+  }
+
+  p {
+    margin: $spacing-sm 0;
+    color: $text-secondary;
+
+    &.text-muted {
+      color: $text-light;
+      font-size: $font-size-sm;
+    }
+  }
+}
+
+// ==================== RESUMEN ====================
+.resumen-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: $spacing-lg;
+
+  @include respond-to('md') {
+    grid-template-columns: 1fr;
+  }
+}
+
+.resumen-card {
+  background: white;
+
+  mat-card-title {
+    @include section-title;
+    margin-bottom: $spacing-lg;
+  }
+
+  mat-card-content {
+    padding: $spacing-lg 0 0 0;
+  }
+}
+
+.resumen-item {
+  @include flex-between;
+  padding: $spacing-md;
+  background: $bg-light;
+  border-radius: $border-radius-md;
+  border-left: 4px solid $border-color;
+  margin-bottom: $spacing-md;
+
+  .label {
+    font-weight: $font-weight-semibold;
+    color: $text-secondary;
+  }
+
+  .value {
+    font-size: $font-size-lg;
+    font-weight: $font-weight-bold;
+  }
+
+  &.ingreso {
+    border-left-color: #2ecc71;
+    background: rgba(46, 204, 113, 0.05);
+
+    .value {
+      color: #2ecc71;
+    }
+  }
+
+  &.gasto {
+    border-left-color: #e74c3c;
+    background: rgba(231, 76, 60, 0.05);
+
+    .value {
+      color: #e74c3c;
+    }
+  }
+
+  &.balance {
+    border-left-color: $primary;
+
+    &.positive {
+      background: rgba(46, 204, 113, 0.05);
+
+      .value {
+        color: #2ecc71;
+      }
+    }
+
+    &.negative {
+      background: rgba(231, 76, 60, 0.05);
+
+      .value {
+        color: #e74c3c;
+      }
+    }
+  }
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+// ==================== RESPONSIVE ====================
+@include respond-to('md') {
+  .finanzas-container {
+    padding: $spacing-sm;
+  }
+
+  .movimientos-table {
+    font-size: $font-size-xs;
+
+    th, td {
+      padding: $spacing-sm;
+    }
+  }
+
+  .categories-grid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
 }
