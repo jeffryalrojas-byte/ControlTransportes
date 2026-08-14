@@ -119,13 +119,13 @@ export class RegistroComponent implements OnInit {
         plan
       );
 
-      // 3. Crear registro de usuario en Firestore con rol admin (es el propietario)
+      // 3. Crear registro de usuario en Firestore con rol supervisor (es el propietario)
       await this.userService.crearUsuario(
         userCredential.uid,
         email,
         nombre,
         empresa.id,
-        'admin'
+        'supervisor'
       );
 
       this.snackBar.open('✅ Cuenta creada exitosamente', 'Cerrar', { duration: 3000 });

@@ -287,11 +287,11 @@ export class RrhhComponent implements OnInit {
   }
 
   puedeEliminar(): boolean {
-    return this.usuarioActivo?.rol === 'Supervisor';
+    return this.usuarioActivo?.rol === 'supervisor';
   }
 
   esAdmin(): boolean {
-    return this.usuarioActivo?.rol === 'Administrador';
+    return this.usuarioActivo?.rol === 'admin';
   }
 
   imprimirContrato(e: any) {

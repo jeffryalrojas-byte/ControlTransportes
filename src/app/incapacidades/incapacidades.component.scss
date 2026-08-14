@@ -1,30 +1,328 @@
-button {
-    padding: 8px 14px;
-    border: none;
-    background: #1976d2;
-    color: white;
-    border-radius: 6px;
-    cursor: pointer;
-    margin-right: 8px;
+@import '../../styles/variables';
+@import '../../styles/mixins';
 
-    &[disabled] {
-        background: #b5b5b5;
-        cursor: not-allowed;
-    }
+// ==================== CONTENEDOR PRINCIPAL ====================
+.incapacidades-container {
+  @include page-container;
 
-    &.sec {
-        background: #555;
-    }
-
-    &.del {
-        background: #c62828;
-    }
-
-    &.info-btn {
-        background: #0d47a1;
-    }
+  mat-card {
+    @include card;
+    margin-bottom: $spacing-lg;
+  }
 }
 
-.btns {
-    margin-top: 16px;
+// ==================== HEADER ====================
+.header-card {
+  background: white;
+  color: $text-primary !important;
+  margin-bottom: $spacing-2xl;
+
+  mat-card-header {
+    @include card-header;
+    background: linear-gradient(135deg, $primary 0%, $primary-dark 100%) !important;
+    color: white !important;
+  }
+
+  .header-icon {
+    @include card-icon;
+  }
+
+  mat-card-title {
+    margin: 0;
+    color: white !important;
+  }
+
+  mat-card-subtitle {
+    color: rgba(255, 255, 255, 0.9) !important;
+  }
+}
+
+// ==================== FORMULARIO ====================
+.form-card {
+  background: white;
+
+  mat-card-title {
+    @include section-title;
+    margin-bottom: $spacing-lg;
+  }
+}
+
+.form-grid {
+  @include form-grid;
+}
+
+.form-field {
+  @include form-field;
+
+  &.full-width {
+    grid-column: 1 / -1;
+  }
+}
+
+.form-actions {
+  @include flex-center;
+  gap: $spacing-sm;
+  margin-top: $spacing-xl;
+
+  button {
+    @include btn-primary;
+
+    &:last-child {
+      @include btn-stroked;
+    }
+  }
+}
+
+// ==================== INFO TOGGLE ====================
+.info-toggle-section {
+  display: flex;
+  justify-content: flex-start;
+  margin: $spacing-lg 0;
+}
+
+.info-toggle-btn {
+  @include flex-center;
+  gap: $spacing-sm;
+  color: $primary;
+  font-weight: $font-weight-semibold;
+  padding: $spacing-md $spacing-lg !important;
+  border-radius: $border-radius-md;
+  background: rgba($primary, 0.05);
+  border: 1px solid rgba($primary, 0.2);
+
+  &:hover {
+    background: rgba($primary, 0.1);
+    border-color: rgba($primary, 0.3);
+  }
+
+  mat-icon {
+    transition: transform $transition-normal;
+  }
+}
+
+// ==================== INFO CARD ====================
+.info-card {
+  background: linear-gradient(135deg, rgba($primary, 0.05) 0%, rgba($primary-dark, 0.05) 100%);
+  border-left: 4px solid $primary;
+
+  mat-card-header {
+    padding: $spacing-lg 0 $spacing-lg 0;
+  }
+
+  mat-card-title {
+    @include section-title;
+    margin-bottom: $spacing-lg;
+  }
+}
+
+.info-content {
+  h4 {
+    font-size: $font-size-lg;
+    font-weight: $font-weight-bold;
+    color: $text-primary;
+    margin-bottom: $spacing-md;
+  }
+}
+
+.info-item {
+  padding: $spacing-md;
+  margin-bottom: $spacing-md;
+  background: white;
+  border-radius: $border-radius-md;
+  border-left: 4px solid $primary;
+
+  h5 {
+    font-size: $font-size-md;
+    font-weight: $font-weight-bold;
+    color: $text-primary;
+    margin: 0 0 $spacing-sm 0;
+  }
+
+  ul, p {
+    margin: 0;
+    padding-left: $spacing-lg;
+    color: $text-secondary;
+    line-height: 1.6;
+
+    li {
+      margin-bottom: $spacing-xs;
+    }
+  }
+
+  &.warning {
+    border-left-color: #ff9800;
+    background: rgba(255, 152, 0, 0.05);
+
+    h5 {
+      color: #ff9800;
+    }
+  }
+
+  &.legal {
+    border-left-color: #2196f3;
+    background: rgba(33, 150, 243, 0.05);
+
+    h5 {
+      color: #2196f3;
+    }
+  }
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+// ==================== TABLA ====================
+.table-card {
+  background: white;
+
+  mat-card-title {
+    @include section-title;
+    margin-bottom: $spacing-lg;
+  }
+}
+
+.table-responsive {
+  overflow-x: auto;
+  border-radius: $border-radius-md;
+  border: 1px solid $border-color;
+}
+
+.incapacidades-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+
+  thead {
+    background: $bg-light;
+    border-bottom: 2px solid $border-color;
+  }
+
+  th {
+    padding: $spacing-md;
+    text-align: left;
+    font-weight: $font-weight-semibold;
+    color: $text-secondary;
+    border-right: 1px solid $border-color;
+    font-size: $font-size-sm;
+
+    &:last-child {
+      border-right: none;
+    }
+  }
+
+  td {
+    padding: $spacing-md;
+    text-align: left;
+    font-size: $font-size-sm;
+    border-right: 1px solid $border-color;
+    border-bottom: 1px solid $border-color;
+
+    &:last-child {
+      border-right: none;
+    }
+  }
+
+  tbody tr {
+    transition: background $transition-fast;
+
+    &:hover {
+      background: $bg-light;
+    }
+
+    &:last-child td {
+      border-bottom: none;
+    }
+  }
+}
+
+// ==================== BADGES ====================
+.badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  white-space: nowrap;
+
+  &-enfermedad {
+    background: #e3f2fd;
+    color: #1976d2;
+  }
+
+  &-accidente {
+    background: #ffebee;
+    color: #c62828;
+  }
+
+  &-maternidad {
+    background: #f3e5f5;
+    color: #7b1fa2;
+  }
+
+  &-paternidad {
+    background: #e8f5e9;
+    color: #2e7d32;
+  }
+
+  &-permisosg {
+    background: #fff3e0;
+    color: #e65100;
+  }
+}
+
+.text-muted {
+  color: $text-light;
+  font-style: italic;
+}
+
+// ==================== ESTADO VACÍO ====================
+.empty-state {
+  @include empty-state;
+
+  .empty-icon {
+    font-size: 80px;
+    width: 80px;
+    height: 80px;
+    color: #ccc;
+    margin: 0 auto $spacing-lg;
+  }
+
+  p {
+    margin: $spacing-sm 0;
+    color: $text-secondary;
+
+    &.text-muted {
+      color: $text-light;
+      font-size: $font-size-sm;
+    }
+  }
+}
+
+// ==================== RESPONSIVE ====================
+@include respond-to('md') {
+  .incapacidades-container {
+    padding: $spacing-sm;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .incapacidades-table {
+    font-size: $font-size-xs;
+
+    th, td {
+      padding: $spacing-sm;
+    }
+  }
+
+  .info-item {
+    padding: $spacing-sm;
+  }
+
+  .info-toggle-btn {
+    font-size: $font-size-sm;
+    padding: $spacing-sm $spacing-md !important;
+  }
 }

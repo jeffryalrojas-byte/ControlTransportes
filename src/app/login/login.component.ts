@@ -52,6 +52,11 @@ export class LoginComponent implements OnInit {
   mostrarHint = false;
   empresas: Empresa[] = [];
 
+  /**
+     * Variable que almacena el dato de la fecha actual
+     */
+  public annoActual = new Date();
+
   constructor(
     private router: Router,
     private fb: FormBuilder,

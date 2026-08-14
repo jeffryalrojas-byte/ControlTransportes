@@ -221,7 +221,7 @@ export class VacacionesComponent implements OnInit {
   //Valida si puedo eliminar las vacaciones solicitadas, para que aparezca el botón
   puedeEliminar(vacaciones: any): boolean {
 
-    if (this.usuarioActivo?.rol === 'Supervisor') {
+    if (this.usuarioActivo?.rol === 'supervisor') {
       return false;
     } else {
       const fechaFin = new Date(vacaciones.fechaFin);

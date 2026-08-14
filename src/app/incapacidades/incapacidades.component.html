@@ -1,126 +1,206 @@
-<h2>🏥 Registrar incapacidad o permiso sin goce</h2>
+<div class="incapacidades-container">
+  <!-- Header Section -->
+  <mat-card class="header-card">
+    <mat-card-header>
+      <div mat-card-avatar class="header-icon">
+        <mat-icon>local_hospital</mat-icon>
+      </div>
+      <mat-card-title>Registro de Incapacidades y Permisos</mat-card-title>
+      <mat-card-subtitle>Gestiona incapacidades, maternidad, paternidad y permisos sin goce</mat-card-subtitle>
+    </mat-card-header>
+  </mat-card>
 
-<div class="form">
-    <div>
-        <!-- Empleado -->
-        <label>Empleado:</label>
-        <select [(ngModel)]="empleadoId" (change)="seleccionarEmpleado(empleadoId)">
-            <option value="" disabled selected>Seleccione un empleado</option>
-            <option *ngFor="let e of empleados" [value]="e.id">
-                {{ e.nombre }} ({{ e.cedula }})
-            </option>
-        </select>
+  <!-- Formulario de Registro -->
+  <mat-card class="form-card">
+    <mat-card-title>
+      <mat-icon>add_circle</mat-icon>
+      Registrar Incapacidad o Permiso
+    </mat-card-title>
+    <mat-card-content>
+      <div class="form-grid">
+        <!-- Seleccionar Empleado -->
+        <mat-form-field appearance="outline" class="form-field full-width">
+          <mat-label>Empleado</mat-label>
+          <mat-select [(ngModel)]="empleadoId" (selectionChange)="seleccionarEmpleado(empleadoId)">
+            <mat-option value="">-- Seleccione un empleado --</mat-option>
+            <mat-option *ngFor="let e of empleados" [value]="e.id">
+              {{ e.nombre }} ({{ e.cedula }})
+            </mat-option>
+          </mat-select>
+          <mat-icon matPrefix>person</mat-icon>
+        </mat-form-field>
 
-        <!-- Tipo -->
-        <label>Tipo de incapacidad o permiso:</label>
-        <select [(ngModel)]="tipo">
-            <option value="" disabled selected>Seleccione el tipo</option>
-            <option value="enfermedad">Enfermedad</option>
-            <option value="accidente">Accidente laboral</option>
-            <option value="maternidad">Maternidad</option>
-            <option value="permisosg">Permiso sin goce salarial</option>
-            <option value="paternidad">Paternidad</option>
-        </select>
+        <!-- Tipo de Incapacidad -->
+        <mat-form-field appearance="outline" class="form-field full-width">
+          <mat-label>Tipo de Incapacidad o Permiso</mat-label>
+          <mat-select [(ngModel)]="tipo" [disabled]="estadoBotones">
+            <mat-option value="">-- Seleccione el tipo --</mat-option>
+            <mat-option value="enfermedad">Enfermedad</mat-option>
+            <mat-option value="accidente">Accidente Laboral</mat-option>
+            <mat-option value="maternidad">Maternidad</mat-option>
+            <mat-option value="permisosg">Permiso sin Goce Salarial</mat-option>
+            <mat-option value="paternidad">Paternidad</mat-option>
+          </mat-select>
+          <mat-icon matPrefix>category</mat-icon>
+        </mat-form-field>
 
-        <!-- Fechas -->
-        <label>Fecha inicio:</label>
-        <input type="date" [(ngModel)]="fechaInicio" (change)="calcularDias()" [disabled]="estadoBotones">
+        <!-- Fecha Inicio -->
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Fecha de Inicio</mat-label>
+          <input matInput type="date" [(ngModel)]="fechaInicio" (change)="calcularDias()" [disabled]="estadoBotones">
+          <mat-icon matPrefix>event_available</mat-icon>
+        </mat-form-field>
 
-        <label>Fecha fin:</label>
-        <input type="date" [(ngModel)]="fechaFin" (change)="calcularDias()" [disabled]="estadoBotones">
+        <!-- Fecha Fin -->
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Fecha de Fin</mat-label>
+          <input matInput type="date" [(ngModel)]="fechaFin" (change)="calcularDias()" [disabled]="estadoBotones">
+          <mat-icon matPrefix>event</mat-icon>
+        </mat-form-field>
 
-        <!-- Número de incapacidad -->
-        <label>Número de incapacidad:</label>
-        <input type="text" [(ngModel)]="numIncapacidad" placeholder="Ej: 123456" [disabled]="estadoBotones">
-    </div>
-    <!-- Botones -->
-    <div class="btns">
-        <button [disabled]="!empleadoId || !fechaInicio || !fechaFin || !tipo || !numIncapacidad"
-            (click)="guardarIncapacidad()">
-            💾 Registrar incapacidad
+        <!-- Número de Incapacidad -->
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>N° de Incapacidad</mat-label>
+          <input matInput [(ngModel)]="numIncapacidad" placeholder="Ej: 123456" [disabled]="estadoBotones">
+          <mat-icon matPrefix>tag</mat-icon>
+        </mat-form-field>
+
+        <!-- Días Calculados (Display) -->
+        <mat-form-field appearance="outline" class="form-field" >
+          <mat-label>Total de Días</mat-label>
+          <input matInput [value]="calcularDias()" readonly>
+          <mat-icon matPrefix>calendar_month</mat-icon>
+        </mat-form-field>
+      </div>
+
+      <div class="form-actions">
+        <button mat-raised-button color="primary" (click)="guardarIncapacidad()" 
+          [disabled]="!empleadoId || !fechaInicio || !fechaFin || !tipo || !numIncapacidad || estadoBotones">
+          <mat-icon>save</mat-icon>
+          Registrar Incapacidad
         </button>
-
-        <button class="sec" (click)="limpiar()">🧹 Limpiar</button>
-
-        <button class="info-btn" (click)="mostrarInfo = !mostrarInfo">
-            📘 Información de reglamento
+        <button mat-stroked-button (click)="limpiar()" [disabled]="estadoBotones">
+          <mat-icon>clear</mat-icon>
+          Limpiar
         </button>
-    </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
 
-    <!-- Días calculados -->
-    <p *ngIf="fechaInicio && fechaFin">🗓 Total días: {{ calcularDias() }}</p>
+  <!-- Botón Toggle para Panel Informativo -->
+  <div class="info-toggle-section">
+    <button mat-button (click)="mostrarInfo = !mostrarInfo" class="info-toggle-btn">
+      <mat-icon>{{ mostrarInfo ? 'expand_less' : 'expand_more' }}</mat-icon>
+      {{ mostrarInfo ? 'Ocultar' : 'Ver' }} Información de Reglamento
+    </button>
+  </div>
+
+  <!-- Panel Informativo (Collapsible) -->
+  <mat-card class="info-card" *ngIf="mostrarInfo">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>info</mat-icon>
+        Reglamento sobre Incapacidades
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="info-content">
+        <div class="info-item">
+          <h5>🔹 Enfermedad</h5>
+          <ul>
+            <li><strong>Días 1-3:</strong> Patrono paga 50% del salario diario</li>
+            <li><strong>Del día 4 en adelante:</strong> CCSS paga 60% del salario promedio</li>
+          </ul>
+        </div>
+
+        <div class="info-item">
+          <h5>🔹 Accidente Laboral</h5>
+          <p><strong>INS paga 67%</strong> del salario desde el primer día.</p>
+        </div>
+
+        <div class="info-item">
+          <h5>🔹 Maternidad</h5>
+          <p><strong>CCSS paga 100%</strong> del salario (1 mes antes y 3 meses después del parto).</p>
+        </div>
+
+        <div class="info-item">
+          <h5>🔹 Paternidad</h5>
+          <p>Derecho a <strong>8 días hábiles</strong> (2 días por semana durante 4 semanas). Pueden otorgarse de forma continua si hay acuerdo.</p>
+        </div>
+
+        <div class="info-item warning">
+          <h5>🔹 Permiso sin Goce Salarial</h5>
+          <p>Afecta la continuidad laboral y el cálculo de vacaciones, ya que se basa en semanas efectivas laboradas.</p>
+        </div>
+
+        <div class="info-item legal">
+          <h5>⚖️ Base Legal</h5>
+          <ul>
+            <li><strong>CCSS:</strong> Reglamento del Seguro de Salud, arts. 79, 80, 92, 93</li>
+            <li><strong>Código de Trabajo:</strong> Art. 231 (Riesgos del trabajo)</li>
+          </ul>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Tabla de Incapacidades -->
+  <mat-card class="table-card" *ngIf="empleadoSeleccionado && incapacidades.length > 0">
+    <mat-card-title>
+      <mat-icon>list</mat-icon>
+      Incapacidades de {{ empleadoSeleccionado.nombre }} ({{ incapacidades.length }})
+    </mat-card-title>
+    <mat-card-content>
+      <div class="table-responsive">
+        <table class="incapacidades-table">
+          <thead>
+            <tr>
+              <th>Tipo</th>
+              <th>Fecha Inicio</th>
+              <th>Fecha Fin</th>
+              <th>Días</th>
+              <th>N° Incapacidad</th>
+              <th>Período</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let inc of incapacidades">
+              <td><span class="badge" [ngClass]="'badge-' + inc.tipo">{{ inc.tipo | titlecase }}</span></td>
+              <td>{{ inc.fechaInicio }}</td>
+              <td>{{ inc.fechaFin }}</td>
+              <td><strong>{{ inc.dias }}d</strong></td>
+              <td>{{ inc.numIncapacidad }}</td>
+              <td>{{ formatearMes(inc.mes) }}</td>
+              <td>
+                <button mat-icon-button matTooltip="Eliminar" color="warn" (click)="eliminar(inc.id)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Empty State para Incapacidades -->
+  <mat-card class="empty-state" *ngIf="empleadoSeleccionado && incapacidades.length === 0">
+    <mat-card-content>
+      <mat-icon class="empty-icon">assignment_turned_in</mat-icon>
+      <p>No hay incapacidades registradas para este empleado</p>
+      <p class="text-muted">Complete el formulario arriba para registrar una nueva incapacidad</p>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Seleccionar Empleado State -->
+  <mat-card class="empty-state" *ngIf="!empleadoSeleccionado">
+    <mat-card-content>
+      <mat-icon class="empty-icon">person_outline</mat-icon>
+      <p>Selecciona un empleado para ver sus incapacidades</p>
+      <p class="text-muted">Usa el selector arriba para elegir un empleado</p>
+    </mat-card-content>
+  </mat-card>
+
 </div>
 
-<!-- Panel informativo -->
-<div class="info-panel" *ngIf="mostrarInfo">
-    <h3>📋 Reglamento sobre incapacidades</h3>
-    <p>🔹 <strong>Días 1 al 3:</strong> El patrono paga el <strong>50%</strong> del salario diario. La CCSS no cubre
-        incapacidades menores a 3 días.</p>
-    <p>🔹 <strong>Del día 4 en adelante:</strong> Únicamente la CCSS paga el <strong>60%</strong> del salario promedio
-        reportado.
-    </p>
-    <p>🔹 <strong>Accidente laboral:</strong> El INS paga el <strong>67%</strong> del salario desde el primer día.</p>
-    <p>🔹 <strong>Maternidad:</strong> La CCSS paga el <strong>100%</strong> del salario (1 mes antes y 3 meses después
-        del parto).</p>
-    <p>🔹 <strong>Paternidad:</strong> El trabajador tiene derecho a <strong>8 días hábiles</strong>
-        (2 días por semana durante 4 semanas). Si el patrono - empleado acuerdan, pueden otorgarlos de forma continua.
-    </p>
-
-
-    <h4>⚖️ Base legal</h4>
-    <ul>
-        <li><strong>CCSS:</strong> Reglamento del Seguro de Salud, arts. 79, 80, 92, 93.</li>
-        <li><strong>Código de Trabajo:</strong> Art. 231 (Riesgos del trabajo).</li>
-    </ul>
-</div>
-
-<hr>
-
-<!-- Lista de incapacidades -->
-<h2>📋 Incapacidades registradas</h2>
-
-<div *ngIf="!empleadoSeleccionado">
-    <p>👈 Seleccione un empleado para ver sus incapacidades.</p>
-</div>
-
-<table *ngIf="empleadoSeleccionado && incapacidades.length > 0" border="1" cellpadding="6">
-    <thead>
-        <tr>
-            <th>Empleado</th>
-            <th>Tipo</th>
-            <th>Fecha Inicio</th>
-            <th>Fecha Fin</th>
-            <th>Días</th>
-            <th>N° Incapacidad</th>
-            <th>Mes</th>
-            <th>Acciones</th>
-        </tr>
-    </thead>
-
-    <tbody>
-        <tr *ngFor="let i of incapacidades">
-            <td>{{ empleadoSeleccionado?.nombre }}</td>
-            <td>
-                {{
-                i.tipo === 'enfermedad' ? 'Enfermedad' :
-                i.tipo === 'accidente' ? 'Accidente laboral' :
-                i.tipo === 'maternidad' ? 'Maternidad' :
-                i.tipo === 'paternidad' ? 'Paternidad' :
-                'Permiso sin goce'
-                }}
-            </td>
-            <td>{{ i.fechaInicio }}</td>
-            <td>{{ i.fechaFin }}</td>
-            <td>{{ i.dias }}</td>
-            <td>{{ i.numIncapacidad }}</td>
-            <td>{{ formatearMes(i.mes) }}</td>
-            <td>
-                <button class="del" (click)="eliminar(i.id)">🗑️ Eliminar</button>
-            </td>
-        </tr>
-    </tbody>
-</table>
-
-<p *ngIf="empleadoSeleccionado && incapacidades.length === 0">
-    📭 No hay incapacidades registradas para este empleado.
-</p>

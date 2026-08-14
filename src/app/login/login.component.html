@@ -23,13 +23,8 @@
             <mat-icon>person</mat-icon>
             Usuario
           </mat-label>
-          <input 
-            matInput 
-            formControlName="email" 
-            placeholder="Ingrese su usuario (correo)" 
-            (change)="onEmailChange()"
-            [@fadeIn] 
-          />
+          <input matInput formControlName="email" placeholder="Ingrese su usuario (correo)" (change)="onEmailChange()"
+            [@fadeIn] />
           <mat-error *ngIf="loginForm.get('email')?.hasError('required')">
             El usuario es requerido
           </mat-error>
@@ -98,7 +93,9 @@
       <!-- Footer -->
       <div class="login-footer">
         <p class="footer-text">
-          © 2024 Sistema de Transportes. Todos los derechos reservados.
+          © 2024-{{
+          annoActual.getFullYear()
+          }} Sistema de Transportes. Todos los derechos reservados.
         </p>
         <p class="registro-link">
           ¿No tienes cuenta? <a (click)="irARegistro()" style="cursor: pointer;">Regístrate aquí</a>

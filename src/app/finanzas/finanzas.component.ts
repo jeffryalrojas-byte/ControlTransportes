@@ -178,7 +178,7 @@ export class FinanzasComponent implements OnInit {
   }
 
   puedeVisualizarGeneral(): boolean {
-    return this.usuarioActivo?.rol === 'Supervisor';
+    return this.usuarioActivo?.rol === 'supervisor';
   }
 
   agregarCategoria() {
