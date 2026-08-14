@@ -119,6 +119,7 @@
               <th>Pago</th>
               <th>Salario</th>
               <th>Contrato</th>
+              <th>Fin Contrato</th>
               <th>Vacaciones</th>
               <th>Incapacidades</th>
               <th>Aguinaldo</th>
@@ -160,6 +161,8 @@
                   {{ e.tipoContrato }}
                 </span>
               </td>
+
+              <td>{{ e.tipoContrato === 'definido' ? e.fechaFinContrato : '-' }}</td>
 
               <td>
                 <ng-container *ngIf="diasVacaciones[e.id]; else noVac">

@@ -1,165 +1,278 @@
-<h2>💼 Planilla Mensual</h2>
-<hr>
+<div class="planilla-container">
+  <!-- Header Section -->
+  <mat-card class="header-card">
+    <mat-card-header>
+      <div mat-card-avatar class="header-icon">
+        <mat-icon>receipt</mat-icon>
+      </div>
+      <mat-card-title>Planilla Mensual</mat-card-title>
+      <mat-card-subtitle>Gestiona y calcula la nómina de tu empresa</mat-card-subtitle>
+    </mat-card-header>
+  </mat-card>
 
-<div style="display:flex; justify-content:space-between; margin-top:20px;">
+  <!-- Controles y Información -->
+  <mat-card class="controls-card">
+    <mat-card-content>
+      <div class="controls-grid">
+        <!-- Selector de Mes -->
+        <div class="control-group">
+          <div class="month-selector">
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Año</mat-label>
+              <mat-select [(ngModel)]="anioSeleccionado" (selectionChange)="onMesChange()"><mat-option
+                  *ngFor="let anio of aniosDisponibles" [value]="anio">{{ anio }}</mat-option>
+              </mat-select>
+              <mat-icon matPrefix>calendar_today</mat-icon>
+            </mat-form-field>
 
-  <div>
-    <div style="display: flex; align-items: center; gap: 10px;">
-      <label>📅 Mes:</label>
-      <input type="month" [(ngModel)]="mesActual" (change)="onMesChange()">
-      <button class="btn-guardar" (click)="guardarPlanilla()">💾 Guardar</button>
-    </div>
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Mes</mat-label>
+              <mat-select [(ngModel)]="mesSeleccionado" (selectionChange)="onMesChange()">
+                <mat-option value="">Seleccione mes</mat-option>
+                <mat-option value="01">Enero</mat-option>
+                <mat-option value="02">Febrero</mat-option>
+                <mat-option value="03">Marzo</mat-option>
+                <mat-option value="04">Abril</mat-option>
+                <mat-option value="05">Mayo</mat-option>
+                <mat-option value="06">Junio</mat-option>
+                <mat-option value="07">Julio</mat-option>
+                <mat-option value="08">Agosto</mat-option>
+                <mat-option value="09">Septiembre</mat-option>
+                <mat-option value="10">Octubre</mat-option>
+                <mat-option value="11">Noviembre</mat-option>
+                <mat-option value="12">Diciembre</mat-option>
+              </mat-select>
+              <mat-icon matPrefix>event</mat-icon>
+            </mat-form-field>
+          </div>
+
+          <button mat-raised-button color="primary" (click)="guardarPlanilla()" class="save-btn">
+            <mat-icon>save</mat-icon>
+            Guardar Planilla
+          </button>
+        </div>
+
+        <!-- Info de Cargas Sociales -->
+        <mat-card class="info-card">
+          <mat-card-title>
+            <mat-icon>info</mat-icon>
+            Cargas Sociales Vigentes
+          </mat-card-title>
+          <mat-card-content>
+            <div class="charge-info">
+              <div class="charge-item">
+                <span class="label">Trabajador:</span>
+                <span class="value">{{ ccssTrabajador * 100 | number:'1.2-2' }}%</span>
+              </div>
+              <div class="charge-item">
+                <span class="label">Patrono:</span>
+                <span class="value">{{ ccssPatrono * 100 | number:'1.2-2' }}%</span>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Tabla de Planilla -->
+  <mat-card class="table-card" *ngIf="empleados.length > 0">
+    <mat-card-title>
+      <mat-icon>table_chart</mat-icon>
+      Detalle de Salarios
+    </mat-card-title>
+    <mat-card-content>
+      <div class="table-responsive">
+        <table class="planilla-table">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Puesto</th>
+              <th>Tipo Pago</th>
+              <th>Salario Base</th>
+              <th>Días Trabajados</th>
+              <th>Salario Bruto</th>
+              <th>Extras</th>
+              <th>Incentivo</th>
+              <th>Rebajos</th>
+              <th>Salario Neto</th>
+              <th>Cargas Patronales</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let e of empleados">
+              <td><strong>{{ e.nombre }}</strong></td>
+              <td><mat-chip>{{ e.puesto }}</mat-chip></td>
+              <td><span class="badge badge-pago">{{ e.tipoPago }}</span></td>
+              <td>{{ e.salarioBase | currency:'CRC' }}</td>
+              <td>
+                <input *ngIf="e.tipoPago === 'diario'" type="number" min="0" [(ngModel)]="diasTrabajados[e.id]"
+                  (change)="actualizarDias(+e.id, $event)" class="input-dias">
+                <span *ngIf="e.tipoPago === 'mensual'" class="text-muted">N/A</span>
+              </td>
+              <td>{{ salarioBruto(e) | currency:'CRC' }}</td>
+              <td>
+                <input type="number" [(ngModel)]="e.extras" (change)="calcularTotales()" min="0" class="input-extras">
+              </td>
+              <td>{{ incentivos[e.puesto] || 0 | currency:'CRC' }}</td>
+              <td>{{ rebajosTrabajador(e) | currency:'CRC' }}</td>
+              <td><strong>{{ salarioNeto(e) | currency:'CRC' }}</strong></td>
+              <td>{{ cargaPatronal(e) | currency:'CRC' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Totales -->
+      <div class="totales-section">
+        <div class="total-item">
+          <span class="total-label">💰 Total Planilla (Neto):</span>
+          <span class="total-value">{{ totalNeto | currency:'CRC' }}</span>
+        </div>
+        <div class="total-item">
+          <span class="total-label">🏦 Total Cargas Patronales:</span>
+          <span class="total-value">{{ totalCargas | currency:'CRC' }}</span>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Empty State -->
+  <mat-card class="empty-state" *ngIf="empleados.length === 0">
+    <mat-card-content>
+      <mat-icon class="empty-icon">work_outline</mat-icon>
+      <p>No hay empleados para esta planilla</p>
+      <p class="text-muted">Selecciona un mes y verifica que los empleados estén registrados</p>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Histórico de Planillas -->
+  <mat-card class="history-card">
+    <mat-card-title>
+      <mat-icon>history</mat-icon>
+      Histórico de Planillas
+    </mat-card-title>
+    <mat-card-content>
+      <!-- Planillas del año actual -->
+      <div class="year-section">
+        <h3 class="year-title">{{ anioActual }}</h3>
+
+        <div class="table-responsive" *ngIf="planillasDelAnio.length > 0">
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>Mes</th>
+                <th>Fecha de Creación</th>
+                <th>Total Neto</th>
+                <th>Total Cargas</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let p of planillasDelAnio">
+                <td><strong>{{ p.mes }}</strong></td>
+                <td>{{ p.fechaCreacion }}</td>
+                <td>{{ p.totalNeto | currency:'CRC' }}</td>
+                <td>{{ p.totalCargas | currency:'CRC' }}</td>
+                <td>
+                  <button mat-icon-button matTooltip="Ver detalles" color="primary" (click)="verDetalles(p)">
+                    <mat-icon>description</mat-icon>
+                  </button>
+                  <button mat-icon-button matTooltip="Eliminar" color="warn" *ngIf="puedeEliminar(p)"
+                    (click)="eliminarPlanilla(p)">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div *ngIf="planillasDelAnio.length === 0" class="no-data">
+          <p>No hay planillas para este año</p>
+        </div>
+      </div>
+
+      <!-- Años anteriores (collapsible) -->
+      <div class="year-section" *ngIf="planillasAnteriores.length > 0">
+        <button mat-button (click)="mostrarAnteriores = !mostrarAnteriores" class="year-toggle">
+          <mat-icon>{{ mostrarAnteriores ? 'expand_less' : 'expand_more' }}</mat-icon>
+          Años anteriores
+        </button>
+
+        <div *ngIf="mostrarAnteriores">
+          <div class="table-responsive">
+            <table class="history-table">
+              <thead>
+                <tr>
+                  <th>Mes</th>
+                  <th>Fecha de Creación</th>
+                  <th>Total Neto</th>
+                  <th>Total Cargas</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let p of planillasAnteriores">
+                  <td><strong>{{ p.mes }}</strong></td>
+                  <td>{{ p.fechaCreacion }}</td>
+                  <td>{{ p.totalNeto | currency:'CRC' }}</td>
+                  <td>{{ p.totalCargas | currency:'CRC' }}</td>
+                  <td>
+                    <button mat-icon-button matTooltip="Ver detalles" color="primary" (click)="verDetalles(p)">
+                      <mat-icon>description</mat-icon>
+                    </button>
+                    <button mat-icon-button matTooltip="Eliminar" color="warn" *ngIf="puedeEliminar(p)"
+                      (click)="eliminarPlanilla(p)">
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Modal de Detalles -->
+  <div class="modal-overlay" *ngIf="detalleVisible" (click)="detalleVisible = false">
+    <mat-card class="modal-card" (click)="$event.stopPropagation()">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>receipt_long</mat-icon>
+          Detalles de Planilla - {{ planillaSeleccionada?.mes }}
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="table-responsive">
+          <table class="detail-table">
+            <thead>
+              <tr>
+                <th>Empleado</th>
+                <th>Salario Bruto</th>
+                <th>Salario Neto</th>
+                <th>Días Trab</th>
+                <th>Días Incap/50%</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let d of detallesMostrar">
+                <td><strong>{{ d.nombre }}</strong></td>
+                <td>{{ d.salarioBruto | currency:'CRC' }}</td>
+                <td><strong>{{ d.salarioNeto | currency:'CRC' }}</strong></td>
+                <td>{{ d.diasTrabajados }}</td>
+                <td>{{ d.diasIncapacidad }} / {{ d.diasIncapacidad50 }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </mat-card-content>
+      <mat-card-actions>
+        <button mat-button (click)="detalleVisible = false">Cerrar</button>
+      </mat-card-actions>
+    </mat-card>
   </div>
 
-  <div style="
-    border:1px solid #ccc;
-    padding:15px;
-    width:260px;
-    border-radius:10px;
-    background:#f7f7f7;">
-    <h3>📌 Cargas Sociales Vigentes</h3>
-    <p><strong>Trabajador:</strong> {{ ccssTrabajador * 100 }} %</p>
-    <p><strong>Patrono:</strong> {{ ccssPatrono * 100 }} %</p>
-  </div>
-
-</div>
-
-<table border="1" cellpadding="6">
-  <thead>
-    <tr>
-      <th>Nombre</th>
-      <th>Puesto</th>
-      <th>Tipo Pago</th>
-      <th>Salario Base</th>
-      <th>Días Trabajados</th>
-      <th>Salario Bruto</th>
-      <th>Extras</th>
-      <th>Incentivo</th>
-      <th>Rebajos Trabajador</th>
-      <th>Salario Neto</th>
-      <th>Cargas Patronales</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr *ngFor="let e of empleados">
-      <td>{{ e.nombre }}</td>
-      <td>{{ e.puesto }}</td>
-      <td>{{ e.tipoPago }}</td>
-      <td>
-        {{ e.salarioBase | currency:'CRC' }}
-      </td>
-      <td>
-        <input *ngIf="e.tipoPago === 'diario'" type="number" min="0" [(ngModel)]="diasTrabajados[e.id]"
-          (change)="actualizarDias(+e.id, $event)" style="width: 70px">
-        <span *ngIf="e.tipoPago === 'mensual'">N/A</span>
-      </td>
-      <td>{{ salarioBruto(e) | currency:'CRC' }}</td>
-      <td>
-        <input type="number" [(ngModel)]="e.extras" (change)="calcularTotales()" min="0" style="width: 90px;">
-      </td>
-      <td>
-        {{ incentivos[e.puesto] || 0 | currency:'CRC' }}
-      </td>
-      <td>{{ rebajosTrabajador(e) | currency:'CRC' }}</td>
-      <td>{{ salarioNeto(e) | currency:'CRC' }}</td>
-      <td>{{ cargaPatronal(e) | currency:'CRC' }}</td>
-    </tr>
-  </tbody>
-</table>
-
-<hr>
-
-<p><strong>💰 Total Planilla (Neto):</strong> {{ totalNeto | currency:'CRC' }}</p>
-<p><strong>🏦 Total Cargas Patronales:</strong> {{ totalCargas | currency:'CRC' }}</p>
-
-<hr>
-
-<h3>📚 Histórico de planillas guardadas</h3>
-
-<h4>Planillas {{ anioActual }}</h4>
-
-<table border="1" cellpadding="6">
-  <thead>
-    <tr>
-      <th>Mes</th>
-      <th>Fecha de Creación</th>
-      <th>Total Neto</th>
-      <th>Total Cargas</th>
-      <th>Acciones</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr *ngFor="let p of planillasDelAnio">
-      <td>{{ p.mes }}</td>
-      <td>{{ p.fechaCreacion }}</td>
-      <td>{{ p.totalNeto | currency:'CRC' }}</td>
-      <td>{{ p.totalCargas | currency:'CRC' }}</td>
-      <td>
-        <button *ngIf="!puedeEliminar(p)" (click)="eliminarPlanilla(p)">❌ Eliminar</button>
-        <button (click)="verDetalles(p)">📄 Detalles</button>
-      </td>
-    </tr>
-  </tbody>
-</table>
-
-<!-- BOTÓN PARA MOSTRAR AÑOS ANTERIORES -->
-<button (click)="mostrarAnteriores = !mostrarAnteriores" class="btn-guardar">
-  {{ mostrarAnteriores ? '⬆ Ocultar años anteriores' : '⬇ Mostrar años anteriores' }}
-</button>
-
-<!-- SECCIÓN DE AÑOS ANTERIORES -->
-<div *ngIf="mostrarAnteriores">
-  <h4>Años anteriores</h4>
-
-  <table border="1" cellpadding="6">
-    <thead>
-      <tr>
-        <th>Mes</th>
-        <th>Fecha de Creación</th>
-        <th>Total Neto</th>
-        <th>Total Cargas</th>
-        <th>Acciones</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let p of planillasAnteriores">
-        <td>{{ p.mes }}</td>
-        <td>{{ p.fechaCreacion }}</td>
-        <td>{{ p.totalNeto | currency:'CRC' }}</td>
-        <td>{{ p.totalCargas | currency:'CRC' }}</td>
-        <td>
-          <button *ngIf="!puedeEliminar(p)" (click)="eliminarPlanilla(p)">❌ Eliminar</button>
-          <button (click)="verDetalles(p)">📄 Detalles</button>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-</div>
-
-<!-- MODAL DE DETALLES -->
-<div class="modal" *ngIf="detalleVisible">
-  <div class="modal-content">
-    <h3>Detalles de la planilla {{ planillaSeleccionada?.mes }}</h3>
-
-    <table border="1" cellpadding="5">
-      <tr>
-        <th>Empleado</th>
-        <th>Salario Bruto</th>
-        <th>Salario Neto</th>
-        <th>Días Trab</th>
-        <th>Días Incap/Pagos 50%</th>
-      </tr>
-
-      <tr *ngFor="let d of detallesMostrar">
-        <td>{{ d.nombre }}</td>
-        <td>{{ d.salarioBruto | currency:'CRC' }}</td>
-        <td>{{ d.salarioNeto | currency:'CRC' }}</td>
-        <td>{{ d.diasTrabajados }}</td>
-        <td>{{ d.diasIncapacidad }}/{{d.diasIncapacidad50}}</td>
-      </tr>
-    </table>
-
-
-    <button (click)="detalleVisible = false">Cerrar</button>
-  </div>
 </div>

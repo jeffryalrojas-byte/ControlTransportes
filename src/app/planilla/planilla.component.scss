@@ -1,45 +1,487 @@
-.btn-guardar {
-    background: linear-gradient(135deg, #1976d2, #0d47a1);
-    color: white;
-    padding: 6px 12px;
-    /* 👈 Más pequeño */
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 14px;
-    /* 👈 Más compacto */
-    font-weight: 600;
-    margin-left: 10px;
-    /* 👈 Separación del input */
-    transition: all 0.25s ease;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.18);
+@import '../../styles/variables';
+@import '../../styles/mixins';
+
+// ==================== CONTENEDOR PRINCIPAL ====================
+.planilla-container {
+  @include page-container;
+
+  mat-card {
+    @include card;
+    margin-bottom: $spacing-lg;
+  }
 }
 
-.btn-guardar:hover {
-    background: linear-gradient(135deg, #1e88e5, #1565c0);
-    transform: translateY(-1px);
+// ==================== HEADER ====================
+.header-card {
+  background: white;
+  color: $text-primary !important;
+  margin-bottom: $spacing-2xl;
+
+  mat-card-header {
+    @include card-header;
+    background: linear-gradient(135deg, $primary 0%, $primary-dark 100%) !important;
+    color: white !important;
+  }
+
+  .header-icon {
+    @include card-icon;
+  }
+
+  mat-card-title {
+    margin: 0;
+    color: white !important;
+  }
+
+  mat-card-subtitle {
+    color: rgba(255, 255, 255, 0.9) !important;
+  }
 }
 
-.btn-guardar:active {
-    transform: translateY(0px);
+// ==================== CONTROLES ====================
+.controls-card {
+  background: white;
 }
 
-//Para el modal de detalles
-.modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.controls-grid {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: $spacing-lg;
+  align-items: start;
+
+  @include respond-to('md') {
+    grid-template-columns: 1fr;
+  }
 }
 
-.modal-content {
-    background: white;
-    padding: 20px;
-    border-radius: 15px;
-    min-width: 300px;
+.control-group {
+  @include flex-between;
+  gap: $spacing-md;
+  align-items: flex-end;
+
+  @include respond-to('md') {
+    flex-direction: column;
+    align-items: stretch;
+
+    .save-btn {
+      width: 100%;
+    }
+  }
+}
+
+.form-field {
+  @include form-field;
+  flex: 1;
+  min-width: 200px;
+}
+
+.save-btn {
+  @include btn-primary;
+  white-space: nowrap;
+}
+
+// ==================== INFO CARD ====================
+.info-card {
+  background: linear-gradient(135deg, rgba($primary, 0.05) 0%, rgba($primary-dark, 0.05) 100%);
+  border-left: 4px solid $primary;
+
+  mat-card-title {
+    @include section-title;
+    margin-bottom: $spacing-md;
+  }
+}
+
+.charge-info {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $spacing-md;
+}
+
+.charge-item {
+  @include flex-col;
+  gap: $spacing-xs;
+
+  .label {
+    font-size: $font-size-sm;
+    color: $text-secondary;
+    font-weight: $font-weight-semibold;
+  }
+
+  .value {
+    font-size: $font-size-lg;
+    font-weight: $font-weight-bold;
+    color: $primary;
+  }
+}
+
+// ==================== TABLA DE PLANILLA ====================
+.table-card {
+  background: white;
+
+  mat-card-title {
+    @include section-title;
+    margin-bottom: $spacing-lg;
+  }
+}
+
+.table-responsive {
+  overflow-x: auto;
+  border-radius: $border-radius-md;
+  border: 1px solid $border-color;
+}
+
+.planilla-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+
+  thead {
+    background: $bg-light;
+    border-bottom: 2px solid $border-color;
+  }
+
+  th {
+    padding: $spacing-md;
+    text-align: left;
+    font-weight: $font-weight-semibold;
+    color: $text-secondary;
+    border-right: 1px solid $border-color;
+    font-size: $font-size-sm;
+
+    &:last-child {
+      border-right: none;
+    }
+  }
+
+  td {
+    padding: $spacing-md;
+    text-align: left;
+    font-size: $font-size-sm;
+    border-right: 1px solid $border-color;
+    border-bottom: 1px solid $border-color;
+    vertical-align: middle;
+
+    &:last-child {
+      border-right: none;
+    }
+  }
+
+  tbody tr {
+    transition: background $transition-fast;
+
+    &:hover {
+      background: $bg-light;
+    }
+
+    &:last-child td {
+      border-bottom: none;
+    }
+  }
+
+  .input-dias,
+  .input-extras {
+    width: 80px;
+    padding: 4px 8px;
+    border: 1px solid $border-color;
+    border-radius: $border-radius-sm;
+    font-size: $font-size-sm;
+    text-align: center;
+
+    &:focus {
+      outline: none;
+      border-color: $primary;
+      box-shadow: 0 0 0 2px rgba($primary, 0.1);
+    }
+  }
+
+  .text-muted {
+    color: $text-light;
+    font-style: italic;
+  }
+}
+
+// ==================== TOTALES ====================
+.totals-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $spacing-lg;
+  margin-top: $spacing-xl;
+  padding-top: $spacing-lg;
+  border-top: 2px solid $border-color;
+
+  @include respond-to('md') {
+    grid-template-columns: 1fr;
+  }
+}
+
+.total-item {
+  @include flex-between;
+  padding: $spacing-md;
+  background: $bg-light;
+  border-radius: $border-radius-md;
+  border-left: 4px solid $primary;
+
+  .total-label {
+    font-weight: $font-weight-semibold;
+    color: $text-secondary;
+  }
+
+  .total-value {
+    font-size: $font-size-lg;
+    font-weight: $font-weight-bold;
+    color: $primary;
+  }
+}
+
+// ==================== BADGES ====================
+.badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  white-space: nowrap;
+
+  &-pago {
+    background: #e3f2fd;
+    color: #1976d2;
+  }
+}
+
+// ==================== HISTORIAL ====================
+.history-card {
+  background: white;
+
+  mat-card-title {
+    @include section-title;
+    margin-bottom: $spacing-lg;
+  }
+}
+
+.year-section {
+  margin-bottom: $spacing-xl;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.year-title {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-bold;
+  color: $text-primary;
+  margin: 0 0 $spacing-md 0;
+  padding-bottom: $spacing-md;
+  border-bottom: 2px solid $border-color;
+}
+
+.year-toggle {
+  @include flex-center;
+  gap: $spacing-sm;
+  font-weight: $font-weight-semibold;
+  color: $primary;
+  margin-bottom: $spacing-md;
+  width: 100%;
+  justify-content: flex-start;
+  padding: 0;
+
+  &:hover {
+    background: rgba($primary, 0.05);
+  }
+}
+
+.history-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+
+  thead {
+    background: $bg-light;
+    border-bottom: 2px solid $border-color;
+  }
+
+  th {
+    padding: $spacing-md;
+    text-align: left;
+    font-weight: $font-weight-semibold;
+    color: $text-secondary;
+    border-right: 1px solid $border-color;
+    font-size: $font-size-sm;
+
+    &:last-child {
+      border-right: none;
+    }
+  }
+
+  td {
+    padding: $spacing-md;
+    text-align: left;
+    font-size: $font-size-sm;
+    border-right: 1px solid $border-color;
+    border-bottom: 1px solid $border-color;
+
+    &:last-child {
+      border-right: none;
+    }
+  }
+
+  tbody tr {
+    transition: background $transition-fast;
+
+    &:hover {
+      background: $bg-light;
+    }
+
+    &:last-child td {
+      border-bottom: none;
+    }
+  }
+}
+
+.no-data {
+  text-align: center;
+  padding: $spacing-lg;
+  color: $text-light;
+  font-style: italic;
+}
+
+// ==================== ESTADO VACÍO ====================
+.empty-state {
+  @include empty-state;
+
+  .empty-icon {
+    font-size: 80px;
+    width: 80px;
+    height: 80px;
+    color: #ccc;
+    margin: 0 auto $spacing-lg;
+  }
+
+  p {
+    margin: $spacing-sm 0;
+    color: $text-secondary;
+
+    &.text-muted {
+      color: $text-light;
+      font-size: $font-size-sm;
+    }
+  }
+}
+
+// ==================== MODAL ====================
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: $spacing-md;
+}
+
+.modal-card {
+  background: white;
+  border-radius: $border-radius-lg;
+  box-shadow: $shadow-xl;
+  max-width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+
+  mat-card-header {
+    padding: $spacing-lg;
+    background: $bg-light;
+    border-bottom: 2px solid $border-color;
+
+    mat-card-title {
+      @include section-title;
+      margin: 0;
+    }
+  }
+
+  mat-card-content {
+    padding: $spacing-lg;
+  }
+
+  mat-card-actions {
+    padding: $spacing-lg;
+    border-top: 1px solid $border-color;
+    @include flex-between;
+    justify-content: flex-end;
+  }
+}
+
+.detail-table {
+  width: 100%;
+  border-collapse: collapse;
+
+  thead {
+    background: $bg-light;
+    border-bottom: 2px solid $border-color;
+  }
+
+  th {
+    padding: $spacing-md;
+    text-align: left;
+    font-weight: $font-weight-semibold;
+    color: $text-secondary;
+    font-size: $font-size-sm;
+  }
+
+  td {
+    padding: $spacing-md;
+    border-bottom: 1px solid $border-color;
+    text-align: left;
+  }
+
+  tbody tr {
+    &:hover {
+      background: $bg-light;
+    }
+
+    &:last-child td {
+      border-bottom: none;
+    }
+  }
+}
+
+// ==================== RESPONSIVE ====================
+@include respond-to('md') {
+  .planilla-container {
+    padding: $spacing-sm;
+  }
+
+  .planilla-table,
+  .history-table {
+    font-size: $font-size-xs;
+
+    th, td {
+      padding: $spacing-sm;
+    }
+
+    .input-dias,
+    .input-extras {
+      width: 60px;
+    }
+  }
+
+  .totals-section {
+    grid-template-columns: 1fr;
+  }
+
+  .charge-info {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-overlay {
+    padding: 0;
+  }
+
+  .modal-card {
+    max-width: 100%;
+    max-height: 100vh;
+    border-radius: 0;
+  }
 }

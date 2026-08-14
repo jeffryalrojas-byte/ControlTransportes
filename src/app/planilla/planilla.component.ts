@@ -51,35 +51,38 @@ export class PlanillaComponent implements OnInit {
 
   diasTrabajados: { [id: string | number]: number } = {};
 
-  //Para cargar las planillas
+  // Para cargar las planillas
   planillas: Planilla[] = [];
   planillasDelAnio: any[] = [];
   planillasAnteriores: any[] = [];
 
-  //Para cargar las incapacidades
+  // Para cargar las incapacidades
   incapacidades: any[] = [];
 
+  //Carga por default, pero en método se trae las cargas reales configuradas
   ccssTrabajador = 0.0967;
   ccssPatrono = 0.1467;
 
   mesActual = '';
+  mesSeleccionado = '';
+  anioSeleccionado: number = new Date().getFullYear();
+  anioActual: number = new Date().getFullYear();
+  aniosDisponibles: number[] = [];
+
   totalNeto = 0;
   totalCargas = 0;
 
   empresaCedulaActual: string | null = null;
 
-  //Para ordenar la planilla
-  anioActual: number = new Date().getFullYear();
   mostrarAnteriores: boolean = false;
 
-  //Para visualizar el detalle de la planilla
+  // Para visualizar el detalle de la planilla
   detalleVisible = false;
   planillaSeleccionada: any = null;
   detallesMostrar: any[] = [];
 
-  //Para obtener los incentivos del puesto 
+  // Para obtener los incentivos del puesto
   incentivos: { [puesto: string]: number } = {};
-
 
   constructor(
     private configuracionService: ConfiguracionService,
@@ -98,6 +101,11 @@ export class PlanillaComponent implements OnInit {
       return;
     }
 
+    // Generar años disponibles (2023 hasta año actual + 2)
+    for (let anio = 2023; anio <= this.anioActual + 2; anio++) {
+      this.aniosDisponibles.push(anio);
+    }
+
     this.CargasSociales();
     this.CargamosEmpleados();
     this.CargamosIncapacidades();
@@ -106,15 +114,12 @@ export class PlanillaComponent implements OnInit {
     this.calcularTotales();
   }
 
-
   public CargasSociales(): any {
-    // Cargar cargas de CCSS desde Firebase
     this.configuracionService.obtenerCargas().subscribe((cargas: any) => {
       if (cargas) {
         this.ccssTrabajador = cargas.ccssTrabajador;
         this.ccssPatrono = cargas.ccssPatrono;
       } else {
-        // Valores por defecto si no hay configuración guardada aún
         this.ccssTrabajador = 0.1067;
         this.ccssPatrono = 0.2667;
       }
@@ -122,13 +127,11 @@ export class PlanillaComponent implements OnInit {
   }
 
   public CargamosEmpleados(): any {
-
     this.empleados.forEach(e => {
       if (e.tipoPago === 'diario') {
         this.diasTrabajados[e.id] = 0;
       }
     });
-    // Cargar empleados desde Firebase
     this.rrhhService.obtener().subscribe((empList: EmpleadoRrhh[]) => {
       const lista = empList.map((e: any) => ({
         id: e.id,
@@ -147,30 +150,20 @@ export class PlanillaComponent implements OnInit {
       }));
       this.empleadosOriginal = [...lista];
       this.empleados = [...lista];
-
     });
   }
 
   public CargamosIncapacidades(): any {
-    // Cargar incapacidades
     this.incapacidadesService.obtener().subscribe((data: any[]) => {
       this.incapacidades = data;
     });
-
   }
 
   public CargamosPlanillas(): any {
-    // Cargar planillas desde Firebase
     this.planillasService.obtener().subscribe((data: any[]) => {
-      // ordenar desc
       const ordenadas = data.sort((a, b) => b.mes.localeCompare(a.mes));
-
       this.planillas = ordenadas;
-
-      // solo del año actual
       this.planillasDelAnio = ordenadas.filter(p => p.mes.startsWith(this.anioActual.toString()));
-
-      // planillas anteriores
       this.planillasAnteriores = ordenadas.filter(p => !p.mes.startsWith(this.anioActual.toString()));
     });
   }
@@ -181,82 +174,50 @@ export class PlanillaComponent implements OnInit {
     });
   }
 
-
-  // ===============================
-  //   CÁLCULOS
-  // ===============================
-
-  /** Método que nos permite obtener el salario Neto y Bruto del empleado
-   * ya quenos permite tomar en cuenta permisos, incapacidad o vacaciones si es el caso
-   * NO SUMA Aquí los incentivos, ya que los mismos no se rebajan
-  */
+  // CÁLCULOS
   public salarioBrutoBase(e: Empleado): number {
+    const montoPorDia = e.tipoPago === 'mensual'
+      ? e.salarioBase / 30
+      : e.salarioBase;
 
-    // ============================================
-    // 1) MONTO POR DÍA
-    // ============================================
-    const montoPorDia =
-      e.tipoPago === 'mensual'
-        ? e.salarioBase / 30
-        : e.salarioBase;
+    let diasTrabOriginal = e.tipoPago === 'mensual'
+      ? 30
+      : (this.diasTrabajados[e.id] || 0);
 
-    let diasTrabOriginal =
-      e.tipoPago === 'mensual'
-        ? 30
-        : (this.diasTrabajados[e.id] || 0);
-
-    // ============================================
-    // 2) AJUSTE POR CONTRATO DEFINIDO
-    // ============================================
     if (e.tipoContrato === 'definido' && e.fechaFinContratoDate && this.mesActual) {
-      const [anio, mes] = this.mesActual.split("-");
-      const finMes = new Date(Number(anio), Number(mes), 0);
+      const anio = this.anioSeleccionado;
+      const mes = Number(this.mesSeleccionado);
+      const finMes = new Date(anio, mes, 0);
 
       if (e.fechaFinContratoDate < finMes) {
         const diaFinContrato = e.fechaFinContratoDate.getDate();
         const maxDias = Math.min(diaFinContrato, diasTrabOriginal);
-
-        diasTrabOriginal =
-          e.tipoPago === 'mensual'
-            ? maxDias
-            : Math.min(this.diasTrabajados[e.id] || 0, maxDias);
+        diasTrabOriginal = e.tipoPago === 'mensual'
+          ? maxDias
+          : Math.min(this.diasTrabajados[e.id] || 0, maxDias);
       }
     }
 
-    // ============================================
-    // 3) SIN MES → salario directo
-    // ============================================
     if (!this.mesActual) {
       return diasTrabOriginal * montoPorDia;
     }
 
-    // ============================================
-    // 4) INCAPACIDADES (DELEGADO AL SERVICE)
-    // ============================================
-    const { diasIncap, dias50 } =
-      this.incapacidadesService.calcularIncapacidadesMes(
-        this.incapacidades, // TODAS las incapacidades cargadas
-        e.id,
-        this.mesActual
-      );
+    const { diasIncap, dias50 } = this.incapacidadesService.calcularIncapacidadesMes(
+      this.incapacidades,
+      e.id,
+      this.mesActual
+    );
 
-    // ============================================
-    // 5) SALARIO FINAL
-    // ============================================
     const diasTrabEfectivos = Math.max(diasTrabOriginal - diasIncap, 0);
-
     const salarioTrabajado = diasTrabEfectivos * montoPorDia;
     const salario50 = dias50 * montoPorDia * 0.5;
 
     return salarioTrabajado + salario50 + (e.extras || 0);
   }
 
-  /** Método encargardo de guardar el salario bruto más el incentivo si el puesto lo amerita
-  */
   salarioBruto(e: Empleado): number {
     return this.salarioBrutoBase(e) + this.incentivoPorPuesto(e);
   }
-
 
   rebajosTrabajador(e: Empleado): number {
     if (e.tipoPago === 'diario') return 0;
@@ -266,7 +227,6 @@ export class PlanillaComponent implements OnInit {
   salarioNeto(e: Empleado): number {
     const base = this.salarioBrutoBase(e);
     const incentivo = this.incentivoPorPuesto(e);
-
     if (e.tipoPago === 'diario') {
       return base + incentivo;
     }
@@ -281,7 +241,6 @@ export class PlanillaComponent implements OnInit {
   actualizarDias(id: string | number, event: any) {
     const valor = Number(event.target.value) || 0;
     this.diasTrabajados[id] = valor;
-
     this.calcularTotales();
   }
 
@@ -293,10 +252,8 @@ export class PlanillaComponent implements OnInit {
   private incentivoPorPuesto(e: Empleado): number {
     return this.incentivos[e.puesto] || 0;
   }
-  // ===============================
-  //   GUARDAR EN FIREBASE
-  // ===============================
 
+  // GUARDAR EN FIREBASE
   guardarPlanilla() {
     if (!this.mesActual) {
       alert('Selecciona un mes antes de guardar.');
@@ -326,18 +283,15 @@ export class PlanillaComponent implements OnInit {
         totalNeto: this.totalNeto,
         totalCargas: this.totalCargas,
         detalleEmpleados: this.empleados.map(e => {
-          const { diasIncap, dias50 } =
-            this.incapacidadesService.calcularIncapacidadesMes(
-              this.incapacidades,
-              e.id,
-              this.mesActual
-            );
+          const { diasIncap, dias50 } = this.incapacidadesService.calcularIncapacidadesMes(
+            this.incapacidades,
+            e.id,
+            this.mesActual
+          );
 
           return {
             id: e.id,
-            diasTrabajados: e.tipoPago === 'diario'
-              ? (this.diasTrabajados[e.id] || 0)
-              : 0,
+            diasTrabajados: e.tipoPago === 'diario' ? (this.diasTrabajados[e.id] || 0) : 0,
             diasIncapacidad: diasIncap,
             diasIncapacidad50: dias50,
             salarioBruto: this.salarioBruto(e),
@@ -351,6 +305,7 @@ export class PlanillaComponent implements OnInit {
         .then(() => {
           alert(`✅ Planilla del mes ${this.mesActual} guardada correctamente.`);
           this.mesActual = '';
+          this.mesSeleccionado = '';
         })
         .catch((err: any) => {
           console.error(err);
@@ -359,13 +314,9 @@ export class PlanillaComponent implements OnInit {
     });
   }
 
-  // ===============================
-  //   ELIMINAR DE FIREBASE
-  // ===============================
-
+  // ELIMINAR DE FIREBASE
   eliminarPlanilla(planilla: any) {
     const confirmar = confirm(`¿Eliminar la planilla de ${planilla.mes}?`);
-
     if (!confirmar) return;
 
     this.planillasService.eliminar(planilla.id)
@@ -378,80 +329,85 @@ export class PlanillaComponent implements OnInit {
       });
   }
 
-  //Valida si puedo eliminar la planilla para que aparezca el botón
   puedeEliminar(planilla: any): boolean {
 
-    if (this.usuarioActivo?.rol === 'Supervisor') {
-      return false;
+    // Supervisor: siempre puede eliminar
+    if (this.usuarioActivo?.rol === 'supervisor') {
+      return true;
     }
 
-    const fechaCreacion = this.parseFechaYHora(planilla.fechaCreacion);
+    // Administrador: solamente después de 1 mes
+    if (this.usuarioActivo?.rol === 'admin') {
 
-    const haceUnMes = new Date();
-    haceUnMes.setMonth(haceUnMes.getMonth() - 1);
+      const fechaCreacion = this.parseFechaYHora(planilla.fechaCreacion);
 
-    // Retorna true si se puede eliminar
-    return fechaCreacion <= haceUnMes;
+      const haceUnMes = new Date();
+      haceUnMes.setMonth(haceUnMes.getMonth() - 1);
+
+      return fechaCreacion <= haceUnMes;
+    }
+
+    // Cualquier otro rol no puede eliminar
+    return false;
   }
 
-
-  //Cada vez que selecciona el mes a presentar la planilla hace validaciones.
   onMesChange() {
+    // Si no ha seleccionado un mes, restaurar todos los empleados
+    if (!this.mesSeleccionado) {
+      this.empleados = [...this.empleadosOriginal];
+      this.calcularTotales();
+      return;
+    }
+
+    // Construir mesActual
+    this.mesActual = `${this.anioSeleccionado}-${this.mesSeleccionado}`;
 
     alert('Recuerde antes de presentar la planilla, ingresar cualquier incapacidad o permiso que tenga el empleado para el mes seleccionado.');
 
     this.incapacidadesService.obtener().subscribe((data: any[]) => {
       this.incapacidades = data;
 
-      if (this.mesActual) {
-        const [anio, mes] = this.mesActual.split("-");
-        const inicioMes = new Date(Number(anio), Number(mes) - 1, 1);
-        const finMes = new Date(Number(anio), Number(mes), 0);
+      const anio = this.anioSeleccionado;
+      const mes = Number(this.mesSeleccionado);
 
-        // 🔥 USAR SIEMPRE LA LISTA ORIGINAL
-        this.empleados = this.empleadosOriginal.filter(e => {
-          // 1️⃣ Fecha de ingreso
-          if (e.fechaIngreso) {
-            const ingreso = new Date(e.fechaIngreso);
-            if (ingreso > finMes) return false;
-          }
-          // 2️⃣ Contrato indefinido
-          if (e.tipoContrato === 'indefinido') return true;
-          // 3️⃣ Contrato definido
-          if (e.fechaFinContratoDate) {
-            return e.fechaFinContratoDate >= inicioMes;
-          }
-          // 4️⃣ Si no hay fecha fin, se asume activo
-          return true;
-        });
+      const inicioMes = new Date(anio, mes - 1, 1);
+      const finMes = new Date(anio, mes, 0);
 
-      } else {
-        // si borra el mes → restaurar todos
-        this.empleados = [...this.empleadosOriginal];
-      }
+      // USAR SIEMPRE LA LISTA ORIGINAL
+      this.empleados = this.empleadosOriginal.filter(e => {
+        // 1️⃣ Fecha de ingreso
+        if (e.fechaIngreso) {
+          const ingreso = new Date(e.fechaIngreso);
+          if (ingreso > finMes) return false;
+        }
+
+        // 2️⃣ Contrato indefinido
+        if (e.tipoContrato === 'indefinido') return true;
+
+        // 3️⃣ Contrato definido
+        if (e.fechaFinContratoDate) {
+          return e.fechaFinContratoDate >= inicioMes;
+        }
+
+        // 4️⃣ Si no hay fecha fin, se asume activo
+        return true;
+      });
 
       this.calcularTotales();
     });
   }
 
   private parseFechaYHora(fechaStr: string): Date {
-    // Separa fecha y hora
     const [fecha, hora] = fechaStr.split(', ');
-
     const [dia, mes, anio] = fecha.split('/').map(Number);
     const [hh, mm, ss] = hora.split(':').map(Number);
-
     return new Date(anio, mes - 1, dia, hh, mm, ss);
   }
 
-  //Ver detalles de los salarios de la planilla del mes seleccionado
   verDetalles(planilla: any) {
     this.planillaSeleccionada = planilla;
-
     this.detallesMostrar = planilla.detalleEmpleados.map((de: any) => {
-
       const emp = this.empleadosOriginal.find(e => e.id == de.id);
-
       return {
         nombre: emp ? emp.nombre : 'Empleado no encontrado',
         salarioBruto: de.salarioBruto ?? de.salarioNeto,
@@ -461,9 +417,6 @@ export class PlanillaComponent implements OnInit {
         diasIncapacidad50: de.diasIncapacidad50 ?? 0
       };
     });
-
     this.detalleVisible = true;
   }
-
-
 }
