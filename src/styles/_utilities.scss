@@ -1,0 +1,97 @@
+// ==================== CLASES UTILITARIAS ====================
+
+@import 'variables';
+@import 'mixins';
+
+// ==================== ESPACIOS ====================
+.mt-xs { margin-top: $spacing-xs; }
+.mt-sm { margin-top: $spacing-sm; }
+.mt-md { margin-top: $spacing-md; }
+.mt-lg { margin-top: $spacing-lg; }
+.mt-xl { margin-top: $spacing-xl; }
+
+.mb-xs { margin-bottom: $spacing-xs; }
+.mb-sm { margin-bottom: $spacing-sm; }
+.mb-md { margin-bottom: $spacing-md; }
+.mb-lg { margin-bottom: $spacing-lg; }
+.mb-xl { margin-bottom: $spacing-xl; }
+
+.p-md { padding: $spacing-md; }
+.p-lg { padding: $spacing-lg; }
+.p-xl { padding: $spacing-xl; }
+
+.gap-sm { gap: $spacing-sm; }
+.gap-md { gap: $spacing-md; }
+.gap-lg { gap: $spacing-lg; }
+
+// ==================== FLEX ====================
+.flex { display: flex; }
+.flex-center { @include flex-center; }
+.flex-between { @include flex-between; }
+.flex-col { @include flex-col; }
+.flex-col-center { @include flex-col-center; }
+
+// ==================== TEXTO ====================
+.text-primary { color: $text-primary; }
+.text-secondary { color: $text-secondary; }
+.text-light { color: $text-light; }
+
+.font-bold { font-weight: $font-weight-bold; }
+.font-semibold { font-weight: $font-weight-semibold; }
+.font-medium { font-weight: $font-weight-medium; }
+
+.text-center { text-align: center; }
+.text-uppercase { text-transform: uppercase; }
+
+.text-xs { font-size: $font-size-xs; }
+.text-sm { font-size: $font-size-sm; }
+.text-md { font-size: $font-size-md; }
+.text-lg { font-size: $font-size-lg; }
+
+// ==================== OPACITY ====================
+.opacity-50 { opacity: 0.5; }
+.opacity-60 { opacity: 0.6; }
+.opacity-70 { opacity: 0.7; }
+.opacity-80 { opacity: 0.8; }
+
+// ==================== BORDES ====================
+.rounded-sm { border-radius: $border-radius-sm; }
+.rounded-md { border-radius: $border-radius-md; }
+.rounded-lg { border-radius: $border-radius-lg; }
+.rounded-full { border-radius: 9999px; }
+
+.border { border: 1px solid $border-color; }
+.border-light { border: 1px solid $border-light; }
+.border-dashed { border-style: dashed; }
+
+// ==================== SOMBRAS ====================
+.shadow-sm { box-shadow: $shadow-sm; }
+.shadow-md { box-shadow: $shadow-md; }
+.shadow-lg { box-shadow: $shadow-lg; }
+.shadow-xl { box-shadow: $shadow-xl; }
+
+// ==================== COLORES DE FONDO ====================
+.bg-light { background: $bg-light; }
+.bg-gradient { background: $bg-gradient; }
+.bg-primary { background: linear-gradient(135deg, $primary 0%, $primary-dark 100%); }
+
+.bg-primary-light { background: rgba($primary, 0.05); }
+.bg-success-light { background: #e8f5e9; }
+.bg-warning-light { background: #fff3e0; }
+.bg-danger-light { background: #ffebee; }
+
+// ==================== ESCONDIDO ====================
+.hidden { display: none; }
+
+@include respond-to('md') {
+  .hidden-md { display: none; }
+}
+
+@include respond-to('sm') {
+  .hidden-sm { display: none; }
+}
+
+// ==================== CURSOR ====================
+.cursor-pointer { cursor: pointer; }
+.cursor-not-allowed { cursor: not-allowed; }
+.cursor-default { cursor: default; }

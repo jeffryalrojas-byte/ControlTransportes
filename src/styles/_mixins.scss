@@ -1,0 +1,380 @@
+// ==================== MIXINS REUTILIZABLES ====================
+
+@import 'variables';
+
+// ==================== RESPONSIVE ====================
+@mixin respond-to($breakpoint) {
+  @if $breakpoint =='sm' {
+    @media (max-width: $breakpoint-sm) {
+      @content;
+    }
+  }
+
+  @else if $breakpoint =='md' {
+    @media (max-width: $breakpoint-md) {
+      @content;
+    }
+  }
+
+  @else if $breakpoint =='lg' {
+    @media (max-width: $breakpoint-lg) {
+      @content;
+    }
+  }
+
+  @else if $breakpoint =='xl' {
+    @media (max-width: $breakpoint-xl) {
+      @content;
+    }
+  }
+}
+
+// ==================== FLEXBOX ====================
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@mixin flex-col {
+  display: flex;
+  flex-direction: column;
+}
+
+@mixin flex-col-center {
+  @include flex-col;
+  align-items: center;
+  justify-content: center;
+}
+
+// ==================== TARJETAS ====================
+@mixin card {
+  background: white;
+  border-radius: $border-radius-lg;
+  box-shadow: $shadow-lg;
+  transition: all $transition-normal;
+
+  &:hover {
+    box-shadow: $shadow-xl;
+    transform: translateY(-2px);
+  }
+}
+
+@mixin card-header {
+  display: flex;
+  align-items: center;
+  gap: $spacing-lg;
+}
+
+@mixin card-icon {
+  width: 60px;
+  height: 60px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  @include flex-center;
+
+  mat-icon {
+    font-size: 32px;
+    width: 32px;
+    height: 32px;
+  }
+}
+
+// ==================== BOTONES ====================
+@mixin btn-primary {
+  background: linear-gradient(135deg, $primary 0%, $primary-dark 100%);
+  color: white;
+  font-weight: $font-weight-semibold;
+  padding: 10px 20px;
+  border-radius: $border-radius-sm;
+  transition: all $transition-normal;
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba($primary, 0.4);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+  }
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+}
+
+@mixin btn-stroked {
+  border: 2px dashed $primary;
+  color: $primary;
+  background: transparent;
+  padding: 10px 16px;
+  border-radius: $border-radius-sm;
+  font-weight: $font-weight-semibold;
+  transition: all $transition-normal;
+  @include flex-center;
+  gap: $spacing-sm;
+
+  &:hover:not(:disabled) {
+    background: rgba($primary, 0.05);
+    border-color: $primary-dark;
+  }
+}
+
+// ==================== FORMULARIOS ====================
+@mixin form-field {
+  width: 100%;
+
+  ::ng-deep {
+    .mat-form-field-outline {
+      color: $border-color;
+    }
+
+    .mat-form-field-infix {
+      padding: 12px 0;
+    }
+  }
+}
+
+@mixin form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: $spacing-md;
+  margin-bottom: $spacing-lg;
+}
+
+// ==================== TABLAS ====================
+@mixin table-responsive {
+  overflow-x: auto;
+  border-radius: $border-radius-md;
+  border: 1px solid $border-color;
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+
+    th {
+      background: $bg-light;
+      padding: $spacing-md;
+      text-align: left;
+      font-weight: $font-weight-semibold;
+      color: $text-secondary;
+      border-bottom: 2px solid $border-color;
+      font-size: $font-size-sm;
+      @include flex-center;
+      gap: $spacing-xs;
+
+      mat-icon {
+        font-size: 14px;
+        width: 14px;
+        height: 14px;
+        opacity: 0.6;
+      }
+    }
+
+    td {
+      padding: $spacing-md;
+      border-bottom: 1px solid $border-color;
+      font-size: $font-size-sm;
+    }
+
+    tbody tr {
+      transition: background $transition-fast;
+
+      &:hover {
+        background: $bg-light;
+      }
+
+      &:last-child td {
+        border-bottom: none;
+      }
+    }
+  }
+}
+
+// Material Table Specific
+@mixin mat-table {
+  display: table !important;
+  width: 100% !important;
+  border-radius: $border-radius-md !important;
+  border-collapse: collapse !important;
+  background: white;
+  border: 1px solid $border-color;
+
+  ::ng-deep {
+    .mat-header-row {
+      display: table-row !important;
+      background: $bg-light;
+      border-bottom: 2px solid $border-color;
+      height: auto !important;
+    }
+
+    .mat-header-cell {
+      display: table-cell !important;
+      background: $bg-light !important;
+      padding: $spacing-md !important;
+      text-align: left;
+      font-weight: $font-weight-semibold;
+      color: $text-secondary;
+      border-bottom: 2px solid $border-color !important;
+      border-right: 1px solid $border-color;
+      font-size: $font-size-sm !important;
+      height: auto !important;
+      vertical-align: middle;
+      white-space: nowrap;
+
+      &:last-child {
+        border-right: none;
+      }
+
+      mat-icon {
+        font-size: 14px;
+        width: 14px;
+        height: 14px;
+        opacity: 0.6;
+        margin-right: 6px;
+      }
+    }
+
+    .mat-row {
+      display: table-row !important;
+      border-bottom: 1px solid $border-color;
+      height: auto !important;
+      transition: background $transition-fast;
+
+      &:hover {
+        background: $bg-light;
+      }
+
+      &:last-child {
+        border-bottom: none;
+      }
+    }
+
+    .mat-cell {
+      display: table-cell !important;
+      padding: $spacing-md !important;
+      text-align: left;
+      font-size: $font-size-sm !important;
+      height: auto !important;
+      vertical-align: middle;
+      border-right: 1px solid $border-color;
+
+      &:last-child {
+        border-right: none;
+      }
+    }
+  }
+}
+
+// ==================== BADGES ====================
+@mixin badge($bg-color, $text-color) {
+  display: inline-block;
+  padding: 3px 10px;
+  background: $bg-color;
+  color: $text-color;
+  border-radius: 16px;
+  font-weight: $font-weight-semibold;
+  font-size: $font-size-xs;
+  white-space: nowrap;
+}
+
+@mixin badge-primary {
+  @include badge(rgba($primary, 0.1), $primary);
+}
+
+@mixin badge-success {
+  @include badge(#e8f5e9, #2e7d32);
+}
+
+@mixin badge-warning {
+  @include badge(#fff3e0, #e65100);
+}
+
+@mixin badge-danger {
+  @include badge(#ffebee, #c62828);
+}
+
+// ==================== SECCIONES ====================
+@mixin section-title {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  font-size: $font-size-2xl;
+  font-weight: $font-weight-bold;
+  color: $text-primary;
+  margin-bottom: $spacing-lg;
+
+  mat-icon {
+    color: $primary;
+    font-size: $font-size-xl;
+    width: $font-size-xl;
+    height: $font-size-xl;
+  }
+}
+
+@mixin section-label {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-bold;
+  color: $text-secondary;
+  margin-bottom: $spacing-md;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+// ==================== ESTADOS ====================
+@mixin empty-state {
+  text-align: center;
+  padding: $spacing-2xl;
+  background: $bg-light;
+  border-radius: $border-radius-md;
+  border: 1px dashed $border-light;
+
+  mat-icon {
+    font-size: 40px;
+    width: 40px;
+    height: 40px;
+    color: #ccc;
+    margin-bottom: $spacing-lg;
+  }
+
+  p {
+    margin: $spacing-xs 0;
+    color: $text-light;
+    font-weight: $font-weight-semibold;
+    font-size: $font-size-md;
+  }
+
+  small {
+    color: $text-lighter;
+    font-size: $font-size-xs;
+  }
+}
+
+// ==================== CONTENEDORES ====================
+@mixin page-container {
+  padding: $spacing-lg;
+  max-width: 100%;
+  margin: 0 auto;
+  background: $bg-gradient;
+  min-height: 100vh;
+}
+
+@mixin card-content {
+  background: white;
+  padding: $spacing-xl;
+
+  @include respond-to('md') {
+    padding: $spacing-lg;
+  }
+}

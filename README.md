@@ -1,27 +1,58 @@
-# ControlEmpresa
+# ControlEmpresa 🏢
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 11.2.19.
+Sistema moderno de gestión interna empresarial desarrollado con **Angular 18** y **Angular Material**. Esta plataforma centraliza los procesos del departamento de Recursos Humanos y permite la autogestión de los colaboradores.
 
-## Development server
+## 🚀 Características Principales
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
+*   **Autogestión de Usuarios:** Cada colaborador puede gestionar y mantener actualizada su información de perfil.
+*   **Personalización de Marca:** Soporte para cambiar y personalizar el logotipo de la empresa directamente desde la interfaz.
+*   **Control de Planillas:** Módulo centralizado para la visualización, desglose y administración de nóminas/planillas de pago.
+*   **Gestión de Vacaciones:** Sistema de solicitudes, aprobaciones y control de días disponibles para el personal.
+*   **Incapacidades y Permisos:** Registro y seguimiento digital de ausencias, justificantes médicos y permisos especiales.
 
-## Code scaffolding
+---
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+## 🛠️ Desarrollo
 
-## Build
+Este proyecto utiliza **Angular CLI** versión 18.x.
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory. Use the `--prod` flag for a production build.
+### Servidor de Desarrollo
 
-## Running unit tests
+Ejecuta el siguiente comando para levantar un servidor de desarrollo local:
+```bash
+ng serve
+```
+Una vez iniciado, navega a `http://localhost:4200/`. La aplicación se recargará automáticamente si realizas cambios en los archivos fuentes.
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+### Generación de Código
 
-## Running end-to-end tests
+Para crear nuevos elementos en la arquitectura del proyecto, utiliza el comando base de generación:
+```bash
+ng generate component nombre-del-componente
+```
+*También puedes generar otros artefactos como: `directive | pipe | service | class | guard | interface | enum | module`.*
 
-Run `ng e2e` to execute the end-to-end tests via [Protractor](http://www.protractortest.org/).
+### Construcción (Build) para Producción
 
-## Further help
+Para compilar el proyecto y preparar los archivos de distribución listos para producción, ejecuta:
+```bash
+ng build
+```
+Los artefactos compilados se guardarán dentro del directorio `dist/control-empresa`.
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.
+---
+
+## 🧪 Pruebas (Testing)
+
+### Pruebas Unitarias
+
+Ejecuta las pruebas unitarias del proyecto con el siguiente comando:
+```bash
+ng test
+```
+
+---
+
+## 💡 Ayuda Adicional
+
+Para obtener más información sobre el uso de la interfaz de comandos de Angular (Angular CLI), ejecuta `ng help` o consulta la [Documentación Oficial de Angular](https://angular.dev).

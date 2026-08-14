@@ -1,4 +1,327 @@
-/* You can add global styles to this file, and also import other style files */
+/* ==================== ESTILOS GLOBALES ====================
 
-html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+   Este archivo es el punto de entrada para todos los estilos globales.
+   Los componentes individuales pueden importar variables y mixins de aquí.
+
+   Estructura:
+   - _variables.scss: Variables globales (colores, espacios, etc.)
+   - _mixins.scss: Mixins reutilizables (flex, cards, buttons, etc.)
+   - _utilities.scss: Clases utilitarias (spacing, text, etc.)
+   - _global.scss: Estilos base (body, html, etc.)
+
+*/
+
+// 1. Importar variables y mixins primero
+@import './styles/variables';
+@import './styles/mixins';
+@import './styles/utilities';
+
+// 2. Estilos base
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: $font-family;
+  background: $bg-light;
+  color: $text-primary;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+// 3. Tipografía
+h1, h2, h3, h4, h5, h6 {
+  margin: 0;
+  font-weight: $font-weight-bold;
+  color: $text-primary;
+}
+
+h1 { font-size: $font-size-4xl; }
+h2 { font-size: $font-size-3xl; }
+h3 { font-size: $font-size-2xl; }
+
+p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+a {
+  color: $primary;
+  text-decoration: none;
+  transition: color $transition-normal;
+
+  &:hover {
+    color: $primary-dark;
+  }
+}
+
+// 4. Componentes Material overrides (MDC - Angular Material Moderno)
+::ng-deep {
+  // Toolbar
+  .mat-toolbar {
+    &.mat-primary {
+      background: linear-gradient(135deg, $primary 0%, $primary-dark 100%);
+      color: white;
+
+      .mat-icon {
+        color: white;
+      }
+    }
+  }
+
+  // Tabs
+  .mat-mdc-tab-label {
+    font-weight: $font-weight-semibold;
+
+    &.mat-mdc-tab-label-active {
+      color: $primary !important;
+    }
+  }
+
+  // Form Fields
+  .mat-mdc-form-field.mat-focused .mat-mdc-form-field-label {
+    color: $primary !important;
+  }
+
+  // Buttons
+  .mat-mdc-raised-button.mat-primary {
+    background: linear-gradient(135deg, $primary 0%, $primary-dark 100%);
+
+    &:hover {
+      background: linear-gradient(135deg, $primary-dark 0%, $primary 100%);
+    }
+  }
+
+  .mat-mdc-stroked-button {
+    border-color: $primary;
+    color: $primary;
+
+    &:hover {
+      background: rgba($primary, 0.05);
+    }
+  }
+
+  // Chips
+  .mat-mdc-chip {
+    font-weight: $font-weight-semibold;
+
+    &.mat-mdc-chip-highlighted {
+      background: rgba($primary, 0.4) !important;
+      color: white !important;
+    }
+  }
+
+  // Cards - MDC Moderno
+  .mat-mdc-card {
+    box-shadow: $shadow-lg;
+    border-radius: $border-radius-lg;
+    transition: all $transition-normal;
+
+    &:hover {
+      box-shadow: $shadow-xl;
+      transform: translateY(-2px);
+    }
+  }
+
+  .mat-mdc-card-header {
+    background: inherit !important;
+    color: inherit !important;
+    padding: 16px !important;
+    margin: -16px -16px 16px -16px !important;
+    border-radius: $border-radius-lg $border-radius-lg 0 0 !important;
+  }
+
+  .mat-mdc-card-title {
+    color: inherit !important;
+    margin: 0 !important;
+  }
+
+  .mat-mdc-card-subtitle {
+    color: inherit !important;
+    opacity: 0.9 !important;
+  }
+
+  // Snackbar
+  .mat-snack-bar-container {
+    background: $text-primary !important;
+    color: white !important;
+    border-radius: $border-radius-sm;
+
+    .mat-simple-snackbar-content {
+      font-weight: $font-weight-medium;
+    }
+  }
+
+  // Dialog
+  .mat-mdc-dialog-container {
+    border-radius: $border-radius-lg;
+    box-shadow: $shadow-xl;
+  }
+
+  // Table
+  .mat-mdc-table {
+    background: white;
+    border-radius: $border-radius-md;
+    overflow: hidden;
+    width: 100% !important;
+    border-collapse: collapse !important;
+  }
+
+  .mat-mdc-header-row {
+    display: table-row !important;
+    background: $bg-light;
+    border-bottom: 2px solid $border-color;
+    height: auto !important;
+  }
+
+  .mat-mdc-header-cell {
+    background: $bg-light;
+    color: $text-secondary;
+    font-weight: $font-weight-semibold;
+    display: table-cell !important;
+    padding: $spacing-md !important;
+    text-align: left;
+    border-bottom: 2px solid $border-color !important;
+    border-right: 1px solid $border-color;
+    font-size: $font-size-sm !important;
+    height: auto !important;
+    vertical-align: middle;
+    white-space: nowrap;
+
+    &:last-child {
+      border-right: none;
+    }
+  }
+
+  .mat-mdc-row {
+    display: table-row !important;
+    border-bottom: 1px solid $border-color;
+    height: auto !important;
+    background: white;
+
+    &:hover {
+      background: $bg-light;
+    }
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  .mat-mdc-cell {
+    display: table-cell !important;
+    padding: $spacing-md !important;
+    text-align: left;
+    font-size: $font-size-sm !important;
+    height: auto !important;
+    vertical-align: middle;
+    border-right: 1px solid $border-color;
+
+    &:last-child {
+      border-right: none;
+    }
+  }
+
+  // Progress spinner
+  .mat-mdc-progress-spinner circle {
+    stroke: $primary !important;
+  }
+
+  // Icon button
+  .mat-mdc-icon-button:hover {
+    background: rgba($primary, 0.05);
+  }
+
+  // Divider
+  .mat-divider {
+    background-color: $border-color;
+  }
+
+  // Input
+  .mat-mdc-input-element {
+    color: $text-primary;
+
+    &::placeholder {
+      color: $text-light;
+      opacity: 0.7;
+    }
+  }
+
+  // Select
+  .mat-mdc-select-value {
+    color: $text-primary;
+  }
+
+  // Hint
+  .mat-mdc-hint {
+    color: $text-light !important;
+    font-size: $font-size-xs !important;
+  }
+
+  // Error
+  .mat-mdc-error {
+    font-size: $font-size-xs !important;
+  }
+
+  // Legacy fallback para mat-* (por si acaso)
+  .mat-card {
+    box-shadow: $shadow-lg;
+    border-radius: $border-radius-lg;
+    transition: all $transition-normal;
+
+    &:hover {
+      box-shadow: $shadow-xl;
+      transform: translateY(-2px);
+    }
+  }
+
+  .mat-card-header {
+    background: inherit !important;
+    color: inherit !important;
+    padding: 16px !important;
+    margin: -16px -16px 16px -16px !important;
+    border-radius: $border-radius-lg $border-radius-lg 0 0 !important;
+  }
+
+  .mat-card-title {
+    color: inherit !important;
+    margin: 0 !important;
+  }
+
+  .mat-card-subtitle {
+    color: inherit !important;
+    opacity: 0.9 !important;
+  }
+
+  .mat-header-cell {
+    background: $bg-light;
+    color: $text-secondary;
+    font-weight: $font-weight-semibold;
+  }
+}
+
+// 5. Scroll
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: $bg-light;
+}
+
+::-webkit-scrollbar-thumb {
+  background: $primary;
+  border-radius: 4px;
+
+  &:hover {
+    background: $primary-dark;
+  }
+}
+
+// 6. Print
+@media print {
+  body {
+    background: white;
+  }
+}
