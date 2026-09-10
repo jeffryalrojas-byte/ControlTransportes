@@ -46,7 +46,7 @@ export const PLANES_DISPONIBLES: { [key: string]: Plan } = {
     id: 'free',
     nombre: 'Plan Gratuito',
     precio: 0,
-    limite_empleados: 5,
+    limite_empleados: 2,
     limite_empresas: 1,
     almacenamiento_mb: 100,
     modulos: ['rrhh', 'vacaciones'],
@@ -55,8 +55,8 @@ export const PLANES_DISPONIBLES: { [key: string]: Plan } = {
   professional: {
     id: 'professional',
     nombre: 'Plan Professional',
-    precio: 9.99,
-    limite_empleados: 50,
+    precio: 19.99,
+    limite_empleados: 20,
     limite_empresas: 3,
     almacenamiento_mb: 2048,
     modulos: ['rrhh', 'vacaciones', 'incapacidades', 'planilla'],
@@ -65,7 +65,7 @@ export const PLANES_DISPONIBLES: { [key: string]: Plan } = {
   business: {
     id: 'business',
     nombre: 'Plan Business',
-    precio: 29.99,
+    precio: 39.99,
     limite_empleados: 200,
     limite_empresas: 10,
     almacenamiento_mb: 10240,
