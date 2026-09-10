@@ -61,6 +61,12 @@
       <span>Incapacidades/Permisos</span>
     </button>
 
+    <button mat-button routerLink="/pagos" routerLinkActive="active-link"
+      [routerLinkActiveOptions]="{ exact: false }">
+      <mat-icon>payment</mat-icon>
+      <span>Pagos</span>
+    </button>
+
     <button *ngIf="puedeEditar()" mat-button routerLink="/configuracion" routerLinkActive="active-link"
       [routerLinkActiveOptions]="{ exact: false }">
       <mat-icon>settings</mat-icon>

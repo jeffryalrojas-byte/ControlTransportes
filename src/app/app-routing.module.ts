@@ -24,6 +24,7 @@ const routes: Routes = [
   { path: 'planilla', component: PlanillaComponent, canActivate: [AuthGuard] },
   { path: 'vacaciones', component: VacacionesComponent, canActivate: [AuthGuard] },
   { path: 'incapacidades', component: IncapacidadesComponent, canActivate: [AuthGuard], data: { roles: ['admin', 'supervisor'] } },
+  { path: 'pagos', loadChildren: () => import('./pagos/pagos.module').then(m => m.PagosModule), canActivate: [AuthGuard] },
   { path: 'configuracion', component: ConfiguracionComponent, canActivate: [AuthGuard], data: { roles: ['supervisor'] } },
   { path: 'finanzas', loadChildren: () => import('./finanzas/finanzas.module').then(m => m.FinanzasModule), canActivate: [AuthGuard], data: { roles: ['admin', 'supervisor'] } },
   { path: '**', redirectTo: 'rrhh' }
