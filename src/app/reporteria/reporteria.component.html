@@ -1,0 +1,167 @@
+<div class="reporteria-container">
+  <!-- Header -->
+  <mat-card class="header-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>assessment</mat-icon>
+        Reportería y Auditoría
+      </mat-card-title>
+      <mat-card-subtitle>Historial completo de acciones realizadas en tu empresa</mat-card-subtitle>
+    </mat-card-header>
+  </mat-card>
+
+  <!-- Estadísticas -->
+  <div class="estadisticas-grid">
+    <mat-card class="stats-card">
+      <mat-card-content>
+        <div class="stat-icon total">
+          <mat-icon>assignment</mat-icon>
+        </div>
+        <div class="stat-info">
+          <div class="stat-label">Total de Acciones</div>
+          <div class="stat-value">{{ estadisticas.totalAcciones }}</div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stats-card">
+      <mat-card-content>
+        <div class="stat-icon create">
+          <mat-icon>add_circle</mat-icon>
+        </div>
+        <div class="stat-info">
+          <div class="stat-label">Crear</div>
+          <div class="stat-value">{{ estadisticas.accionesPorTipo['crear'] || 0 }}</div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stats-card">
+      <mat-card-content>
+        <div class="stat-icon edit">
+          <mat-icon>edit</mat-icon>
+        </div>
+        <div class="stat-info">
+          <div class="stat-label">Editar</div>
+          <div class="stat-value">{{ estadisticas.accionesPorTipo['editar'] || 0 }}</div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stats-card">
+      <mat-card-content>
+        <div class="stat-icon delete">
+          <mat-icon>delete</mat-icon>
+        </div>
+        <div class="stat-info">
+          <div class="stat-label">Eliminar</div>
+          <div class="stat-value">{{ estadisticas.accionesPorTipo['eliminar'] || 0 }}</div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Usuarios Más Activos -->
+  <mat-card class="usuarios-activos-card" *ngIf="estadisticas.usuariosMasActivos.length > 0">
+    <mat-card-title>
+      <mat-icon>people</mat-icon>
+      Usuarios Más Activos
+    </mat-card-title>
+    <mat-card-content>
+      <div class="usuarios-list">
+        <div class="usuario-item" *ngFor="let usuario of estadisticas.usuariosMasActivos">
+          <span class="nombre">{{ usuario.nombre }}</span>
+          <span class="cantidad">{{ usuario.cantidad }} acciones</span>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Filtros -->
+  <mat-card class="filtros-card">
+    <mat-card-title>
+      <mat-icon>filter_list</mat-icon>
+      Filtros
+    </mat-card-title>
+    <mat-card-content>
+      <div class="filtros-grid">
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Módulo</mat-label>
+          <mat-select [(ngModel)]="filtroModulo" (change)="aplicarFiltros()">
+            <mat-option value="">Todos los módulos</mat-option>
+            <mat-option *ngFor="let mod of modulos" [value]="mod">
+              {{ mod | uppercase }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Acción</mat-label>
+          <mat-select [(ngModel)]="filtroAccion" (change)="aplicarFiltros()">
+            <mat-option value="">Todas las acciones</mat-option>
+            <mat-option *ngFor="let acc of acciones" [value]="acc">
+              {{ acc | titlecase }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <button mat-raised-button color="primary" (click)="exportarCSV()">
+          <mat-icon>download</mat-icon>
+          Exportar a CSV
+        </button>
+
+        <button mat-stroked-button (click)="limpiarFiltros()">
+          <mat-icon>clear</mat-icon>
+          Limpiar Filtros
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Tabla de Logs -->
+  <mat-card class="logs-card">
+    <mat-card-title>
+      <mat-icon>history</mat-icon>
+      Historial de Auditoría
+    </mat-card-title>
+    <mat-card-content>
+      <div class="table-responsive" *ngIf="obtenerLogsFiltrados().length > 0">
+        <table class="logs-table">
+          <thead>
+            <tr>
+              <th>Usuario</th>
+              <th>Módulo</th>
+              <th>Acción</th>
+              <th>Descripción</th>
+              <th>Fecha</th>
+              <th>Hora</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let log of obtenerLogsFiltrados()" [ngClass]="'accion-' + log.accion">
+              <td><strong>{{ log.usuarioNombre }}</strong></td>
+              <td>
+                <span [ngClass]="'badge badge-' + log.modulo">
+                  {{ log.modulo | uppercase }}
+                </span>
+              </td>
+              <td>
+                <span [ngClass]="'badge badge-accion-' + log.accion">
+                  {{ log.accion | titlecase }}
+                </span>
+              </td>
+              <td>{{ log.descripcion }}</td>
+              <td>{{ formatearFecha(log.fecha) }}</td>
+              <td>{{ log.hora }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="empty-state" *ngIf="obtenerLogsFiltrados().length === 0">
+        <mat-icon>history</mat-icon>
+        <p>No hay registros de auditoría</p>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

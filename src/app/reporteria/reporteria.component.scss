@@ -1,0 +1,388 @@
+.reporteria-container {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.header-card {
+  background: white;
+  margin-bottom: 24px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+  mat-card-header {
+    background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+    color: white;
+    padding: 24px;
+    border-radius: 8px 8px 0 0;
+  }
+
+  mat-card-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: white;
+    margin: 0;
+    font-size: 24px;
+
+    mat-icon {
+      font-size: 28px;
+    }
+  }
+
+  mat-card-subtitle {
+    color: rgba(255, 255, 255, 0.9);
+    margin-top: 8px;
+  }
+}
+
+.estadisticas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.stats-card {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  mat-card-content {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+  }
+
+  .stat-icon {
+    flex-shrink: 0;
+    width: 64px;
+    height: 64px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 32px;
+
+    &.total {
+      background: #1976d2;
+    }
+
+    &.create {
+      background: #2ecc71;
+    }
+
+    &.edit {
+      background: #ff9800;
+    }
+
+    &.delete {
+      background: #c62828;
+    }
+  }
+
+  .stat-info {
+    flex: 1;
+  }
+
+  .stat-label {
+    font-size: 12px;
+    color: #999;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .stat-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: #333;
+  }
+}
+
+.usuarios-activos-card {
+  background: white;
+  margin-bottom: 24px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+  mat-card-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 16px;
+
+    mat-icon {
+      color: #1976d2;
+    }
+  }
+
+  mat-card-content {
+    padding: 16px;
+  }
+
+  .usuarios-list {
+    display: grid;
+    gap: 8px;
+  }
+
+  .usuario-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    background: #f5f5f5;
+    border-radius: 6px;
+    border-left: 4px solid #1976d2;
+
+    .nombre {
+      font-weight: 500;
+      color: #333;
+    }
+
+    .cantidad {
+      font-size: 12px;
+      background: #1976d2;
+      color: white;
+      padding: 4px 12px;
+      border-radius: 12px;
+    }
+  }
+}
+
+.filtros-card {
+  background: white;
+  margin-bottom: 24px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+  mat-card-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 16px;
+
+    mat-icon {
+      color: #1976d2;
+    }
+  }
+
+  mat-card-content {
+    padding: 16px;
+  }
+
+  .filtros-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    align-items: end;
+
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .filter-field {
+    width: 100%;
+  }
+
+  button {
+    height: 56px;
+  }
+}
+
+.logs-card {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+  mat-card-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 16px;
+
+    mat-icon {
+      color: #1976d2;
+    }
+  }
+
+  mat-card-content {
+    padding: 16px;
+  }
+}
+
+.table-responsive {
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+}
+
+.logs-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+
+  thead {
+    background: #f5f5f5;
+    border-bottom: 2px solid #e0e0e0;
+  }
+
+  th {
+    padding: 12px;
+    text-align: left;
+    font-weight: 600;
+    color: #666;
+    border-right: 1px solid #e0e0e0;
+    font-size: 13px;
+
+    &:last-child {
+      border-right: none;
+    }
+  }
+
+  td {
+    padding: 12px;
+    border-right: 1px solid #e0e0e0;
+    border-bottom: 1px solid #e0e0e0;
+    font-size: 13px;
+
+    &:last-child {
+      border-right: none;
+    }
+  }
+
+  tbody tr {
+    transition: background 0.2s ease;
+
+    &:hover {
+      background: #fafafa;
+    }
+
+    &:last-child td {
+      border-bottom: none;
+    }
+
+    &.accion-crear {
+      border-left: 4px solid #2ecc71;
+    }
+
+    &.accion-editar {
+      border-left: 4px solid #ff9800;
+    }
+
+    &.accion-eliminar {
+      border-left: 4px solid #c62828;
+    }
+  }
+}
+
+.badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+
+  &-rrhh {
+    background: rgba(76, 175, 80, 0.2);
+    color: #4caf50;
+  }
+
+  &-planilla {
+    background: rgba(25, 118, 210, 0.2);
+    color: #1976d2;
+  }
+
+  &-finanzas {
+    background: rgba(255, 152, 0, 0.2);
+    color: #ff9800;
+  }
+
+  &-vacaciones {
+    background: rgba(156, 39, 176, 0.2);
+    color: #9c27b0;
+  }
+
+  &-incapacidades {
+    background: rgba(244, 67, 54, 0.2);
+    color: #f44336;
+  }
+
+  &-configuracion {
+    background: rgba(158, 158, 158, 0.2);
+    color: #999;
+  }
+
+  &-accion-crear {
+    background: rgba(46, 204, 113, 0.2);
+    color: #2ecc71;
+  }
+
+  &-accion-editar {
+    background: rgba(255, 152, 0, 0.2);
+    color: #ff9800;
+  }
+
+  &-accion-eliminar {
+    background: rgba(198, 40, 40, 0.2);
+    color: #c62828;
+  }
+
+  &-accion-ver {
+    background: rgba(25, 118, 210, 0.2);
+    color: #1976d2;
+  }
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #999;
+
+  mat-icon {
+    font-size: 64px;
+    width: 64px;
+    height: 64px;
+    color: #ccc;
+    margin: 0 auto 16px;
+  }
+
+  p {
+    margin: 0;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 768px) {
+  .reporteria-container {
+    padding: 12px;
+  }
+
+  .logs-table {
+    font-size: 12px;
+
+    th,
+    td {
+      padding: 8px;
+    }
+  }
+}

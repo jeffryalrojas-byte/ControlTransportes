@@ -1,0 +1,155 @@
+<div class="gestion-usuarios-container">
+  <mat-card class="header-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>group</mat-icon>
+        Gestión de Usuarios y Perfiles
+      </mat-card-title>
+      <mat-card-subtitle>Administra los usuarios de tu empresa y sus perfiles de acceso</mat-card-subtitle>
+    </mat-card-header>
+  </mat-card>
+
+  <!-- Botón agregar usuario -->
+  <div class="acciones-header" *ngIf="puedeGestionar()">
+    <button mat-raised-button color="primary" (click)="abrirFormulario()">
+      <mat-icon>person_add</mat-icon>
+      Agregar Usuario
+    </button>
+  </div>
+
+  <!-- Formulario de usuario -->
+  <mat-card class="form-card" *ngIf="mostrarFormulario && puedeGestionar()">
+    <mat-card-title>{{ editando ? 'Editar Usuario' : 'Nuevo Usuario' }}</mat-card-title>
+    <mat-card-content>
+      <!-- Mensaje éxito -->
+      <div *ngIf="exito" class="success-message">
+        <mat-icon>check_circle</mat-icon>
+        <p>✅ {{ editando ? 'Usuario actualizado' : 'Usuario creado' }} exitosamente</p>
+      </div>
+
+      <!-- Mensaje error -->
+      <div *ngIf="error" class="error-message">
+        <mat-icon>error</mat-icon>
+        {{ error }}
+      </div>
+
+      <form class="usuario-form">
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Email</mat-label>
+            <input matInput [(ngModel)]="formData.email" name="email" [disabled]="!!editando" required>
+            <mat-icon matPrefix>email</mat-icon>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Nombre Completo</mat-label>
+            <input matInput [(ngModel)]="formData.nombre" name="nombre" required>
+            <mat-icon matPrefix>person</mat-icon>
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="form-field full-width">
+            <mat-label>Perfil de Acceso</mat-label>
+            <mat-select [(ngModel)]="formData.perfil" name="perfil">
+              <mat-option value="supervisor" [disabled]="!puedeAgregarPerfil('supervisor')">
+                👑 Supervisor
+              </mat-option>
+              <mat-option value="administrador" [disabled]="!puedeAgregarPerfil('administrador')">
+                🔒 Administrador
+              </mat-option>
+              <mat-option value="secretario" [disabled]="!puedeAgregarPerfil('secretario')">
+                📋 Secretario
+              </mat-option>
+            </mat-select>
+            <mat-icon matPrefix>security</mat-icon>
+          </mat-form-field>
+        </div>
+
+        <!-- Info perfil -->
+        <div class="perfil-info">
+          <mat-icon>info</mat-icon>
+          <div>
+            <strong>{{ obtenerNombrePerfil(formData.perfil) }}:</strong>
+            <span *ngIf="formData.perfil === 'supervisor'">Acceso total a todos los módulos</span>
+            <span *ngIf="formData.perfil === 'administrador'">Acceso a módulos con restricciones de eliminación</span>
+            <span *ngIf="formData.perfil === 'secretario'">Acceso limitado, solo visualización en planilla</span>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button mat-raised-button color="primary" (click)="guardarUsuario()" [disabled]="procesando">
+            <mat-icon>{{ procesando ? 'hourglass_empty' : 'save' }}</mat-icon>
+            {{ procesando ? 'Guardando...' : 'Guardar' }}
+          </button>
+          <button mat-stroked-button (click)="cerrarFormulario()" [disabled]="procesando">
+            <mat-icon>cancel</mat-icon>
+            Cancelar
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Tabla de usuarios -->
+  <mat-card class="usuarios-card">
+    <mat-card-title>
+      <mat-icon>people</mat-icon>
+      Usuarios de la Empresa
+    </mat-card-title>
+    <mat-card-content>
+      <div class="table-responsive" *ngIf="usuariosEmpresa.length > 0">
+        <table class="usuarios-table">
+          <thead>
+            <tr>
+              <th>Email</th>
+              <th>Nombre</th>
+              <th>Perfil</th>
+              <th>Estado</th>
+              <th>Fecha Creación</th>
+              <th *ngIf="puedeGestionar()">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let usuario of usuariosEmpresa">
+              <td>{{ usuario.email }}</td>
+              <td>{{ usuario.nombre }}</td>
+              <td>
+                <span [ngClass]="'badge badge-' + usuario.perfil">
+                  {{ obtenerNombrePerfil(usuario.perfil) }}
+                </span>
+              </td>
+              <td>
+                <span [ngClass]="'badge badge-' + usuario.estado">
+                  {{ usuario.estado | uppercase }}
+                </span>
+              </td>
+              <td>{{ formatearFecha(usuario.fechaCreacion) }}</td>
+              <td *ngIf="puedeGestionar()" class="acciones-cell">
+                <button mat-icon-button (click)="editarUsuario(usuario)" matTooltip="Editar">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button color="warn" (click)="eliminarUsuario(usuario)" matTooltip="Eliminar">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="empty-state" *ngIf="usuariosEmpresa.length === 0">
+        <mat-icon>people_outline</mat-icon>
+        <p>No hay usuarios agregados</p>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Nota de permisos -->
+  <mat-card class="info-card" *ngIf="!puedeGestionar()">
+    <mat-card-content>
+      <mat-icon>lock</mat-icon>
+      <p>No tienes permisos para gestionar usuarios en este módulo</p>
+    </mat-card-content>
+  </mat-card>
+</div>

@@ -26,7 +26,6 @@ export class PagosComponent implements OnInit {
   planes: Plan[] = [];
   transacciones: any[] = [];
 
-  // Formulario de pago
   mostrarFormulario = false;
   planSeleccionado: Plan | null = null;
 
@@ -65,42 +64,54 @@ export class PagosComponent implements OnInit {
         moneda: 'USD',
         descripcion: 'Perfecto para empezar',
         caracteristicas: [
-          'Hasta 10 empleados',
-          'Funciones básicas',
-          'Soporte por email',
-          'Sin acceso a finanzas avanzadas'
+          'Hasta 2 empleados',
+          'RRHH, Planilla, Incapacidades',
+          'Soporte básico',
+          'Sin acceso a Finanzas avanzadas'
         ],
         color: 'primary'
       },
       {
         id: 'plan_pro',
         nombre: 'Pro',
-        precio: 29.99,
+        precio: 19.99,
         moneda: 'USD',
         descripcion: 'Para empresas en crecimiento',
         caracteristicas: [
-          'Hasta 100 empleados',
-          'Todas las funciones',
-          'Soporte prioritario',
-          'Reportes avanzados',
-          'API access'
+          'Hasta 20 empleados',
+          'Todos los módulos',
+          'Reportería y Auditoría',
+          'Soporte por email y chat'
         ],
         color: 'accent'
+      },
+      {
+        id: 'plan_business',
+        nombre: 'Business',
+        precio: 39.99,
+        moneda: 'USD',
+        descripcion: 'Para empresas establecidas',
+        caracteristicas: [
+          'Hasta 50 empleados',
+          'Todos los módulos',
+          'Análisis avanzado',
+          'Soporte prioritario'
+        ],
+        color: 'warn'
       },
       {
         id: 'plan_enterprise',
         nombre: 'Enterprise',
         precio: 99.99,
         moneda: 'USD',
-        descripcion: 'Solución completa empresarial',
+        descripcion: 'Solución completa',
         caracteristicas: [
           'Empleados ilimitados',
-          'Todas las funciones',
-          'Soporte 24/7',
-          'Integraciones personalizadas',
-          'Server dedicado'
+          'Todos los módulos',
+          'API y webhooks',
+          'Soporte 24/7 dedicado'
         ],
-        color: 'warn'
+        color: 'primary'
       }
     ];
   }
@@ -180,7 +191,6 @@ export class PagosComponent implements OnInit {
           const { url } = response;
 
           if (url) {
-            // Redirigir a Tilopay
             window.location.href = url;
           } else {
             this.error = 'No se pudo obtener la URL de pago';

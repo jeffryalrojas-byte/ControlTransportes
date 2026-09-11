@@ -40,37 +40,40 @@
     <button mat-button routerLink="/planilla" routerLinkActive="active-link"
       [routerLinkActiveOptions]="{ exact: false }">
       <mat-icon>receipt</mat-icon>
-      <span>Planilla</span>
+      <span>PLANILLA</span>
     </button>
 
     <button mat-button routerLink="/finanzas" routerLinkActive="active-link"
       [routerLinkActiveOptions]="{ exact: false }">
       <mat-icon>trending_up</mat-icon>
-      <span>Finanzas</span>
+      <span>FINANZAS</span>
     </button>
 
     <button mat-button routerLink="/vacaciones" routerLinkActive="active-link"
       [routerLinkActiveOptions]="{ exact: false }">
       <mat-icon>beach_access</mat-icon>
-      <span>Vacaciones</span>
+      <span>VACACIONES</span>
     </button>
 
     <button mat-button routerLink="/incapacidades" routerLinkActive="active-link"
       [routerLinkActiveOptions]="{ exact: false }">
       <mat-icon>local_hospital</mat-icon>
-      <span>Incapacidades/Permisos</span>
+      <span>INCAPACIDADES/PERMISOS</span>
     </button>
 
-    <button mat-button routerLink="/pagos" routerLinkActive="active-link"
-      [routerLinkActiveOptions]="{ exact: false }">
+    <button mat-button routerLink="/pagos" routerLinkActive="active-link" [routerLinkActiveOptions]="{ exact: false }">
       <mat-icon>payment</mat-icon>
-      <span>Pagos</span>
+      <span>PAGOS</span>
     </button>
 
-    <button *ngIf="puedeEditar()" mat-button routerLink="/configuracion" routerLinkActive="active-link"
-      [routerLinkActiveOptions]="{ exact: false }">
+    <button mat-button routerLink="/reporteria" routerLinkActive="active-link" [routerLinkActiveOptions]="{ exact: false }">
+      <mat-icon>history</mat-icon>
+      <span>Reportería</span>
+    </button>
+
+    <button mat-button routerLink="/configuracion" routerLinkActive="active-link" [routerLinkActiveOptions]="{ exact: false }">
       <mat-icon>settings</mat-icon>
-      <span>Config</span>
+      <span>Configuración</span>
     </button>
   </div>
 
