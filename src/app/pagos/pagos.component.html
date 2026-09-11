@@ -43,11 +43,11 @@
     </mat-card>
   </div>
 
-  <!-- Formulario de Pago -->
+  <!-- Formulario de Pago con Tilopay -->
   <mat-card class="pago-card" *ngIf="mostrarFormulario && planSeleccionado">
     <mat-card-title>
-      <mat-icon>credit_card</mat-icon>
-      Información de Pago - {{ planSeleccionado.nombre }}
+      <mat-icon>payment</mat-icon>
+      Pago Seguro con Tilopay - {{ planSeleccionado.nombre }}
     </mat-card-title>
     <mat-card-content>
       <!-- Mensaje de éxito -->
@@ -56,48 +56,27 @@
         <p>✅ Pago realizado exitosamente</p>
       </div>
 
-      <!-- Formulario -->
+      <!-- Info Tilopay -->
+      <div *ngIf="!exito" class="info-box">
+        <mat-icon>info</mat-icon>
+        <p>Serás redirigido a Tilopay (procesador de pagos seguro) para completar tu transacción de forma segura.</p>
+      </div>
+
+      <!-- Formulario Simple -->
       <form *ngIf="!exito" class="pago-form">
         <div class="form-row">
-          <mat-form-field appearance="outline" class="form-field">
+          <mat-form-field appearance="outline" class="form-field full-width">
             <mat-label>Nombre Completo</mat-label>
-            <input matInput [(ngModel)]="nombre" name="nombre">
+            <input matInput [(ngModel)]="nombre" name="nombre" required>
             <mat-icon matPrefix>person</mat-icon>
-          </mat-form-field>
-
-          <mat-form-field appearance="outline" class="form-field">
-            <mat-label>Email</mat-label>
-            <input matInput type="email" [(ngModel)]="email" name="email">
-            <mat-icon matPrefix>email</mat-icon>
           </mat-form-field>
         </div>
 
         <div class="form-row">
           <mat-form-field appearance="outline" class="form-field full-width">
-            <mat-label>Número de Tarjeta</mat-label>
-            <input matInput [(ngModel)]="numeroTarjeta" name="numeroTarjeta" 
-              placeholder="1234 5678 9012 3456" maxlength="16">
-            <mat-icon matPrefix>credit_card</mat-icon>
-          </mat-form-field>
-        </div>
-
-        <div class="form-row">
-          <mat-form-field appearance="outline" class="form-field">
-            <mat-label>Mes</mat-label>
-            <input matInput [(ngModel)]="mesExpiracion" name="mesExpiracion" 
-              placeholder="MM" maxlength="2">
-          </mat-form-field>
-
-          <mat-form-field appearance="outline" class="form-field">
-            <mat-label>Año</mat-label>
-            <input matInput [(ngModel)]="anioExpiracion" name="anioExpiracion" 
-              placeholder="YY" maxlength="2">
-          </mat-form-field>
-
-          <mat-form-field appearance="outline" class="form-field">
-            <mat-label>CVV</mat-label>
-            <input matInput [(ngModel)]="cvv" name="cvv" placeholder="123" maxlength="4">
-            <mat-icon matPrefix>lock</mat-icon>
+            <mat-label>Email</mat-label>
+            <input matInput type="email" [(ngModel)]="email" name="email" required>
+            <mat-icon matPrefix>email</mat-icon>
           </mat-form-field>
         </div>
 
@@ -110,15 +89,15 @@
         <!-- Total -->
         <div class="total-section">
           <span class="label">Total a Pagar:</span>
-          <span class="value">${{ planSeleccionado.precio }} USD</span>
+          <span class="value">${{ planSeleccionado.precio }} {{ planSeleccionado.moneda }}</span>
         </div>
 
         <!-- Botones -->
         <div class="form-actions">
           <button mat-raised-button color="primary" (click)="procesarPago()" 
-            [disabled]="procesando || !nombre || !email || !numeroTarjeta">
-            <mat-icon>{{ procesando ? 'hourglass_empty' : 'done' }}</mat-icon>
-            {{ procesando ? 'Procesando...' : 'Confirmar Pago' }}
+            [disabled]="procesando || !nombre || !email">
+            <mat-icon>{{ procesando ? 'hourglass_empty' : 'payment' }}</mat-icon>
+            {{ procesando ? 'Redirigiendo...' : 'Continuar a Tilopay' }}
           </button>
           <button mat-stroked-button (click)="limpiar()" [disabled]="procesando">
             <mat-icon>cancel</mat-icon>
@@ -150,7 +129,7 @@
           <tbody>
             <tr *ngFor="let t of transacciones">
               <td>{{ formatearFecha(t.fecha) }}</td>
-              <td><strong>{{ t.planNombre }}</strong></td>
+              <td><strong>{{ t.planNombre || 'N/A' }}</strong></td>
               <td>${{ t.monto }} {{ t.moneda }}</td>
               <td>
                 <span class="badge badge-metodo">

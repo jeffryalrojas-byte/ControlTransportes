@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Router, ActivatedRoute } from '@angular/router';
 import { SesionService } from '../services/sesion.service';
-import { TransaccionesService } from '../services/transacciones.service';
+import { TilopayService, TilopayPayment } from '../services/tilopay.service';
 import { v4 as uuid } from 'uuid';
 
 interface Plan {
@@ -28,14 +29,10 @@ export class PagosComponent implements OnInit {
   // Formulario de pago
   mostrarFormulario = false;
   planSeleccionado: Plan | null = null;
-  
+
   nombre = '';
   email = '';
-  numeroTarjeta = '';
-  mesExpiracion = '';
-  anioExpiracion = '';
-  cvv = '';
-  
+
   procesando = false;
   error: string | null = null;
   exito = false;
@@ -43,13 +40,16 @@ export class PagosComponent implements OnInit {
   constructor(
     private http: HttpClient,
     private sesionService: SesionService,
-    private transaccionesService: TransaccionesService
-  ) {}
+    private tilopayService: TilopayService,
+    private router: Router,
+    private route: ActivatedRoute
+  ) { }
 
   ngOnInit() {
     this.usuarioActivo = this.sesionService.getUsuarioActivo();
     this.cargarPlanes();
     this.cargarTransacciones();
+    this.verificarPagoCallback();
   }
 
   getEmpresaId(): string {
@@ -108,10 +108,15 @@ export class PagosComponent implements OnInit {
   cargarTransacciones() {
     const empresaId = this.getEmpresaId();
     if (empresaId) {
-      this.transaccionesService.obtenerTransacciones(empresaId)
-        .subscribe(transacciones => {
-          this.transacciones = transacciones;
-        });
+      this.tilopayService.obtenerHistorialTilopay(empresaId)
+        .subscribe(
+          (transacciones: any) => {
+            this.transacciones = transacciones;
+          },
+          (error: any) => {
+            console.error('Error cargando transacciones:', error);
+          }
+        );
     }
   }
 
@@ -127,60 +132,68 @@ export class PagosComponent implements OnInit {
     this.email = this.usuarioActivo?.email || '';
   }
 
-  validarTarjeta(): boolean {
-    if (!this.numeroTarjeta || this.numeroTarjeta.length !== 16) {
-      this.error = 'Número de tarjeta inválido (16 dígitos)';
-      return false;
-    }
-    if (!this.cvv || this.cvv.length < 3) {
-      this.error = 'CVV inválido';
-      return false;
-    }
-    if (!this.mesExpiracion || !this.anioExpiracion) {
-      this.error = 'Fecha de expiración inválida';
-      return false;
-    }
-    return true;
+  verificarPagoCallback() {
+    this.route.queryParams.subscribe(params => {
+      const reference = params['reference'];
+      const status = params['status'];
+
+      if (reference && status === 'success') {
+        this.tilopayService.verificarPagoTilopay(reference)
+          .subscribe(
+            (resultado: any) => {
+              if (resultado.approved) {
+                this.exito = true;
+                this.cargarTransacciones();
+                setTimeout(() => {
+                  this.exito = false;
+                }, 3000);
+              }
+            },
+            (error: any) => console.error('Error verificando pago:', error)
+          );
+      }
+    });
   }
 
   async procesarPago() {
-    if (!this.validarTarjeta() || !this.planSeleccionado) return;
+    if (!this.planSeleccionado || !this.nombre || !this.email) {
+      this.error = 'Por favor completa nombre y email';
+      return;
+    }
 
     this.procesando = true;
     this.error = null;
 
     try {
-      // En producción, esto iría a tu backend
-      // que luego se conectaría con Stripe
-      const transaccion: any = {
-        id: uuid(),
-        empresaId: this.getEmpresaId(),
-        usuarioId: this.usuarioActivo?.id || '',
-        planId: this.planSeleccionado.id,
-        planNombre: this.planSeleccionado.nombre,
-        monto: this.planSeleccionado.precio,
-        moneda: this.planSeleccionado.moneda,
-        estado: 'completado' as const,
-        metodoPago: 'tarjeta' as const,
-        fecha: new Date(),
-        email: this.email,
-        nombre: this.nombre,
-        ultimosCuatro: this.numeroTarjeta.slice(-4)
+      const pago: TilopayPayment = {
+        reference: `REF-${Date.now()}`,
+        amount: this.planSeleccionado.precio,
+        currency: this.planSeleccionado.moneda,
+        description: `Suscripción ${this.planSeleccionado.nombre}`,
+        customerEmail: this.email,
+        customerName: this.nombre,
+        notifyUrl: window.location.origin + '/api/webhook-tilopay'
       };
 
-      // Guardar transacción
-      await this.transaccionesService.guardarTransaccion(transaccion);
+      this.tilopayService.crearSesionTilopay(pago).subscribe(
+        async (response: any) => {
+          const { url } = response;
 
-      this.exito = true;
-      this.transacciones.unshift(transaccion);
-      
-      setTimeout(() => {
-        this.limpiar();
-      }, 2000);
-
+          if (url) {
+            // Redirigir a Tilopay
+            window.location.href = url;
+          } else {
+            this.error = 'No se pudo obtener la URL de pago';
+            this.procesando = false;
+          }
+        },
+        (error: any) => {
+          this.error = error.error?.error || 'Error al crear sesión de pago';
+          this.procesando = false;
+        }
+      );
     } catch (err: any) {
       this.error = err.message || 'Error al procesar el pago';
-    } finally {
       this.procesando = false;
     }
   }
@@ -190,10 +203,6 @@ export class PagosComponent implements OnInit {
     this.planSeleccionado = null;
     this.nombre = '';
     this.email = '';
-    this.numeroTarjeta = '';
-    this.mesExpiracion = '';
-    this.anioExpiracion = '';
-    this.cvv = '';
     this.exito = false;
     this.error = null;
   }
@@ -202,10 +211,5 @@ export class PagosComponent implements OnInit {
     if (!fecha) return '';
     const date = fecha.toDate ? fecha.toDate() : new Date(fecha);
     return date.toLocaleDateString('es-CR');
-  }
-
-  obtenerNombreMes(mes: number): string {
-    const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-    return meses[mes - 1] || '';
   }
 }

@@ -2,7 +2,6 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
-import { PagosComponent } from './pagos.component';
 import { RouterModule } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -13,6 +12,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDividerModule } from '@angular/material/divider';
+
+import { PagosComponent } from './pagos.component';
+import { TilopayService } from '../services/tilopay.service';
 
 @NgModule({
   declarations: [PagosComponent],
@@ -32,6 +34,7 @@ import { MatDividerModule } from '@angular/material/divider';
     MatChipsModule,
     MatTooltipModule,
     MatDividerModule
-  ]
+  ],
+  providers: [TilopayService]
 })
 export class PagosModule { }

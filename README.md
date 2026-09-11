@@ -56,3 +56,25 @@ ng test
 ## 💡 Ayuda Adicional
 
 Para obtener más información sobre el uso de la interfaz de comandos de Angular (Angular CLI), ejecuta `ng help` o consulta la [Documentación Oficial de Angular](https://angular.dev).
+
+
+## Pendiente por hacer
+3. Actualizar variables de entorno:
+.env.local:
+
+TILOPAY_API_KEY=sk_test_xxxxx
+TILOPAY_MERCHANT_ID=merchant_xxxxx
+FRONTEND_URL=http://localhost:4200
+functions/src/index.ts (líneas 13-14):
+
+const TILOPAY_API_KEY = process.env.TILOPAY_API_KEY || "sk_test_xxx";
+const TILOPAY_MERCHANT_ID = process.env.TILOPAY_MERCHANT_ID || "merchant_xxx";
+4. Deploy Cloud Functions:
+cd functions
+npm install
+cd ..
+firebase deploy --only functions
+5. Actualizar URL en servicio:
+src/app/services/tilopay.service.ts (línea 21):
+
+private backendUrl = 'https://us-central1-TU-PROYECTO-ID.cloudfunctions.net/pagos';
