@@ -21,7 +21,7 @@ import { MigracionCompletaComponent } from './shared/migracion-completa/migracio
 
 // Modules
 import { FinanzasModule } from './finanzas/finanzas.module';
-import { GestionUsuariosModule } from './configuracion/gestion-usuarios/gestion-usuarios.module';
+
 
 // Firebase
 import { initializeApp, provideFirebaseApp } from '@angular/fire/app';
@@ -52,6 +52,8 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { ReporteriaModule } from './reporteria/reporteria.module';
 import { VacacionesComponent } from './vacaciones/vacaciones.component';
 import { IncapacidadesComponent } from './incapacidades/incapacidades.component';
+import { GestionUsuariosModule } from './configuracion/gestion-usuarios/gestion-usuarios.module';
+import { GestionPerfilesModule } from './configuracion/gestion-perfiles/gestion-perfiles.module';
 
 @NgModule({
   declarations: [
@@ -96,6 +98,7 @@ import { IncapacidadesComponent } from './incapacidades/incapacidades.component'
     MatNativeDateModule,
     ReporteriaModule,
     GestionUsuariosModule,
+    GestionPerfilesModule,
   ],
   providers: [
     provideFirebaseApp(() => initializeApp(environment.firebase)),
@@ -106,3 +109,4 @@ import { IncapacidadesComponent } from './incapacidades/incapacidades.component'
   bootstrap: [AppComponent]
 })
 export class AppModule { }
+

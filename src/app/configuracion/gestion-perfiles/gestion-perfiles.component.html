@@ -1,0 +1,180 @@
+<div class="gestion-perfiles-container">
+  <!-- Header -->
+  <mat-card class="header-card">
+    <mat-card-header>
+      <div mat-card-avatar class="header-icon">
+        <mat-icon>security</mat-icon>
+      </div>
+      <mat-card-title>Administración de Perfiles y Permisos</mat-card-title>
+      <mat-card-subtitle>Gestiona los perfiles y sus permisos de acceso</mat-card-subtitle>
+    </mat-card-header>
+  </mat-card>
+
+  <!-- Sin permisos -->
+  <mat-card class="error-card" *ngIf="!puedeGestionar()">
+    <mat-card-content>
+      <mat-icon class="error-icon">lock</mat-icon>
+      <p>No tienes permiso para acceder a esta sección</p>
+      <small>Solo los supervisores pueden gestionar perfiles</small>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Contenido principal -->
+  <div *ngIf="puedeGestionar()" class="perfiles-grid">
+    <!-- Panel de Perfiles -->
+    <mat-card class="perfiles-panel">
+      <mat-card-title>
+        <mat-icon>list</mat-icon>
+        Perfiles Disponibles
+      </mat-card-title>
+
+      <mat-card-content>
+        <!-- Botón agregar -->
+        <button mat-raised-button color="primary" (click)="abrirFormularioNuevo()" [disabled]="cargando">
+          <mat-icon>add</mat-icon>
+          Crear Perfil
+        </button>
+
+        <!-- Lista de perfiles -->
+        <div class="perfiles-lista" *ngIf="!cargando">
+          <div *ngFor="let perfil of perfiles" class="perfil-item" [class.activo]="perfilSeleccionado?.id === perfil.id"
+            (click)="seleccionarPerfil(perfil)">
+
+            <div class="perfil-header">
+              <h4>{{ perfil.nombre }}</h4>
+              <mat-icon *ngIf="perfil.esDefault" class="default-badge" matTooltip="Perfil por defecto">
+                verified
+              </mat-icon>
+            </div>
+
+            <p class="perfil-desc">{{ perfil.descripcion }}</p>
+            <small class="perfil-permisos">{{ obtenerPermisosPerfil(perfil) }}</small>
+
+            <!-- Acciones -->
+            <div class="perfil-acciones" *ngIf="perfilSeleccionado?.id === perfil.id && !perfil.esDefault">
+              <button mat-icon-button (click)="abrirFormularioEditar(perfil)" matTooltip="Editar">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button mat-icon-button color="warn" (click)="eliminarPerfil(perfil)" matTooltip="Eliminar">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cargando -->
+        <div *ngIf="cargando" class="loading">
+          <mat-spinner diameter="40"></mat-spinner>
+          <p>Cargando perfiles...</p>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Panel de Permisos del Perfil Seleccionado -->
+    <mat-card class="permisos-panel" *ngIf="perfilSeleccionado && !mostrarFormulario">
+      <mat-card-title>
+        <mat-icon>vpn_key</mat-icon>
+        {{ perfilSeleccionado.nombre }} - Permisos
+      </mat-card-title>
+
+      <mat-card-content>
+        <div *ngIf="perfilSeleccionado.permisos.length > 0; else sinPermisos">
+          <div class="permisos-lista">
+            <div *ngFor="let permiso of perfilSeleccionado.permisos" class="permiso-item">
+              <mat-icon>check_circle</mat-icon>
+              <span>{{ obtenerDescripcionPermiso(permiso) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <ng-template #sinPermisos>
+          <div class="sin-permisos">
+            <mat-icon>info</mat-icon>
+            <p>Este perfil no tiene permisos asignados</p>
+          </div>
+        </ng-template>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Formulario de Edición/Creación -->
+    <mat-card class="formulario-panel" *ngIf="mostrarFormulario">
+      <mat-card-title>
+        {{ editando ? 'Editar Perfil' : 'Crear Nuevo Perfil' }}
+      </mat-card-title>
+
+      <mat-card-content>
+        <!-- Mensajes -->
+        <div *ngIf="exito" class="success-message">
+          <mat-icon>check_circle</mat-icon>
+          <p>{{ editando ? 'Perfil actualizado' : 'Perfil creado' }} exitosamente</p>
+        </div>
+
+        <div *ngIf="error" class="error-message">
+          <mat-icon>error</mat-icon>
+          <p>{{ error }}</p>
+        </div>
+
+        <!-- Formulario -->
+        <div class="formulario">
+          <!-- Nombre -->
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Nombre del Perfil</mat-label>
+            <input matInput [(ngModel)]="formData.nombre" placeholder="Ej: Gerente de RRHH">
+            <mat-icon matPrefix>label</mat-icon>
+          </mat-form-field>
+
+          <!-- Descripción -->
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Descripción</mat-label>
+            <textarea matInput [(ngModel)]="formData.descripcion" placeholder="Describe este perfil..."
+              rows="3"></textarea>
+            <mat-icon matPrefix>description</mat-icon>
+          </mat-form-field>
+
+          <!-- Permisos por módulo -->
+          <div class="permisos-seccion">
+            <h3>Selecciona Permisos</h3>
+
+            <mat-accordion>
+              <mat-expansion-panel
+                *ngFor="let modulo of ['RRHH', 'PLANILLA', 'FINANZAS', 'VACACIONES', 'INCAPACIDADES', 'CONFIGURACIÓN', 'PAGOS', 'REPORTERÍA']"
+                [class.completo]="estaModuloCompleto(modulo)" [class.incompleto]="estaModuloIncompleto(modulo)">
+
+                <mat-expansion-panel-header>
+                  <mat-panel-title>
+                    <mat-checkbox [checked]="estaModuloCompleto(modulo)" [indeterminate]="estaModuloIncompleto(modulo)"
+                      (change)="toggleTodosPermisosModulo(modulo)" (click)="$event.stopPropagation()"
+                      class="modulo-checkbox">
+                    </mat-checkbox>
+                    <span>{{ modulo }}</span>
+                  </mat-panel-title>
+
+                </mat-expansion-panel-header>
+
+                <div class="permisos-modulo">
+                  <mat-checkbox *ngFor="let permiso of permisosAgrupados[modulo] || []"
+                    [checked]="formData.permisos.includes(permiso)" (change)="togglePermiso(permiso)"
+                    class="permiso-checkbox">
+                    {{ obtenerDescripcionPermiso(permiso) }}
+                  </mat-checkbox>
+                </div>
+              </mat-expansion-panel>
+            </mat-accordion>
+          </div>
+
+          <!-- Botones de acción -->
+          <div class="form-actions">
+            <button mat-raised-button color="primary" (click)="guardarPerfil()" [disabled]="cargando">
+              <mat-icon>{{ cargando ? 'hourglass_empty' : 'save' }}</mat-icon>
+              {{ cargando ? 'Guardando...' : 'Guardar' }}
+            </button>
+            <button mat-stroked-button (click)="cerrarFormulario()" [disabled]="cargando">
+              <mat-icon>cancel</mat-icon>
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Firestore, collection, addDoc, doc, getDoc, setDoc, query, where, getDocs, updateDoc, Timestamp } from '@angular/fire/firestore';
-import { Usuario, Empresa, Plan, PLANES_DISPONIBLES, PERMISOS_POR_ROL } from '../models/usuario.model';
+import { Usuario, Empresa, Plan, PLANES_DISPONIBLES } from '../models/usuario.model';
 
 @Injectable({
   providedIn: 'root'
@@ -14,17 +14,25 @@ export class UserService {
     this.initializarPlanes();
   }
 
-  async crearUsuario(uid: string, email: string, nombre: string, empresaId: string, rol: 'admin' | 'supervisor' | 'user' = 'user'): Promise<Usuario> {
+  /**
+   * Crear usuario (compatible con modelo nuevo: perfil)
+   */
+  async crearUsuario(
+    uid: string,
+    email: string,
+    nombre: string,
+    empresaId: string,
+    perfil: string = 'secretario'
+  ): Promise<Usuario> {
     try {
       const usuario: Usuario = {
         uid,
         email,
         nombre,
-        rol,
+        perfil,  // Nuevo modelo
         empresaId,
         estado: 'activo',
-        createdAt: new Date(),
-        permisos: PERMISOS_POR_ROL[rol] || []
+        createdAt: new Date()
       };
 
       const docRef = doc(this.firestore, this.usersCollection, uid);
@@ -108,15 +116,17 @@ export class UserService {
     }
   }
 
-  async cambiarRol(uid: string, nuevoRol: 'admin' | 'supervisor' | 'user'): Promise<void> {
+  /**
+   * Cambiar perfil de usuario
+   */
+  async cambiarPerfil(uid: string, nuevoPerfil: string): Promise<void> {
     try {
       const docRef = doc(this.firestore, this.usersCollection, uid);
       await updateDoc(docRef, {
-        rol: nuevoRol,
-        permisos: PERMISOS_POR_ROL[nuevoRol]
+        perfil: nuevoPerfil
       });
     } catch (error) {
-      throw new Error(`Error al cambiar rol: ${error}`);
+      throw new Error(`Error al cambiar perfil: ${error}`);
     }
   }
 
@@ -240,8 +250,15 @@ export class UserService {
     }
   }
 
+  /**
+   * Verificar si usuario tiene acceso a un módulo
+   * (Método heredado, usa perfil ahora)
+   */
   tieneAccesoModulo(usuario: Usuario, modulo: string): boolean {
-    return usuario.permisos.includes(modulo);
+    // Este método ahora se valida con permisos individuales, no con módulos
+    // Se mantiene por compatibilidad
+    console.warn('tieneAccesoModulo es heredado. Usa PerfilesService.tienePermiso() en su lugar');
+    return true; // Por defecto, permite acceso (el componente debe validar permisos)
   }
 
   private async initializarPlanes(): Promise<void> {

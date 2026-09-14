@@ -1,15 +1,179 @@
+/**
+ * MODELO DE AUTENTICACIÓN Y PERMISOS
+ * 
+ * Terminología: PERFIL (único en todo el código)
+ * 
+ * Estructura:
+ * - Usuario tiene UN perfil
+ * - Perfil tiene MUCHOS permisos
+ * - Permisos son strings individuales (ej: "crear_empleado", "eliminar_empleado", etc)
+ */
+
+// ============= USUARIO =============
 export interface Usuario {
   uid: string;
   email: string;
   nombre: string;
-  rol: 'admin' | 'supervisor' | 'user';
+  perfil: string;  // ID del perfil (ej: "supervisor", "administrador", "secretario")
   empresaId: string;
   estado: 'activo' | 'inactivo' | 'suspendido';
   createdAt: Date;
   lastLogin?: Date;
-  permisos: string[];
 }
 
+// ============= PERFIL =============
+export interface Perfil {
+  id: string;                    // Unique ID (ej: "supervisor", "custom_role_1")
+  nombre: string;                // Display name (ej: "Supervisor", "Gerente de RRHH")
+  descripcion: string;           // Descripción del perfil
+  permisos: string[];            // Array de permisos (ej: ["crear_empleado", "ver_finanzas", ...])
+  esDefault: boolean;            // Si es uno de los 3 perfiles por defecto
+  empresaId: string;             // ID de empresa que lo creó (null para globales)
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// ============= PERMISOS DISPONIBLES =============
+export const PERMISOS_DISPONIBLES = {
+  // RRHH
+  'ver_empleados': 'Ver listado de empleados',
+  'crear_empleado': 'Crear empleado',
+  'editar_empleado': 'Editar datos de empleado',
+  'eliminar_empleado': 'Eliminar empleado',
+  'ver_datos_empleado': 'Ver detalles de empleado',
+
+  // PLANILLA
+  'ver_planilla': 'Ver planilla',
+  'crear_planilla': 'Crear planilla',
+  'editar_planilla': 'Editar planilla',
+  'eliminar_planilla': 'Eliminar planilla',
+  'generar_planilla': 'Generar planilla',
+
+  // FINANZAS
+  'ver_finanzas': 'Ver módulo de finanzas',
+  'crear_finanza': 'Crear registro financiero',
+  'editar_finanza': 'Editar registro financiero',
+  'eliminar_finanza': 'Eliminar registro financiero',
+  'ver_reportes_finanzas': 'Ver reportes financieros',
+
+  // VACACIONES
+  'ver_vacaciones': 'Ver vacaciones',
+  'solicitar_vacaciones': 'Solicitar vacaciones',
+  'aprobar_vacaciones': 'Aprobar solicitudes de vacaciones',
+  'rechazar_vacaciones': 'Rechazar solicitudes de vacaciones',
+  'editar_vacaciones': 'Editar vacaciones',
+  'eliminar_vacaciones': 'Eliminar vacaciones',
+
+  // INCAPACIDADES/PERMISOS
+  'ver_incapacidades': 'Ver incapacidades',
+  'solicitar_incapacidad': 'Solicitar incapacidad',
+  'aprobar_incapacidad': 'Aprobar incapacidades',
+  'rechazar_incapacidad': 'Rechazar incapacidades',
+  'editar_incapacidad': 'Editar incapacidades',
+  'eliminar_incapacidad': 'Eliminar incapacidades',
+
+  // CONFIGURACIÓN
+  'ver_configuracion': 'Ver módulo de configuración',
+  'editar_logo': 'Editar logo de empresa',
+  'editar_cargas_sociales': 'Editar cargas sociales',
+  'agregar_incentivos': 'Agregar incentivos',
+  'gestionar_usuarios': 'Gestionar usuarios',
+  'gestionar_perfiles': 'Gestionar perfiles y permisos',
+
+  // PAGOS
+  'ver_pagos': 'Ver módulo de pagos',
+  'procesar_pago': 'Procesar pagos',
+
+  // REPORTERÍA
+  'ver_reporteria': 'Ver reportería y auditoría',
+  'exportar_reportes': 'Exportar reportes',
+};
+
+// ============= PERFILES POR DEFECTO =============
+export const PERFILES_DEFAULT: { [key: string]: Perfil } = {
+  supervisor: {
+    id: 'supervisor',
+    nombre: 'Supervisor',
+    descripcion: 'Acceso total a todos los módulos',
+    esDefault: true,
+    empresaId: '',
+    permisos: [
+      // RRHH - Total
+      'ver_empleados', 'crear_empleado', 'editar_empleado', 'eliminar_empleado', 'ver_datos_empleado',
+      // PLANILLA - Total
+      'ver_planilla', 'crear_planilla', 'editar_planilla', 'eliminar_planilla', 'generar_planilla',
+      // FINANZAS - Total
+      'ver_finanzas', 'crear_finanza', 'editar_finanza', 'eliminar_finanza', 'ver_reportes_finanzas',
+      // VACACIONES - Total
+      'ver_vacaciones', 'solicitar_vacaciones', 'aprobar_vacaciones', 'rechazar_vacaciones', 'editar_vacaciones', 'eliminar_vacaciones',
+      // INCAPACIDADES - Total
+      'ver_incapacidades', 'solicitar_incapacidad', 'aprobar_incapacidad', 'rechazar_incapacidad', 'editar_incapacidad', 'eliminar_incapacidad',
+      // CONFIGURACIÓN - Total
+      'ver_configuracion', 'editar_logo', 'editar_cargas_sociales', 'agregar_incentivos', 'gestionar_usuarios', 'gestionar_perfiles',
+      // PAGOS - Total
+      'ver_pagos', 'procesar_pago',
+      // REPORTERÍA - Total
+      'ver_reporteria', 'exportar_reportes',
+    ],
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+
+  administrador: {
+    id: 'administrador',
+    nombre: 'Administrador',
+    descripcion: 'Acceso a la mayoría de módulos con restricciones de eliminación',
+    esDefault: true,
+    empresaId: '',
+    permisos: [
+      // RRHH - Sin eliminar
+      'ver_empleados', 'crear_empleado', 'editar_empleado', 'ver_datos_empleado',
+      // PLANILLA - Sin eliminar
+      'ver_planilla', 'crear_planilla', 'editar_planilla', 'generar_planilla',
+      // FINANZAS - Total
+      'ver_finanzas', 'crear_finanza', 'editar_finanza', 'eliminar_finanza', 'ver_reportes_finanzas',
+      // VACACIONES - Sin eliminar
+      'ver_vacaciones', 'solicitar_vacaciones', 'aprobar_vacaciones', 'rechazar_vacaciones',
+      // INCAPACIDADES - Sin eliminar
+      'ver_incapacidades', 'solicitar_incapacidad', 'aprobar_incapacidad', 'rechazar_incapacidad',
+      // CONFIGURACIÓN - Sin gestionar perfiles
+      'ver_configuracion', 'editar_cargas_sociales', 'agregar_incentivos', 'gestionar_usuarios',
+      // PAGOS - No
+      // REPORTERÍA
+      'ver_reporteria', 'exportar_reportes',
+    ],
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+
+  secretario: {
+    id: 'secretario',
+    nombre: 'Secretario',
+    descripcion: 'Acceso limitado, principalmente visualización y solicitudes',
+    esDefault: true,
+    empresaId: '',
+    permisos: [
+      // RRHH - Solo ver
+      'ver_empleados', 'ver_datos_empleado',
+      // PLANILLA - Solo ver
+      'ver_planilla',
+      // FINANZAS - Ver
+      'ver_finanzas', 'ver_reportes_finanzas',
+      // VACACIONES - Solicitar y ver
+      'ver_vacaciones', 'solicitar_vacaciones',
+      // INCAPACIDADES - Solicitar y ver
+      'ver_incapacidades', 'solicitar_incapacidad',
+      // CONFIGURACIÓN - No
+      // PAGOS - No
+      // REPORTERÍA
+      'ver_reporteria',
+    ],
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+};
+
+// ============= EMPRESA =============
 export interface Empresa {
   id: string;
   nombre: string;
@@ -82,37 +246,4 @@ export const PLANES_DISPONIBLES: { [key: string]: Plan } = {
     modulos: ['rrhh', 'vacaciones', 'incapacidades', 'planilla', 'finanzas', 'configuracion', 'reportes', 'api'],
     usuariosAdministradores: 999
   }
-};
-
-export const PERMISOS_POR_ROL: { [key: string]: string[] } = {
-  admin: [
-    'crear_usuario',
-    'eliminar_usuario',
-    'editar_usuario',
-    'ver_usuarios',
-    'crear_empleado',
-    'editar_empleado',
-    'eliminar_empleado',
-    'ver_empleados',
-    'crear_empresa',
-    'editar_empresa',
-    'ver_empresa',
-    'ver_finanzas',
-    'ver_reportes',
-    'gestionar_suscripcion'
-  ],
-  supervisor: [
-    'crear_empleado',
-    'editar_empleado',
-    'eliminar_empleado',
-    'ver_empleados',
-    'ver_finanzas',
-    'ver_reportes',
-    'crear_planilla',
-    'editar_planilla'
-  ],
-  user: [
-    'ver_empleados',
-    'ver_datos_propios'
-  ]
 };

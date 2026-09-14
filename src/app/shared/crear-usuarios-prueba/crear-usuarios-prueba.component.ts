@@ -6,7 +6,6 @@ import { Component } from '@angular/core';
 import { Auth, createUserWithEmailAndPassword } from '@angular/fire/auth';
 import { Firestore, collection, query, where, getDocs, doc, setDoc, Timestamp } from '@angular/fire/firestore';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { PERMISOS_POR_ROL } from '../../models/usuario.model';
 
 @Component({
   selector: 'app-crear-usuarios-prueba',
@@ -53,10 +52,10 @@ export class CrearUsuariosPruebaComponent {
   usuariosCreados: any[] = [];
 
   usuariosAPrueba = [
-    { email: 'admin@transportes-df.com', password: 'Admin123456', nombre: 'Admin D&F', rol: 'admin' as const, empresa: 'Transportes D&F' },
-    { email: 'supervisor@transportes-df.com', password: 'Super123456', nombre: 'Super D&F', rol: 'supervisor' as const, empresa: 'Transportes D&F' },
-    { email: 'admin@transportes-gya.com', password: 'Admin123456', nombre: 'Admin GyA', rol: 'admin' as const, empresa: 'Transportes GyA' },
-    { email: 'supervisor@transportes-gya.com', password: 'Super123456', nombre: 'Super GyA', rol: 'supervisor' as const, empresa: 'Transportes GyA' }
+    { email: 'admin@transportes-df.com', password: 'Admin123456', nombre: 'Admin D&F', perfil: 'administrador', empresa: 'Transportes D&F' },
+    { email: 'supervisor@transportes-df.com', password: 'Super123456', nombre: 'Super D&F', perfil: 'supervisor', empresa: 'Transportes D&F' },
+    { email: 'admin@transportes-gya.com', password: 'Admin123456', nombre: 'Admin GyA', perfil: 'administrador', empresa: 'Transportes GyA' },
+    { email: 'supervisor@transportes-gya.com', password: 'Super123456', nombre: 'Super GyA', perfil: 'supervisor', empresa: 'Transportes GyA' }
   ];
 
   constructor(
@@ -99,9 +98,8 @@ export class CrearUsuariosPruebaComponent {
           email: userData.email,
           nombre: userData.nombre,
           empresaId: empresaId,
-          rol: userData.rol,
+          perfil: userData.perfil,  // Nuevo modelo: perfil
           estado: 'activo',
-          permisos: PERMISOS_POR_ROL[userData.rol] || [],
           createdAt: Timestamp.fromDate(new Date())
         });
 

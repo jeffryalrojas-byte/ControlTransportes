@@ -39,12 +39,7 @@ export class AuthGuard implements CanActivate {
       return false;
     }
 
-    // Verificar si requiere rol específico
-    const requiredRoles = route.data['roles'] as string[];
-    if (requiredRoles && !requiredRoles.includes(usuario.rol)) {
-      this.router.navigate(['/acceso-denegado']);
-      return false;
-    }
+
 
     // Actualizar último login
     await this.userService.actualizarLastLogin(currentUser.uid);

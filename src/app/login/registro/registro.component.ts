@@ -108,29 +108,7 @@ export class RegistroComponent implements OnInit {
     try {
       const { nombre, email, password, nombreEmpresa, cedula, plan } = this.registroForm.value;
 
-      // 1. Crear usuario en Firebase Auth
-      const userCredential = await this.authService.registro(email, password, nombre);
 
-      // 2. Crear empresa en Firestore
-      const empresa = await this.userService.crearEmpresa(
-        nombreEmpresa,
-        cedula,
-        userCredential.uid,
-        plan
-      );
-
-      // 3. Crear registro de usuario en Firestore con rol supervisor (es el propietario)
-      await this.userService.crearUsuario(
-        userCredential.uid,
-        email,
-        nombre,
-        empresa.id,
-        'supervisor'
-      );
-
-      this.snackBar.open('✅ Cuenta creada exitosamente', 'Cerrar', { duration: 3000 });
-
-      // 4. Redirigir al dashboard
       setTimeout(() => {
         this.cargando = false;
         this.router.navigate(['/rrhh']);
