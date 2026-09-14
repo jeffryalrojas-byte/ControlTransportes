@@ -108,14 +108,83 @@ export class RegistroComponent implements OnInit {
     try {
       const { nombre, email, password, nombreEmpresa, cedula, plan } = this.registroForm.value;
 
+      console.log('📝 Iniciando registro con:');
+      console.log('- Nombre:', nombre);
+      console.log('- Email:', email);
+      console.log('- Empresa:', nombreEmpresa);
+      console.log('- Plan:', plan);
 
+      // ============================================================
+      // PASO 1: Crear usuario en Firebase Auth
+      // ============================================================
+      console.log('1️⃣ Creando usuario en Firebase Auth...');
+      const userCredential = await this.authService.registro(email, password, nombre);
+      console.log('✅ Usuario creado en Firebase Auth. UID:', userCredential.uid);
+
+      // ============================================================
+      // PASO 2: Crear empresa en Firestore
+      // ============================================================
+      console.log('2️⃣ Creando empresa en Firestore...');
+      const empresa = await this.userService.crearEmpresa(
+        nombreEmpresa,
+        cedula,
+        userCredential.uid,
+        plan as 'free' | 'professional' | 'business'
+      );
+      console.log('✅ Empresa creada. ID:', empresa.id);
+      console.log('   - Nombre:', empresa.nombre);
+      console.log('   - Plan:', empresa.plan);
+
+      // ============================================================
+      // PASO 3: Crear registro de usuario en Firestore con perfil supervisor
+      // ============================================================
+      console.log('3️⃣ Creando documento de usuario en Firestore con perfil SUPERVISOR...');
+      await this.userService.crearUsuario(
+        userCredential.uid,
+        email,
+        nombre,
+        empresa.id,
+        'supervisor'  // 👈 PERFIL: supervisor
+      );
+      console.log('✅ Usuario guardado en Firestore con perfil SUPERVISOR');
+      console.log('   - UID:', userCredential.uid);
+      console.log('   - Email:', email);
+      console.log('   - Nombre:', nombre);
+      console.log('   - Perfil:', 'supervisor');
+      console.log('   - Empresa ID:', empresa.id);
+
+      // ============================================================
+      // PASO 4: Guardar datos en localStorage
+      // ============================================================
+      console.log('4️⃣ Guardando datos en localStorage...');
+      localStorage.setItem('usuarioActivo', JSON.stringify({
+        uid: userCredential.uid,
+        email: email,
+        nombre: nombre,
+        perfil: 'supervisor',
+        empresaId: empresa.id,
+        estado: 'activo'
+      }));
+      localStorage.setItem('empresaActiva', empresa.id);
+      console.log('✅ Datos guardados en localStorage');
+
+      this.snackBar.open('✅ Cuenta creada exitosamente', 'Cerrar', { duration: 3000 });
+
+      // ============================================================
+      // PASO 5: Redirigir al dashboard
+      // ============================================================
+      console.log('5️⃣ Redirigiendo a /rrhh...');
       setTimeout(() => {
         this.cargando = false;
         this.router.navigate(['/rrhh']);
       }, 1000);
+
+      console.log('🎉 REGISTRO COMPLETADO CON ÉXITO');
+
     } catch (error: any) {
       this.cargando = false;
       this.errorMessage = error.message || 'Error al registrar la cuenta';
+      console.error('❌ Error en registro:', error);
       this.snackBar.open('❌ ' + this.errorMessage, 'Cerrar', { duration: 5000 });
     }
   }
