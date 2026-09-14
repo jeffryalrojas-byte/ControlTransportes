@@ -95,6 +95,7 @@ import { IncapacidadesComponent } from './incapacidades/incapacidades.component'
     MatDatepickerModule,
     MatNativeDateModule,
     ReporteriaModule,
+    GestionUsuariosModule,
   ],
   providers: [
     provideFirebaseApp(() => initializeApp(environment.firebase)),
