@@ -3,6 +3,8 @@ import { RouterModule, Routes } from '@angular/router';
 import { RrhhComponent } from './rrhh/rrhh.component';
 import { PlanillaComponent } from './planilla/planilla.component';
 import { ConfiguracionComponent } from './configuracion/configuracion.component';
+import { VacacionesComponent } from './vacaciones/vacaciones.component';
+import { IncapacidadesComponent } from './incapacidades/incapacidades.component';
 import { LoginComponent } from './login/login.component';
 import { RegistroComponent } from './login/registro/registro.component';
 import { MigracionComponent } from './shared/migracion/migracion.component';
@@ -20,6 +22,8 @@ const routes: Routes = [
   { path: 'migracion-completa', component: MigracionCompletaComponent },
   { path: 'rrhh', component: RrhhComponent, canActivate: [AuthGuard] },
   { path: 'planilla', component: PlanillaComponent, canActivate: [AuthGuard] },
+  { path: 'vacaciones', component: VacacionesComponent, canActivate: [AuthGuard] },
+  { path: 'incapacidades', component: IncapacidadesComponent, canActivate: [AuthGuard] },
   { path: 'pagos', loadChildren: () => import('./pagos/pagos.module').then(m => m.PagosModule), canActivate: [AuthGuard] },
   { path: 'reporteria', component: ReporteriaComponent, canActivate: [AuthGuard] },
   { path: 'configuracion', component: ConfiguracionComponent, canActivate: [AuthGuard], data: { roles: ['supervisor'] } },

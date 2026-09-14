@@ -50,12 +50,16 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { ReporteriaModule } from './reporteria/reporteria.module';
+import { VacacionesComponent } from './vacaciones/vacaciones.component';
+import { IncapacidadesComponent } from './incapacidades/incapacidades.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     RrhhComponent,
     PlanillaComponent,
+    VacacionesComponent,
+    IncapacidadesComponent,
     ConfiguracionComponent,
     NavbarComponent,
     LoginComponent,

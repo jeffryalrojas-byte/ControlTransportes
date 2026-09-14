@@ -14,7 +14,7 @@
   <mat-tab-group class="config-tabs" animationDuration="300">
 
     <!-- TAB 1: Logo -->
-    <mat-tab label="Logo Personalizado" class="tab-logo">
+    <mat-tab class="tab-logo">
       <ng-template mat-tab-label>
         <mat-icon class="tab-icon">image</mat-icon>
         <span>Logo</span>
@@ -68,17 +68,17 @@
             </button>
 
             <!-- Info -->
-            <mat-hint class="upload-info">
+            <div class="upload-info">
               <mat-icon>info</mat-icon>
               Formatos soportados: JPG, PNG | Tamaño máximo: 2MB
-            </mat-hint>
+            </div>
           </div>
         </mat-card-content>
       </mat-card>
     </mat-tab>
 
     <!-- TAB 2: Cargas Sociales -->
-    <mat-tab label="Cargas Sociales" class="tab-cargas">
+    <mat-tab class="tab-cargas">
       <ng-template mat-tab-label>
         <mat-icon class="tab-icon">account_balance</mat-icon>
         <span>Cargas Sociales</span>
@@ -182,7 +182,7 @@
     </mat-tab>
 
     <!-- TAB 3: Incentivos -->
-    <mat-tab label="Incentivos" class="tab-incentivos">
+    <mat-tab class="tab-incentivos">
       <ng-template mat-tab-label>
         <mat-icon class="tab-icon">card_giftcard</mat-icon>
         <span>Incentivos</span>
@@ -214,3 +214,6 @@
           </div>
         </mat-card-content>
       </mat-card>
+    </mat-tab>
+  </mat-tab-group>
+</div>
