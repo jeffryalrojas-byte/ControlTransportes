@@ -2,16 +2,22 @@
 @import '../../styles/mixins';
 
 .app-navbar {
-  padding: 0 $spacing-lg;
-  @include flex-between;
-  gap: $spacing-lg;
+  padding: 0 $spacing-md;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  box-sizing: border-box;
+  gap: $spacing-md;
+
   box-shadow: $shadow-md;
   background: linear-gradient(135deg, $primary 0%, $primary-dark 100%) !important;
+
   height: auto;
   min-height: 70px;
 
   @include respond-to('lg') {
-    padding: 0 $spacing-md;
+    padding: 0 $spacing-sm;
+    gap: $spacing-sm;
     min-height: 65px;
   }
 
@@ -25,8 +31,15 @@
 // ==================== SECCIÓN IZQUIERDA ====================
 .navbar-left {
   @include flex-center;
-  gap: $spacing-md;
-  flex: 0 0 auto;
+
+  gap: $spacing-sm;
+
+  flex: 0 1 auto;
+  min-width: 0;
+
+  .empresa-section {
+    min-width: 0;
+  }
 
   @include respond-to('md') {
     gap: $spacing-sm;
@@ -164,30 +177,42 @@
 
 // ==================== NAVEGACIÓN ====================
 .navbar-center {
-  @include flex-center;
-  gap: $spacing-sm;
-  flex: 0 0 auto;
-  flex-wrap: wrap;
+  display: flex;
+  align-items: center;
   justify-content: center;
 
-  @include respond-to('md') {
-    width: 100%;
-    gap: $spacing-xs;
-  }
+  gap: 2px;
+
+  flex: 1 1 auto;
+  min-width: 0;
+
+  flex-wrap: nowrap;
+  overflow: hidden;
 
   button[mat-button] {
+    flex: 0 1 auto;
+    min-width: 0;
+
     color: rgba(255, 255, 255, 0.9);
     font-weight: $font-weight-semibold;
     font-size: $font-size-xs;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    padding: $spacing-sm;
+    letter-spacing: 0.3px;
+
+    padding: 0 8px;
     border-radius: $border-radius-sm;
+
     transition: all $transition-normal;
-    @include flex-center;
-    gap: $spacing-xs;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+
+    white-space: nowrap;
 
     mat-icon {
+      flex-shrink: 0;
       font-size: 18px;
       width: 18px;
       height: 18px;
@@ -195,14 +220,7 @@
 
     span {
       display: inline-block;
-
-      @include respond-to('lg') {
-        font-size: $font-size-xs;
-      }
-
-      @include respond-to('md') {
-        display: none;
-      }
+      white-space: nowrap;
     }
 
     &:hover {
@@ -221,11 +239,47 @@
       }
     }
   }
+
+  @include respond-to('lg') {
+    gap: 0;
+
+    button[mat-button] {
+      padding: 0 5px;
+      font-size: 11px;
+
+      mat-icon {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+      }
+    }
+  }
+
+  @include respond-to('md') {
+    width: 100%;
+    flex: 1 1 100%;
+    flex-wrap: wrap;
+    overflow: visible;
+    gap: $spacing-xs;
+
+    button[mat-button] {
+      flex: 1 1 auto;
+
+      span {
+        display: none;
+      }
+    }
+  }
 }
 
 // ==================== SPACER ====================
 .spacer {
-  flex: 1 1 auto;
+  flex: 1 1 20px;
+  min-width: 10px;
+
+  @include respond-to('lg') {
+    flex: 0 1 10px;
+  }
 
   @include respond-to('md') {
     display: none;
@@ -267,6 +321,7 @@
     opacity: 0;
     transform: translateY(-5px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
