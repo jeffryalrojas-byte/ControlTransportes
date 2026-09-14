@@ -6,18 +6,18 @@ import { PerfilesService } from './perfiles.service';
 import { SesionService } from './sesion.service';
 
 export class PermisoHelper {
-  private perfil: string = '';
+  private rol: string = '';
 
   constructor(
     private perfilesService: PerfilesService,
     private sesionService: SesionService
   ) {
     const usuario = this.sesionService.getUsuarioActivo();
-    this.perfil = usuario?.perfil || 'secretario';
+    this.rol = usuario?.rol || 'secretario';
   }
 
   puede(accion: string, modulo: string): boolean {
-    return this.perfilesService.tienepermiso(this.perfil, modulo, accion);
+    return this.perfilesService.tienepermiso(this.rol, modulo, accion);
   }
 
   puedeVer(modulo: string): boolean {
@@ -36,7 +36,7 @@ export class PermisoHelper {
     return this.puede('eliminar', modulo);
   }
 
-  obtenerPerfil(): string {
-    return this.perfil;
+  obtenerRol(): string {
+    return this.rol;
   }
 }

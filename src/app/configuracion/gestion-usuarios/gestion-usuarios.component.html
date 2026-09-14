@@ -49,33 +49,10 @@
         </div>
 
         <div class="form-row">
-          <mat-form-field appearance="outline" class="form-field full-width">
-            <mat-label>Perfil de Acceso</mat-label>
-            <mat-select [(ngModel)]="formData.perfil" name="perfil">
-              <mat-option value="supervisor" [disabled]="!puedeAgregarPerfil('supervisor')">
-                👑 Supervisor
-              </mat-option>
-              <mat-option value="administrador" [disabled]="!puedeAgregarPerfil('administrador')">
-                🔒 Administrador
-              </mat-option>
-              <mat-option value="secretario" [disabled]="!puedeAgregarPerfil('secretario')">
-                📋 Secretario
-              </mat-option>
-            </mat-select>
-            <mat-icon matPrefix>security</mat-icon>
-          </mat-form-field>
+
         </div>
 
-        <!-- Info perfil -->
-        <div class="perfil-info">
-          <mat-icon>info</mat-icon>
-          <div>
-            <strong>{{ obtenerNombrePerfil(formData.perfil) }}:</strong>
-            <span *ngIf="formData.perfil === 'supervisor'">Acceso total a todos los módulos</span>
-            <span *ngIf="formData.perfil === 'administrador'">Acceso a módulos con restricciones de eliminación</span>
-            <span *ngIf="formData.perfil === 'secretario'">Acceso limitado, solo visualización en planilla</span>
-          </div>
-        </div>
+
 
         <div class="form-actions">
           <button mat-raised-button color="primary" (click)="guardarUsuario()" [disabled]="procesando">
@@ -104,7 +81,7 @@
             <tr>
               <th>Email</th>
               <th>Nombre</th>
-              <th>Perfil</th>
+
               <th>Estado</th>
               <th>Fecha Creación</th>
               <th *ngIf="puedeGestionar()">Acciones</th>
@@ -114,11 +91,7 @@
             <tr *ngFor="let usuario of usuariosEmpresa">
               <td>{{ usuario.email }}</td>
               <td>{{ usuario.nombre }}</td>
-              <td>
-                <span [ngClass]="'badge badge-' + usuario.perfil">
-                  {{ obtenerNombrePerfil(usuario.perfil) }}
-                </span>
-              </td>
+
               <td>
                 <span [ngClass]="'badge badge-' + usuario.estado">
                   {{ usuario.estado | uppercase }}

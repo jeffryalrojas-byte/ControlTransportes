@@ -9,7 +9,7 @@ interface Usuario {
   id: string;
   email: string;
   nombre: string;
-  perfil: string;
+  rol: string;
   estado: 'activo' | 'inactivo';
   fechaCreacion: Date;
 }
@@ -31,7 +31,7 @@ export class GestionUsuariosComponent implements OnInit {
   formData = {
     email: '',
     nombre: '',
-    perfil: 'secretario'
+    rol: 'secretario'
   };
 
   error: string | null = null;
@@ -47,6 +47,7 @@ export class GestionUsuariosComponent implements OnInit {
 
   ngOnInit() {
     this.usuarioActivo = this.sesionService.getUsuarioActivo();
+    console.log('Usuario activo:', this.usuarioActivo);
     this.perfiles = this.perfilesService.obtenerTodos();
     this.cargarUsuarios();
   }
@@ -70,15 +71,15 @@ export class GestionUsuariosComponent implements OnInit {
   }
 
   puedeGestionar(): boolean {
-    const perfil = this.usuarioActivo?.perfil;
-    return this.perfilesService.tienepermiso(perfil, 'configuracion', 'gestionarUsuarios');
+    const rol = this.usuarioActivo?.rol;
+    return !!rol && this.perfilesService.tienepermiso(rol, 'configuracion', 'gestionarUsuarios');
   }
 
-  puedeAgregarPerfil(perfilAgregando: string): boolean {
-    const perfil = this.usuarioActivo?.perfil;
-    if (perfil === 'supervisor') return true;
-    if (perfil === 'administrador') {
-      return perfilAgregando !== 'supervisor';
+  puedeAgregarRol(rolAgregando: string): boolean {
+    const rol = this.usuarioActivo?.rol;
+    if (rol === 'supervisor') return true;
+    if (rol === 'administrador') {
+      return rolAgregando !== 'supervisor';
     }
     return false;
   }
@@ -98,19 +99,19 @@ export class GestionUsuariosComponent implements OnInit {
     this.formData = {
       email: usuario.email,
       nombre: usuario.nombre,
-      perfil: usuario.perfil
+      rol: usuario.rol
     };
     this.mostrarFormulario = true;
   }
 
   async guardarUsuario() {
-    if (!this.formData.email || !this.formData.nombre || !this.formData.perfil) {
+    if (!this.formData.email || !this.formData.nombre || !this.formData.rol) {
       this.error = 'Completa todos los campos';
       return;
     }
 
-    if (!this.puedeAgregarPerfil(this.formData.perfil)) {
-      this.error = 'No puedes asignar este perfil';
+    if (!this.puedeAgregarRol(this.formData.rol)) {
+      this.error = 'No puedes asignar este rol';
       return;
     }
 
@@ -123,13 +124,13 @@ export class GestionUsuariosComponent implements OnInit {
       if (this.editando) {
         await updateDoc(doc(this.firestore, 'usuarios', this.editando.id), {
           nombre: this.formData.nombre,
-          perfil: this.formData.perfil
+          rol: this.formData.rol
         });
 
         await this.auditoriaService.registrarAccion(
           'configuracion',
           'editar',
-          `Perfil de usuario actualizado a: ${this.formData.perfil}`,
+          `Rol de usuario actualizado a: ${this.formData.rol}`,
           this.editando.id,
           { emailUsuario: this.formData.email }
         );
@@ -138,7 +139,7 @@ export class GestionUsuariosComponent implements OnInit {
           id: uuid(),
           email: this.formData.email,
           nombre: this.formData.nombre,
-          perfil: this.formData.perfil,
+          rol: this.formData.rol,
           empresaId: (empresa as any)?.id,
           estado: 'activo',
           fechaCreacion: new Date()
@@ -149,7 +150,7 @@ export class GestionUsuariosComponent implements OnInit {
         await this.auditoriaService.registrarAccion(
           'configuracion',
           'crear',
-          `Nuevo usuario agregado con perfil: ${this.formData.perfil}`,
+          `Nuevo usuario agregado con rol: ${this.formData.rol}`,
           nuevoUsuario.id,
           { email: this.formData.email }
         );
@@ -201,11 +202,11 @@ export class GestionUsuariosComponent implements OnInit {
     this.formData = {
       email: '',
       nombre: '',
-      perfil: 'secretario'
+      rol: 'secretario'
     };
   }
 
-  obtenerNombrePerfil(id: string): string {
+  obtenerNombreRol(id: string): string {
     return id.charAt(0).toUpperCase() + id.slice(1);
   }
 
