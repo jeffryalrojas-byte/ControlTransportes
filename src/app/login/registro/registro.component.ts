@@ -154,6 +154,17 @@ export class RegistroComponent implements OnInit {
       console.log('   - Empresa ID:', empresa.id);
 
       // ============================================================
+      // PASO 3.5: Enviar email de bienvenida
+      // ============================================================
+      try {
+        console.log('3️⃣.5️⃣ Enviando email de bienvenida...');
+        await this.enviarEmailBienvenida(email, nombre);
+        console.log('✅ Email de bienvenida enviado a:', email);
+      } catch (error) {
+        console.warn('⚠️ Error al enviar email, pero el usuario fue creado:', error);
+      }
+
+      // ============================================================
       // PASO 4: Guardar datos en localStorage
       // ============================================================
       console.log('4️⃣ Guardando datos en localStorage...');
@@ -186,6 +197,37 @@ export class RegistroComponent implements OnInit {
       this.errorMessage = error.message || 'Error al registrar la cuenta';
       console.error('❌ Error en registro:', error);
       this.snackBar.open('❌ ' + this.errorMessage, 'Cerrar', { duration: 5000 });
+    }
+  }
+
+  /**
+   * Enviar email de bienvenida via Cloud Function
+   */
+  private async enviarEmailBienvenida(email: string, nombre: string): Promise<void> {
+    try {
+      const projectId = 'control-transportes';
+      const functionUrl = `https://us-central1-${projectId}.cloudfunctions.net/enviarBienvenida`;
+
+      const response = await fetch(functionUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          email: email,
+          nombre: nombre
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log('Response de Resend:', data);
+    } catch (error) {
+      console.error('Error enviando email de bienvenida:', error);
+      throw error;
     }
   }
 }
