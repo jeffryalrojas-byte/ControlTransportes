@@ -15,7 +15,7 @@ export class UserService {
   }
 
   /**
-   * Crear usuario (compatible con modelo nuevo: perfil)
+   * Crear usuario
    */
   async crearUsuario(
     uid: string,
@@ -29,7 +29,7 @@ export class UserService {
         uid,
         email,
         nombre,
-        perfil,  // Nuevo modelo
+        perfil,
         empresaId,
         estado: 'activo',
         createdAt: new Date()
@@ -116,9 +116,6 @@ export class UserService {
     }
   }
 
-  /**
-   * Cambiar perfil de usuario
-   */
   async cambiarPerfil(uid: string, nuevoPerfil: string): Promise<void> {
     try {
       const docRef = doc(this.firestore, this.usersCollection, uid);
@@ -152,6 +149,69 @@ export class UserService {
     }
   }
 
+  /**
+   * Obtener empresa por cédula (validación de duplicados)
+   */
+  async obtenerEmpresaPorCedula(cedula: string): Promise<Empresa | null> {
+    try {
+      const q = query(collection(this.firestore, this.empresasCollection), where('cedula', '==', cedula));
+      const querySnapshot = await getDocs(q);
+
+      if (querySnapshot.empty) {
+        return null;
+      }
+
+      const doc = querySnapshot.docs[0];
+      const data = doc.data();
+      return {
+        ...data as Empresa,
+        id: doc.id,
+        createdAt: data['createdAt']?.toDate() || new Date(),
+        suscripcion: {
+          ...data['suscripcion'],
+          fechaInicio: data['suscripcion']?.fechaInicio?.toDate() || new Date(),
+          fechaVencimiento: data['suscripcion']?.fechaVencimiento?.toDate() || new Date()
+        }
+      };
+    } catch (error) {
+      console.error('Error al obtener empresa por cédula:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Obtener empresa por nombre (validación de duplicados)
+   */
+  async obtenerEmpresaPorNombre(nombre: string): Promise<Empresa | null> {
+    try {
+      const q = query(collection(this.firestore, this.empresasCollection), where('nombre', '==', nombre));
+      const querySnapshot = await getDocs(q);
+
+      if (querySnapshot.empty) {
+        return null;
+      }
+
+      const doc = querySnapshot.docs[0];
+      const data = doc.data();
+      return {
+        ...data as Empresa,
+        id: doc.id,
+        createdAt: data['createdAt']?.toDate() || new Date(),
+        suscripcion: {
+          ...data['suscripcion'],
+          fechaInicio: data['suscripcion']?.fechaInicio?.toDate() || new Date(),
+          fechaVencimiento: data['suscripcion']?.fechaVencimiento?.toDate() || new Date()
+        }
+      };
+    } catch (error) {
+      console.error('Error al obtener empresa por nombre:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Crear empresa
+   */
   async crearEmpresa(nombre: string, cedula: string, propietarioId: string, plan: 'free' | 'professional' | 'business' = 'free'): Promise<Empresa> {
     try {
       const empresasRef = collection(this.firestore, this.empresasCollection);
@@ -250,15 +310,9 @@ export class UserService {
     }
   }
 
-  /**
-   * Verificar si usuario tiene acceso a un módulo
-   * (Método heredado, usa perfil ahora)
-   */
   tieneAccesoModulo(usuario: Usuario, modulo: string): boolean {
-    // Este método ahora se valida con permisos individuales, no con módulos
-    // Se mantiene por compatibilidad
     console.warn('tieneAccesoModulo es heredado. Usa PerfilesService.tienePermiso() en su lugar');
-    return true; // Por defecto, permite acceso (el componente debe validar permisos)
+    return true;
   }
 
   private async initializarPlanes(): Promise<void> {

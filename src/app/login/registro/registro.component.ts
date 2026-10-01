@@ -112,7 +112,27 @@ export class RegistroComponent implements OnInit {
       console.log('- Nombre:', nombre);
       console.log('- Email:', email);
       console.log('- Empresa:', nombreEmpresa);
+      console.log('- Cédula:', cedula);
       console.log('- Plan:', plan);
+
+      // ============================================================
+      // PASO 0: VALIDAR EMPRESA DUPLICADA (ANTES de crear usuario)
+      // ============================================================
+      console.log('0️⃣ Validando si empresa ya existe...');
+      
+      // Validar cédula única
+      const empresaPorCedula = await this.userService.obtenerEmpresaPorCedula(cedula);
+      if (empresaPorCedula) {
+        throw new Error('Ya existe una empresa registrada con esta cédula');
+      }
+
+      // Validar nombre único
+      const empresaPorNombre = await this.userService.obtenerEmpresaPorNombre(nombreEmpresa);
+      if (empresaPorNombre) {
+        throw new Error('Ya existe una empresa registrada con este nombre');
+      }
+
+      console.log('✅ Validaciones pasadas: cédula y nombre únicos');
 
       // ============================================================
       // PASO 1: Crear usuario en Firebase Auth
@@ -133,6 +153,7 @@ export class RegistroComponent implements OnInit {
       );
       console.log('✅ Empresa creada. ID:', empresa.id);
       console.log('   - Nombre:', empresa.nombre);
+      console.log('   - Cédula:', empresa.cedula);
       console.log('   - Plan:', empresa.plan);
 
       // ============================================================
@@ -144,7 +165,7 @@ export class RegistroComponent implements OnInit {
         email,
         nombre,
         empresa.id,
-        'supervisor'  // 👈 PERFIL: supervisor
+        'supervisor'
       );
       console.log('✅ Usuario guardado en Firestore con perfil SUPERVISOR');
       console.log('   - UID:', userCredential.uid);
